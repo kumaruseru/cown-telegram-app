@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config();
 
-const DatabaseManager = require('./src/database/DatabaseManager_MySQL');
+const DatabaseManager = require('./src/database/DatabaseManager_SQLite');
 const MessageHandler = require('./src/handlers/MessageHandler');
 const TelegramClientService = require('./src/services/TelegramClientService');
 const AuthService = require('./src/services/AuthService');
@@ -715,9 +715,14 @@ class CownTelegramApp {
 
     async start() {
         await this.initialize();
-        this.server.listen(this.port, () => {
-            console.log(`🚀 Cown Telegram App đang chạy trên port ${this.port}`);
-            console.log(`🌐 Truy cập: http://localhost:${this.port}`);
+        const host = process.env.HOST || '0.0.0.0';
+        this.server.listen(this.port, host, () => {
+            console.log(`🚀 Cown Telegram App đang chạy trên ${host}:${this.port}`);
+            console.log(`🌐 Truy cập local: http://localhost:${this.port}`);
+            if (host === '0.0.0.0') {
+                console.log(`🌐 Truy cập mạng: http://[IP-ADDRESS]:${this.port}`);
+                console.log(`💡 Thay [IP-ADDRESS] bằng địa chỉ IP thực của máy`);
+            }
         });
     }
 }
