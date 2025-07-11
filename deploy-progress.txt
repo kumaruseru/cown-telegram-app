@@ -1,0 +1,54 @@
+🎯 RENDER DEPLOYMENT PROGRESS TRACKER
+
+📋 PRE-DEPLOYMENT:
+✅ Code pushed to GitHub
+✅ Repository: kumaruseru/cown-telegram-app  
+✅ Render website opened
+✅ GitHub repository opened
+
+🌐 RENDER DASHBOARD STEPS:
+⏳ 1. Sign in with GitHub account
+⏳ 2. Click "New +" → "Web Service"
+⏳ 3. Connect GitHub repository
+⏳ 4. Select: kumaruseru/cown-telegram-app
+⏳ 5. Click "Connect"
+
+⚙️ CONFIGURATION:
+⏳ Auto-detected from render.yaml:
+   - Name: cown-telegram-app
+   - Environment: Docker  
+   - Region: Singapore
+   - Branch: main
+   - Plan: Free
+
+🔧 ENVIRONMENT VARIABLES TO ADD:
+⏳ TELEGRAM_API_ID = 20657396
+⏳ TELEGRAM_API_HASH = 2efea0a1f070994045dfa4e82d604996
+⏳ NODE_ENV = production
+⏳ DOCKER = true
+⏳ PORT = 3000
+⏳ DB_PATH = /app/data/cown.db
+
+🚀 FINAL DEPLOYMENT:
+⏳ Click "Create Web Service"
+⏳ Wait for build (5-10 minutes)
+⏳ Check deployment logs
+⏳ Verify app is running
+
+🎉 SUCCESS INDICATORS:
+⏳ Build completed successfully
+⏳ Service is "Live" 
+⏳ Health check passes: /health
+⏳ App accessible at: https://cown-telegram-app.onrender.com
+
+🔗 QUICK LINKS:
+- Render: https://render.com
+- GitHub: https://github.com/kumaruseru/cown-telegram-app
+- Expected URL: https://cown-telegram-app.onrender.com
+
+📞 SUPPORT:
+If you encounter issues, check:
+1. Build logs in Render dashboard
+2. Environment variables are correct
+3. Health check endpoint responds
+4. Database initializes properly

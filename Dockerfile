@@ -16,7 +16,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies including sqlite3
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --only=production --silent --no-audit --no-fund && \
+    npm cache clean --force
 
 # Sao chép source code
 COPY . .
