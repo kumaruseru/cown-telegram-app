@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug OTP Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .form-group { margin: 15px 0; }
+        input { padding: 10px; margin: 5px 0; width: 200px; }
+        button { padding: 10px 20px; margin: 5px; }
+        .result { margin: 20px 0; padding: 15px; border: 1px solid #ddd; min-height: 50px; }
+        .loading { color: orange; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Debug OTP Test</h1>
+    
+    <div class="form-group">
+        <label>Country Code:</label>
+        <select id="countryCode">
+            <option value="+84">+84 (Vietnam)</option>
+            <option value="+1">+1 (US)</option>
+            <option value="+86">+86 (China)</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>Phone Number:</label>
+        <input type="tel" id="phoneNumber" placeholder="912345678" />
+    </div>
+    
+    <div class="form-group">
+        <button id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+    </div>
+    
+    <div class="form-group">
+        <label>OTP Code:</label>
+        <input type="text" id="otpCode" placeholder="000000" maxlength="6" />
+    </div>
+    
+    <div class="form-group">
+        <button id="verifyOtpBtn" onclick="verifyOTP()">Verify OTP</button>
+    </div>
+    
+    <div class="result" id="result">Ready to test...</div>
+
+    <script>
+        let phoneNumber = '';
+        
+        function logResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            const timestamp = new Date().toLocaleTimeString();
+            resultDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        async function sendOTP() {
+            try {
+                logResult('🚀 Starting sendOTP...', 'loading');
+                
+                const countryCode = document.getElementById('countryCode').value;
+                const phone = document.getElementById('phoneNumber').value.trim();
+                
+                if (!phone) {
+                    logResult('❌ Phone number is required', 'error');
+                    return;
+                }
+                
+                phoneNumber = countryCode + phone;
+                logResult(`📱 Full phone: ${phoneNumber}`, 'info');
+                
+                document.getElementById('sendOtpBtn').disabled = true;
+                document.getElementById('sendOtpBtn').textContent = 'Sending...';
+                
+                logResult('🌐 Making request to /api/auth/send-phone-otp', 'info');
+                
+                const response = await fetch('/api/auth/send-phone-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: phoneNumber
+                    })
+                });
+                
+                logResult(`📡 Response status: ${response.status}`, 'info');
+                
+                const result = await response.json();
+                logResult(`📋 Response data: ${JSON.stringify(result)}`, 'info');
+                
+                if (response.ok && result.success) {
+                    logResult(`✅ OTP sent via ${result.method}! Dev OTP: ${result.devOTP}`, 'success');
+                } else {
+                    logResult(`❌ Failed: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                logResult(`❌ Exception: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            } finally {
+                document.getElementById('sendOtpBtn').disabled = false;
+                document.getElementById('sendOtpBtn').textContent = 'Send OTP';
+            }
+        }
+        
+        async function verifyOTP() {
+            try {
+                logResult('🔐 Starting verifyOTP...', 'loading');
+                
+                const otpCode = document.getElementById('otpCode').value.trim();
+                
+                if (!otpCode) {
+                    logResult('❌ OTP code is required', 'error');
+                    return;
+                }
+                
+                if (!phoneNumber) {
+                    logResult('❌ Please send OTP first', 'error');
+                    return;
+                }
+                
+                document.getElementById('verifyOtpBtn').disabled = true;
+                document.getElementById('verifyOtpBtn').textContent = 'Verifying...';
+                
+                logResult('🌐 Making request to /api/auth/login-with-phone', 'info');
+                
+                const response = await fetch('/api/auth/login-with-phone', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: phoneNumber,
+                        otp: otpCode
+                    })
+                });
+                
+                logResult(`📡 Response status: ${response.status}`, 'info');
+                
+                const result = await response.json();
+                logResult(`📋 Response data: ${JSON.stringify(result)}`, 'info');
+                
+                if (response.ok && result.success) {
+                    logResult(`✅ Login successful! User: ${result.user.username}`, 'success');
+                } else {
+                    logResult(`❌ Verification failed: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                logResult(`❌ Exception: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            } finally {
+                document.getElementById('verifyOtpBtn').disabled = false;
+                document.getElementById('verifyOtpBtn').textContent = 'Verify OTP';
+            }
+        }
+        
+        // Test connectivity on page load
+        window.addEventListener('load', () => {
+            logResult('🌐 Page loaded, testing server connectivity...', 'info');
+            fetch('/').then(response => {
+                logResult(`✅ Server accessible (GET / ${response.status})`, 'success');
+            }).catch(error => {
+                logResult(`❌ Server not accessible: ${error.message}`, 'error');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Register - Cown</title>
+</head>
+<body>
+    <h1>Test Register Form</h1>
+    <form id="testForm">
+        <div>
+            <label>Username:</label>
+            <input type="text" name="username" value="testuser" required>
+        </div>
+        <div>
+            <label>Password:</label>
+            <input type="password" name="password" value="123456" required>
+        </div>
+        <div>
+            <label>Telegram Phone:</label>
+            <input type="tel" name="telegram_phone" value="+84123456789" required>
+        </div>
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" value="">
+        </div>
+        <button type="submit">Test Register</button>
+    </form>
+
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                username: formData.get('username'),
+                password: formData.get('password'),
+                telegram_phone: formData.get('telegram_phone'),
+                email: formData.get('email') || null
+            };
+            
+            console.log('Test data:', data);
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                console.log('Response:', result);
+                
+                if (response.ok) {
+                    alert('Success: ' + JSON.stringify(result));
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network Error: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Login - Cown</title>
+    <link rel="stylesheet" href="auth-phone.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Cown</h1>
+                <p>Đăng nhập vào ứng dụng nhắn tin yêu thích</p>
+            </div>
+
+            <div id="errorMessage" class="message error-message" style="display: none;"></div>
+            <div id="successMessage" class="message success-message" style="display: none;"></div>
+
+            <!-- Step 1: Phone Input -->
+            <div id="phoneStep" class="auth-step active">
+                <form id="phoneForm" class="auth-form">
+                    <div class="step-info">
+                        <div class="step-icon-modern">📱</div>
+                        <h3>Nhập số điện thoại</h3>
+                        <p>Chúng tôi sẽ gửi mã xác thực đến số điện thoại của bạn</p>
+                    </div>
+
+                    <div class="form-group-modern">
+                        <label for="phoneNumber" class="floating-label">Số điện thoại</label>
+                        <div class="input-container-modern">
+                            <div class="country-code-modern">
+                                <select id="countryCode">
+                                    <option value="+84">+84</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+86">+86</option>
+                                    <option value="+91">+91</option>
+                                    <option value="+44">+44</option>
+                                    <option value="+33">+33</option>
+                                    <option value="+49">+49</option>
+                                    <option value="+81">+81</option>
+                                    <option value="+82">+82</option>
+                                </select>
+                            </div>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" 
+                                   placeholder="912345678" required
+                                   pattern="[0-9]{8,12}" class="modern-input">
+                            <div class="input-icon-modern">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                        </div>
+                        <small class="help-text-modern">
+                            <i class="fas fa-info-circle"></i>
+                            Ví dụ: 912345678 (không nhập số 0 đầu)
+                        </small>
+                    </div>
+
+                    <button type="submit" class="submit-btn-modern" id="sendOtpBtn">
+                        <span class="btn-content">
+                            <span class="btn-icon">
+                                <i class="fas fa-paper-plane"></i>
+                            </span>
+                            <span class="btn-text">Gửi mã xác thực</span>
+                            <span class="btn-ripple"></span>
+                        </span>
+                        <span class="btn-loading-modern" style="display: none;">
+                            <div class="loading-spinner-modern"></div>
+                            <span>Đang gửi...</span>
+                        </span>
+                    </button>
+
+                    <div class="auth-info-mobile">
+                        <p><i class="fas fa-shield-alt"></i> Bảo mật với MTProto</p>
+                        <p><i class="fas fa-bolt"></i> Kết nối trực tiếp Telegram</p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 2: OTP Verification -->
+            <div id="otpStep" class="auth-step">
+                <form id="otpForm" class="auth-form">
+                    <div class="step-info">
+                        <div class="step-icon-modern">🔐</div>
+                        <h3>Nhập mã xác thực</h3>
+                        <p id="otpDescription">Mã xác thực đã được gửi đến số</p>
+                        <div class="phone-display-modern" id="phoneDisplay"></div>
+                    </div>
+
+                    <div class="form-group-modern">
+                        <label for="otpCode" class="floating-label">Mã xác thực</label>
+                        <div class="otp-input-container-modern">
+                            <input type="text" id="otpCode" name="otpCode" 
+                                   placeholder="000000" required
+                                   pattern="[0-9]{6}" maxlength="6"
+                                   autocomplete="one-time-code" class="modern-input otp-input">
+                            <div class="input-icon-modern">
+                                <i class="fas fa-key"></i>
+                            </div>
+                        </div>
+                        <small class="help-text-modern">
+                            <i class="fas fa-clock"></i>
+                            Mã có hiệu lực trong <span id="otpTimer">5:00</span>
+                        </small>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="verifyOtpBtn">
+                        <span class="btn-text">
+                            <i class="fas fa-check"></i>
+                            Xác thực
+                        </span>
+                        <span class="btn-loading" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            Đang xác thực...
+                        </span>
+                    </button>
+
+                    <div class="otp-actions">
+                        <button type="button" class="btn-link" id="resendOtpBtn" disabled>
+                            <i class="fas fa-redo"></i>
+                            Gửi lại mã
+                        </button>
+                        <button type="button" class="btn-link" id="changePhoneBtn" onclick="window.simplePhoneAuth?.showStep('phone')">
+                            <i class="fas fa-edit"></i>
+                            Đổi số điện thoại
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Side - Info -->
+        <div class="auth-info">
+            <div class="info-content">
+                <div class="cow-mascot">
+                    <div class="cow-face">🐄</div>
+                    <div class="cow-body">
+                        <div class="cow-spots"></div>
+                    </div>
+                </div>
+                
+                <h2>Chào mừng đến với Cown!</h2>
+                <p>Ứng dụng nhắn tin Telegram với giao diện đáng yêu và hiện đại</p>
+                
+                <ul class="features-list">
+                    <li>
+                        <i class="fas fa-mobile-alt cow-icon"></i>
+                        <span>Đăng nhập nhanh chỉ với số điện thoại</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-shield-alt cow-icon"></i>
+                        <span>Bảo mật cao với mã OTP</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-bolt cow-icon"></i>
+                        <span>Kết nối trực tiếp Telegram MTProto</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-comments cow-icon"></i>
+                        <span>Giao diện thân thiện, dễ sử dụng</span>
+                    </li>
+                </ul>
+
+                <div class="milk-animation">
+                    <div class="milk-glass">🥛</div>
+                    <div class="milk-flow"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="simple-auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐄 Cown - Ứng dụng Telegram Bò Sữa</title>
+    <link rel="stylesheet" href="styles-cow.css">
+    <link rel="stylesheet" href="enhanced-messages.css">
+    <link rel="stylesheet" href="advanced-effects.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐄</text></svg>">
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="app-container">
+        <!-- Sidebar với Cow Theme -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="app-logo">
+                    <div class="cow-logo">
+                        <span class="cow-icon">🐄</span>
+                        <div class="milk-bubble"></div>
+                    </div>
+                    <h2>🥛 Cown</h2>
+                    <p class="app-subtitle">Bò sữa nhắn tin</p>
+                </div>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot offline"></span>
+                    <span class="status-text">Đang kết nối...</span>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchChats" placeholder="Tìm kiếm cuộc trò chuyện bò bò...">
+                    <i class="fas fa-search search-icon"></i>
+                    <div class="search-decoration">🔍</div>
+                </div>
+            </div>
+            
+            <div class="chat-list" id="chatList">
+                <!-- Chat items sẽ được thêm động -->
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="btn btn-primary cow-btn" id="newChatBtn">
+                    <i class="fas fa-plus"></i>
+                    <span>Cuộc trò chuyện mới</span>
+                    <div class="cow-btn-decoration">🐄</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Chat Area với Cow Theme -->
+        <div class="main-content">
+            <div class="chat-header" id="chatHeader">
+                <div class="chat-info">
+                    <div class="avatar cow-avatar">
+                        <i class="fas fa-user"></i>
+                        <div class="avatar-decoration">🐄</div>
+                    </div>
+                    <div class="chat-details">
+                        <h3 id="chatTitle">Chọn một cuộc trò chuyện</h3>
+                        <span id="chatStatus">Sẵn sàng để "moo" nhắn tin 🐮</span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="btn btn-icon cow-action-btn" id="chatSettingsBtn" title="Cài đặt">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="welcome-message">
+                    <div class="welcome-cow">
+                        <div class="cow-mascot">🐄</div>
+                        <div class="milk-drops">
+                            <span class="drop">🥛</span>
+                            <span class="drop">🥛</span>
+                            <span class="drop">🥛</span>
+                        </div>
+                    </div>
+                    <h2>🥛 Chào mừng đến với Cown!</h2>
+                    <p>Chọn một cuộc trò chuyện từ danh sách bên trái để bắt đầu "moo" nhắn tin với bạn bè</p>
+                    <div class="welcome-features">
+                        <div class="feature-item">
+                            <span class="feature-icon">🔒</span>
+                            <span>Bảo mật cao</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">⚡</span>
+                            <span>Siêu nhanh</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🎨</span>
+                            <span>Giao diện bò đáng yêu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message-input-container" id="messageInputContainer" style="display: none;">
+                <div class="message-input">
+                    <button class="btn btn-icon cow-attach-btn" id="attachBtn" title="Đính kèm">
+                        <i class="fas fa-paperclip"></i>
+                        <span class="btn-decoration">📎</span>
+                    </button>
+                    <div class="input-wrapper">
+                        <input type="text" id="messageInput" placeholder="Nhập tin nhắn... Moo! 🐄">
+                        <div class="input-decoration"></div>
+                    </div>
+                    <button class="btn btn-icon btn-primary cow-send-btn" id="sendBtn" title="Gửi">
+                        <i class="fas fa-paper-plane"></i>
+                        <span class="btn-decoration">🚀</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for new chat với Cow Theme -->
+    <div class="modal" id="newChatModal">
+        <div class="modal-content cow-modal">
+            <div class="modal-header">
+                <div class="modal-icon">🐄</div>
+                <h3>Cuộc trò chuyện mới</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="chatIdInput">
+                        <i class="fas fa-hashtag"></i>
+                        Chat ID:
+                    </label>
+                    <div class="input-container">
+                        <input type="text" id="chatIdInput" placeholder="Nhập Chat ID từ Telegram">
+                        <div class="input-decoration">🔢</div>
+                    </div>
+                    <small class="help-text">
+                        <i class="fas fa-info-circle"></i>
+                        Lấy Chat ID từ @userinfobot trên Telegram
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary cow-btn-secondary" id="modalCancel">
+                    <i class="fas fa-times"></i>
+                    Hủy
+                </button>
+                <button class="btn btn-primary cow-btn-primary" id="modalConfirm">
+                    <i class="fas fa-plus"></i>
+                    Tạo
+                    <span class="btn-decoration">🐄</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay với Cow Theme -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-cow">
+                <div class="cow-spinner">🐄</div>
+                <div class="milk-flow"></div>
+            </div>
+            <div class="loading-spinner"></div>
+            <p>Đang tải... Bò đang chuẩn bị sữa! 🥛</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        console.log('🚨 IMMEDIATE REDIRECT SCRIPT');
+        
+        // Remove any existing content
+        document.body.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #5D4037 0%, #8D6E63 50%, #A1887F 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-family: 'Segoe UI', sans-serif;
+                text-align: center;
+                z-index: 10000;
+            ">
+                <div>
+                    <div style="font-size: 4rem; margin-bottom: 1rem; animation: bounce 1s infinite;">🐄</div>
+                    <div style="font-size: 1.5rem; margin-bottom: 1rem;">Đang chuyển hướng đến đăng nhập...</div>
+                    <div style="font-size: 1rem; opacity: 0.8;">Redirecting in 1 second...</div>
+                </div>
+            </div>
+            <style>
+                @keyframes bounce {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-10px); }
+                }
+            </style>
+        `;
+        
+        // Immediate redirect
+        setTimeout(() => {
+            console.log('🔄 Redirecting to login page');
+            window.location.href = '/login-phone.html';
+        }, 1000);
+    </script>
+</body>
+</html>

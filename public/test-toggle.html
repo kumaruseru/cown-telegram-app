@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Toggle Password</title>
+    <link rel="stylesheet" href="auth.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div style="padding: 50px; max-width: 400px; margin: 0 auto;">
+        <h2>Test Toggle Password</h2>
+        
+        <div class="form-group">
+            <label for="testPassword">Test Password</label>
+            <div class="input-container">
+                <input type="password" id="testPassword" name="testPassword" placeholder="Test password toggle" value="test123">
+                <i class="fas fa-lock input-icon"></i>
+                <button type="button" class="password-toggle" id="testToggle">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button onclick="testToggleFunction()" style="padding: 10px 20px;">Test Toggle Function</button>
+        </div>
+
+        <div id="debug" style="margin-top: 20px; padding: 10px; background: #f0f0f0; font-family: monospace; white-space: pre-line;"></div>
+    </div>
+
+    <script>
+        const debugDiv = document.getElementById('debug');
+        
+        function log(message) {
+            console.log(message);
+            debugDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+
+        function testToggleFunction() {
+            log('Manual toggle test started');
+            
+            const input = document.getElementById('testPassword');
+            const button = document.getElementById('testToggle');
+            const icon = button.querySelector('i');
+            
+            log('Input type before: ' + input.type);
+            log('Icon classes before: ' + icon.className);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                log('Changed to text');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                log('Changed to password');
+            }
+            
+            log('Input type after: ' + input.type);
+            log('Icon classes after: ' + icon.className);
+        }
+
+        // Test event listener
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOM loaded');
+            
+            const toggleButton = document.getElementById('testToggle');
+            log('Toggle button found: ' + (toggleButton ? 'Yes' : 'No'));
+            
+            if (toggleButton) {
+                toggleButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    log('Toggle button clicked via event listener');
+                    
+                    const input = document.getElementById('testPassword');
+                    const icon = toggleButton.querySelector('i');
+                    
+                    log('Elements found - Input: ' + (input ? 'Yes' : 'No') + ', Icon: ' + (icon ? 'Yes' : 'No'));
+                    
+                    if (input && icon) {
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                            log('Changed to text via event');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                            log('Changed to password via event');
+                        }
+                    }
+                });
+                log('Event listener attached successfully');
+            }
+        });
+    </script>
+</body>
+</html>

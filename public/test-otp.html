@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test OTP - Cown</title>
+</head>
+<body>
+    <h1>Test OTP API</h1>
+    
+    <div>
+        <label>Phone Number:</label>
+        <input type="tel" id="phone" value="+84999888777" />
+        <button onclick="testSendOTP()">Send OTP</button>
+    </div>
+    
+    <div>
+        <label>OTP Code:</label>
+        <input type="text" id="otp" />
+        <button onclick="testVerifyOTP()">Verify OTP</button>
+    </div>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        async function testSendOTP() {
+            const phone = document.getElementById('phone').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                console.log('🚀 Sending OTP to:', phone);
+                
+                const response = await fetch('/api/auth/send-phone-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phone })
+                });
+                
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response headers:', response.headers);
+                
+                const result = await response.json();
+                console.log('📋 Result:', result);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ OTP Sent Successfully</h3>
+                        <p><strong>Method:</strong> ${result.method}</p>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        <p><strong>Dev OTP:</strong> ${result.devOTP || 'N/A'}</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Error</h3>
+                        <p>${result.error}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Exception:', error);
+                resultDiv.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testVerifyOTP() {
+            const phone = document.getElementById('phone').value;
+            const otp = document.getElementById('otp').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                console.log('🔐 Verifying OTP:', { phone, otp });
+                
+                const response = await fetch('/api/auth/login-with-phone', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phone, otp })
+                });
+                
+                const result = await response.json();
+                console.log('📋 Verify result:', result);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Login Successful</h3>
+                        <p><strong>User ID:</strong> ${result.user.id}</p>
+                        <p><strong>Username:</strong> ${result.user.username}</p>
+                        <p><strong>Phone:</strong> ${result.user.phone_number}</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Verification Failed</h3>
+                        <p>${result.error}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Exception:', error);
+                resultDiv.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

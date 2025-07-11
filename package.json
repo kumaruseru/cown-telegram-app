@@ -1,0 +1,43 @@
+{
+  "name": "cown-telegram-app",
+  "version": "1.0.0",
+  "description": "Ứng dụng nhắn tin dựa trên Telegram API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'Build completed'",
+    "build:dev": "webpack --mode development",
+    "postinstall": "echo 'Dependencies installed'"
+  },
+  "keywords": [
+    "telegram",
+    "messaging",
+    "bot",
+    "api"
+  ],
+  "author": "Nghia",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^1.20.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "input": "^1.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.2",
+    "socket.io": "^4.7.4",
+    "sqlite3": "^5.1.6",
+    "telegram": "^2.26.22",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "css-loader": "^6.8.1",
+    "nodemon": "^3.0.2",
+    "style-loader": "^3.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
