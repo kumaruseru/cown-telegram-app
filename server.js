@@ -417,14 +417,15 @@ class CownTelegramApp {
             res.json({ status: 'OK', message: 'Cown Telegram App is running!' });
         });
 
-        // API info endpoint
+        // API info endpoint  
         this.app.get('/api/info', (req, res) => {
             res.json({
                 name: 'Cown Telegram App',
                 version: process.env.npm_package_version || '1.0.0',
                 status: 'running',
                 timestamp: new Date().toISOString(),
-                environment: process.env.NODE_ENV || 'development'
+                environment: process.env.NODE_ENV || 'development',
+                deploymentTime: new Date().toISOString() // Force cache bust
             });
         });
 
