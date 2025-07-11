@@ -15,6 +15,7 @@ require('dotenv').config();
 const DatabaseManager = require('./src/database/DatabaseManager_SQLite');
 const MessageHandler = require('./src/handlers/MessageHandler');
 const TelegramClientService = require('./src/services/TelegramClientService');
+const TelegramUserSyncService = require('./src/services/TelegramUserSyncService');
 const AuthService = require('./src/services/AuthService');
 
 class CownTelegramApp {
@@ -124,6 +125,9 @@ class CownTelegramApp {
 
             // Khởi tạo Telegram Client service (MTProto) trước
             this.telegramClientService = new TelegramClientService(this.dbManager, this.io);
+
+            // Khởi tạo Telegram User Sync Service
+            this.telegramUserSyncService = new TelegramUserSyncService(this.dbManager, this.telegramClientService);
 
             // Khởi tạo OTP service với Telegram service
             const OTPService = require('./src/services/OTPService');
@@ -238,24 +242,43 @@ class CownTelegramApp {
                     });
                 }
 
-                // Check if user exists or create new one
+                // Check if user has active Telegram client
                 let user = await this.dbManager.getUserByPhone(phone);
                 let isNewUser = false;
+                let syncedFromTelegram = false;
+
+                // Try to get Telegram client for this phone number
+                const telegramClient = await this.telegramClientService.getClientByPhone(phone);
                 
+                if (telegramClient && telegramClient.connected) {
+                    console.log('🔄 Syncing user data from Telegram...');
+                    
+                    try {
+                        // Sync user data from Telegram
+                        user = await this.telegramUserSyncService.syncUserFromTelegram(phone, telegramClient);
+                        syncedFromTelegram = true;
+                        console.log('✅ Successfully synced user data from Telegram');
+                    } catch (syncError) {
+                        console.error('⚠️ Failed to sync from Telegram:', syncError.message);
+                        // Continue with manual user creation if sync fails
+                    }
+                }
+
                 if (!user) {
                     // Auto-register user with phone number
                     const username = `user_${phone.replace(/[^0-9]/g, '')}`;
-                    user = await this.dbManager.createUser({
+                    const userId = await this.dbManager.createUser({
                         username,
                         phone_number: phone,
                         telegram_phone: phone,
                         password: crypto.randomBytes(16).toString('hex'), // Random password
                         is_verified: true
                     });
+                    user = await this.dbManager.getUserById(userId);
                     isNewUser = true;
                     console.log(`✅ Auto-registered new user: ${username}`);
-                } else {
-                    // Update verification status
+                } else if (!syncedFromTelegram) {
+                    // Update verification status for existing user
                     await this.dbManager.updateUser(user.id, { is_verified: true });
                 }
 
@@ -272,25 +295,172 @@ class CownTelegramApp {
                     sameSite: 'lax'
                 });
 
+                // Prepare user response with Telegram data
+                const userResponse = {
+                    id: user.id,
+                    username: user.username || user.telegram_username,
+                    phone_number: user.phone_number,
+                    display_name: user.telegram_first_name 
+                        ? `${user.telegram_first_name} ${user.telegram_last_name || ''}`.trim()
+                        : user.display_name,
+                    avatar_url: user.avatar_url,
+                    telegram_data: syncedFromTelegram ? {
+                        telegram_id: user.telegram_id,
+                        telegram_username: user.telegram_username,
+                        telegram_first_name: user.telegram_first_name,
+                        telegram_last_name: user.telegram_last_name
+                    } : null
+                };
+
                 res.json({
                     success: true,
-                    message: 'OTP verified successfully',
-                    user: {
-                        id: user.id,
-                        username: user.username,
-                        phone_number: user.phone_number,
-                        display_name: user.display_name,
-                        avatar_url: user.avatar_url
-                    },
+                    message: syncedFromTelegram 
+                        ? 'OTP verified and user data synced from Telegram' 
+                        : 'OTP verified successfully',
+                    user: userResponse,
                     isNewUser,
+                    syncedFromTelegram,
                     sessionToken,
-                    hasTelegramSession: !!user.telegram_session
+                    hasTelegramSession: !!user.telegram_session || syncedFromTelegram
                 });
             } catch (error) {
                 console.error('❌ Telegram verify-code error:', error);
                 res.status(400).json({ 
                     error: error.message,
                     success: false
+                });
+            }
+        });
+
+        // API để lấy thông tin người dùng với dữ liệu Telegram
+        this.app.get('/api/user/profile', this.authService.requireAuth(), async (req, res) => {
+            try {
+                const userId = req.user.userId;
+                const user = await this.dbManager.getUserById(userId);
+                
+                if (!user) {
+                    return res.status(404).json({
+                        success: false,
+                        error: 'User not found'
+                    });
+                }
+
+                // Prepare comprehensive user profile
+                const userProfile = {
+                    id: user.id,
+                    username: user.username,
+                    phone_number: user.phone_number,
+                    display_name: user.telegram_first_name 
+                        ? `${user.telegram_first_name} ${user.telegram_last_name || ''}`.trim()
+                        : user.display_name,
+                    avatar_url: user.avatar_url,
+                    created_at: user.created_at,
+                    updated_at: user.updated_at,
+                    telegram_connected: !!user.telegram_id,
+                    telegram_data: user.telegram_id ? {
+                        telegram_id: user.telegram_id,
+                        telegram_username: user.telegram_username,
+                        telegram_first_name: user.telegram_first_name,
+                        telegram_last_name: user.telegram_last_name,
+                        telegram_phone: user.telegram_phone
+                    } : null,
+                    client_status: {
+                        has_session: !!user.telegram_session,
+                        is_connected: this.telegramClientService.isUserClientConnected(userId)
+                    }
+                };
+
+                res.json({
+                    success: true,
+                    user: userProfile
+                });
+            } catch (error) {
+                console.error('❌ Get user profile error:', error);
+                res.status(500).json({
+                    success: false,
+                    error: error.message
+                });
+            }
+        });
+
+        // API để lấy danh sách cuộc trò chuyện từ Telegram
+        this.app.get('/api/telegram/conversations', this.authService.requireAuth(), async (req, res) => {
+            try {
+                const userId = req.user.userId;
+                const conversations = await this.dbManager.getUserConversations(userId);
+                
+                res.json({
+                    success: true,
+                    conversations: conversations.map(conv => ({
+                        id: conv.id,
+                        telegram_id: conv.telegram_id,
+                        type: conv.type,
+                        name: conv.name,
+                        description: conv.description,
+                        avatar_url: conv.avatar_url,
+                        updated_at: conv.updated_at,
+                        participant_role: conv.role
+                    }))
+                });
+            } catch (error) {
+                console.error('❌ Get conversations error:', error);
+                res.status(500).json({
+                    success: false,
+                    error: error.message
+                });
+            }
+        });
+
+        // API endpoint để đồng bộ dữ liệu Telegram
+        this.app.post('/api/telegram/sync-data', this.authService.requireAuth(), async (req, res) => {
+            try {
+                const userId = req.user.userId;
+                const user = await this.dbManager.getUserById(userId);
+                
+                if (!user || !user.telegram_phone) {
+                    return res.status(400).json({
+                        success: false,
+                        error: 'User does not have Telegram phone number'
+                    });
+                }
+
+                // Get Telegram client
+                const telegramClient = await this.telegramClientService.getClientByPhone(user.telegram_phone);
+                
+                if (!telegramClient) {
+                    return res.status(400).json({
+                        success: false,
+                        error: 'Telegram client not connected'
+                    });
+                }
+
+                console.log(`🔄 Manual sync requested for user ${userId}`);
+                
+                // Perform sync
+                const syncedUser = await this.telegramUserSyncService.syncUserFromTelegram(user.telegram_phone, telegramClient);
+                
+                res.json({
+                    success: true,
+                    message: 'Data synchronized successfully from Telegram',
+                    user: {
+                        id: syncedUser.id,
+                        username: syncedUser.username || syncedUser.telegram_username,
+                        display_name: syncedUser.telegram_first_name 
+                            ? `${syncedUser.telegram_first_name} ${syncedUser.telegram_last_name || ''}`.trim()
+                            : syncedUser.display_name,
+                        telegram_data: {
+                            telegram_id: syncedUser.telegram_id,
+                            telegram_username: syncedUser.telegram_username,
+                            telegram_first_name: syncedUser.telegram_first_name,
+                            telegram_last_name: syncedUser.telegram_last_name
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('❌ Manual sync error:', error);
+                res.status(500).json({
+                    success: false,
+                    error: error.message
                 });
             }
         });

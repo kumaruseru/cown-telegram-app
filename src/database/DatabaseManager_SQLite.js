@@ -123,6 +123,7 @@ class DatabaseManager {
             await this.run(`
                 CREATE TABLE IF NOT EXISTS conversations (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    telegram_id TEXT UNIQUE,
                     type TEXT DEFAULT 'private',
                     name TEXT,
                     description TEXT,
@@ -152,6 +153,7 @@ class DatabaseManager {
             await this.run(`
                 CREATE TABLE IF NOT EXISTS messages (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    telegram_id TEXT UNIQUE,
                     conversation_id INTEGER NOT NULL,
                     sender_id INTEGER NOT NULL,
                     content TEXT,
@@ -173,11 +175,14 @@ class DatabaseManager {
             // Indexes cho performance
             await this.run('CREATE INDEX IF NOT EXISTS idx_users_telegram_phone ON users(telegram_phone)');
             await this.run('CREATE INDEX IF NOT EXISTS idx_users_phone_number ON users(phone_number)');
+            await this.run('CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id)');
             await this.run('CREATE INDEX IF NOT EXISTS idx_otp_codes_phone ON otp_codes(phone_number)');
             await this.run('CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token)');
             await this.run('CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)');
+            await this.run('CREATE INDEX IF NOT EXISTS idx_conversations_telegram_id ON conversations(telegram_id)');
             await this.run('CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id)');
             await this.run('CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id)');
+            await this.run('CREATE INDEX IF NOT EXISTS idx_messages_telegram_id ON messages(telegram_id)');
             await this.run('CREATE INDEX IF NOT EXISTS idx_conversation_participants_conv ON conversation_participants(conversation_id)');
             await this.run('CREATE INDEX IF NOT EXISTS idx_conversation_participants_user ON conversation_participants(user_id)');
 
@@ -412,12 +417,12 @@ class DatabaseManager {
     // Conversation methods
     async createConversation(conversationData) {
         try {
-            const { type = 'private', name, description, avatar_url, created_by } = conversationData;
+            const { telegram_id, type = 'private', name, description, avatar_url, created_by } = conversationData;
             
             const result = await this.run(`
-                INSERT INTO conversations (type, name, description, avatar_url, created_by) 
-                VALUES (?, ?, ?, ?, ?)
-            `, [type, name, description, avatar_url, created_by]);
+                INSERT INTO conversations (telegram_id, type, name, description, avatar_url, created_by) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            `, [telegram_id, type, name, description, avatar_url, created_by]);
 
             return result.lastID;
         } catch (error) {
@@ -468,6 +473,7 @@ class DatabaseManager {
     async createMessage(messageData) {
         try {
             const {
+                telegram_id,
                 conversation_id,
                 sender_id,
                 content,
@@ -475,17 +481,18 @@ class DatabaseManager {
                 file_url,
                 file_name,
                 file_size,
-                reply_to_id
+                reply_to_id,
+                created_at
             } = messageData;
 
             const result = await this.run(`
                 INSERT INTO messages (
-                    conversation_id, sender_id, content, message_type,
-                    file_url, file_name, file_size, reply_to_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    telegram_id, conversation_id, sender_id, content, message_type,
+                    file_url, file_name, file_size, reply_to_id, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
-                conversation_id, sender_id, content, message_type,
-                file_url, file_name, file_size, reply_to_id
+                telegram_id, conversation_id, sender_id, content, message_type,
+                file_url, file_name, file_size, reply_to_id, created_at || new Date().toISOString()
             ]);
 
             // Update conversation updated_at
@@ -514,6 +521,70 @@ class DatabaseManager {
             `, [conversationId, limit, offset]);
         } catch (error) {
             console.error('❌ Lỗi lấy messages:', error);
+            throw error;
+        }
+    }
+
+    // Telegram sync methods
+    async getConversationByTelegramId(telegramId) {
+        try {
+            return await this.get('SELECT * FROM conversations WHERE telegram_id = ?', [telegramId]);
+        } catch (error) {
+            console.error('❌ Lỗi lấy conversation by Telegram ID:', error);
+            throw error;
+        }
+    }
+
+    async updateConversation(id, conversationData) {
+        try {
+            const fields = [];
+            const values = [];
+            
+            for (const [key, value] of Object.entries(conversationData)) {
+                if (value !== undefined && key !== 'id') {
+                    fields.push(`${key} = ?`);
+                    values.push(value);
+                }
+            }
+            
+            if (fields.length === 0) {
+                return false;
+            }
+            
+            values.push(id);
+            
+            const result = await this.run(`
+                UPDATE conversations 
+                SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP 
+                WHERE id = ?
+            `, values);
+
+            return result.changes > 0;
+        } catch (error) {
+            console.error('❌ Lỗi update conversation:', error);
+            throw error;
+        }
+    }
+
+    async addUserToConversation(conversationId, userId, role = 'member') {
+        try {
+            const result = await this.run(`
+                INSERT OR IGNORE INTO conversation_participants (conversation_id, user_id, role) 
+                VALUES (?, ?, ?)
+            `, [conversationId, userId, role]);
+
+            return result.changes > 0;
+        } catch (error) {
+            console.error('❌ Lỗi thêm user vào conversation:', error);
+            throw error;
+        }
+    }
+
+    async getMessageByTelegramId(telegramId) {
+        try {
+            return await this.get('SELECT * FROM messages WHERE telegram_id = ?', [telegramId]);
+        } catch (error) {
+            console.error('❌ Lỗi lấy message by Telegram ID:', error);
             throw error;
         }
     }
