@@ -1,0 +1,31 @@
+# Docker Compose để chạy local và production
+version: '3.8'
+
+services:
+  cown-app:
+    build: .
+    image: cown-telegram-app:latest
+    container_name: cown-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - TELEGRAM_API_ID=20657396
+      - TELEGRAM_API_HASH=bdc23b893d3e90b6f5f6f7eb9a38d1aa
+      - SESSION_SECRET=cown-super-secret-key-2025
+    volumes:
+      - ./data:/app/data  # Mount SQLite database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - cown-network
+
+networks:
+  cown-network:
+    driver: bridge

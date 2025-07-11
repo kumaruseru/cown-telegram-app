@@ -53,7 +53,11 @@ class CownTelegramApp {
 
     async initializeServices() {
         try {
-            // Khởi tạo database
+            // Khởi tạo database - sử dụng SQLite trong Docker
+            const DatabaseManager = process.env.NODE_ENV === 'production' || process.env.DOCKER === 'true' 
+                ? require('./src/database/DatabaseManager_SQLite')
+                : require('./src/database/DatabaseManager_MySQL');
+            
             this.dbManager = new DatabaseManager();
             await this.dbManager.initialize();
 
@@ -344,6 +348,15 @@ class CownTelegramApp {
         // API Routes
         this.app.get('/api/health', (req, res) => {
             res.json({ status: 'OK', message: 'Cown Telegram App is running!' });
+        });
+
+        // Health check endpoint for Docker
+        this.app.get('/health', (req, res) => {
+            res.status(200).json({
+                status: 'healthy',
+                timestamp: new Date().toISOString(),
+                version: process.env.npm_package_version || '1.0.0'
+            });
         });
 
         this.app.get('/api/messages', this.authService.requireAuth(), async (req, res) => {

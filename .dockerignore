@@ -1,0 +1,21 @@
+# Docker ignore để giảm image size
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.env.local
+.env.production
+.nyc_output
+coverage
+.vscode
+README.md
+.eslintrc.js
+.prettierrc
+*.md
+data/*.db
+logs/*.log
+temp/*
+.DS_Store
+Thumbs.db

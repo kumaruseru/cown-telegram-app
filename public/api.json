@@ -1,0 +1,20 @@
+{
+  "name": "Cown Telegram App",
+  "version": "1.0.0",
+  "status": "running",
+  "environment": "production",
+  "timestamp": "2025-01-12",
+  "endpoints": {
+    "main": "/fixed-login.html",
+    "login": "/login-phone.html", 
+    "minimal": "/minimal-test.html",
+    "api": "/api/auth/send-phone-otp"
+  },
+  "features": [
+    "Phone OTP Authentication",
+    "Telegram Integration", 
+    "Modern UI/UX",
+    "Responsive Design",
+    "Cow Theme"
+  ]
+}

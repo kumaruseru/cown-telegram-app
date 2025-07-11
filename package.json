@@ -8,7 +8,13 @@
     "dev": "nodemon server.js",
     "build": "echo 'Build completed'",
     "build:dev": "webpack --mode development",
-    "postinstall": "echo 'Dependencies installed'"
+    "postinstall": "echo 'Dependencies installed'",
+    "docker:build": "docker build -t cown-telegram-app .",
+    "docker:run": "docker run -p 3000:3000 cown-telegram-app",
+    "docker:compose": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
+    "docker:push": "docker push your-dockerhub-username/cown-telegram-app",
+    "deploy": "npm run docker:build && npm run docker:push"
   },
   "keywords": [
     "telegram",

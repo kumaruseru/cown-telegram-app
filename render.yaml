@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: cown-telegram-app
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DOCKER
+        value: "true"
+      - key: PORT
+        value: "3000"
+      - key: DB_PATH
+        value: "/app/data/cown.db"
