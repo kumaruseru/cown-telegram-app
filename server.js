@@ -23,6 +23,7 @@ class CownTelegramApp {
         });
         
         this.port = process.env.PORT || 3000;
+        console.log(`🔧 Environment: NODE_ENV=${process.env.NODE_ENV}, PORT=${process.env.PORT}, DB_PATH=${process.env.DB_PATH}`);
         this.setupMiddleware();
         
         // Initialize services and then setup routes
@@ -53,10 +54,8 @@ class CownTelegramApp {
 
     async initializeServices() {
         try {
-            // Khởi tạo database - sử dụng SQLite trong Docker
-            const DatabaseManager = process.env.NODE_ENV === 'production' || process.env.DOCKER === 'true' 
-                ? require('./src/database/DatabaseManager_SQLite')
-                : require('./src/database/DatabaseManager_MySQL');
+            // Khởi tạo database - sử dụng SQLite cho tất cả environments
+            const DatabaseManager = require('./src/database/DatabaseManager_SQLite');
             
             this.dbManager = new DatabaseManager();
             await this.dbManager.initialize();
