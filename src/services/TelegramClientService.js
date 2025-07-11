@@ -750,42 +750,6 @@ class TelegramClientService {
             console.error('❌ Lỗi khởi tạo sessions:', error);
         }
     }
-
-    /**
-     * Get Telegram client by phone number
-     */
-    async getClientByPhone(phoneNumber) {
-        try {
-            // Find user by phone number
-            const user = await this.dbManager.getUserByPhone(phoneNumber);
-            if (!user) {
-                return null;
-            }
-
-            // Check if client exists and is connected
-            const clientData = this.clients.get(user.id);
-            if (clientData && clientData.isConnected) {
-                return clientData.client;
-            }
-
-            // Try to connect from saved session
-            if (user.telegram_session) {
-                try {
-                    await this.connectUserFromSession(user.id);
-                    const reconnectedClient = this.clients.get(user.id);
-                    return reconnectedClient ? reconnectedClient.client : null;
-                } catch (error) {
-                    console.error(`❌ Failed to reconnect user ${user.id} from session:`, error);
-                    return null;
-                }
-            }
-
-            return null;
-        } catch (error) {
-            console.error('❌ Error getting client by phone:', error);
-            return null;
-        }
-    }
 }
 
 module.exports = TelegramClientService;

@@ -8,14 +8,12 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const NodeCache = require('node-cache');
 const winston = require('winston');
-const crypto = require('crypto');
 const path = require('path');
 require('dotenv').config();
 
 const DatabaseManager = require('./src/database/DatabaseManager_SQLite');
 const MessageHandler = require('./src/handlers/MessageHandler');
 const TelegramClientService = require('./src/services/TelegramClientService');
-const TelegramUserSyncService = require('./src/services/TelegramUserSyncService');
 const AuthService = require('./src/services/AuthService');
 
 class CownTelegramApp {
@@ -126,9 +124,6 @@ class CownTelegramApp {
             // Khởi tạo Telegram Client service (MTProto) trước
             this.telegramClientService = new TelegramClientService(this.dbManager, this.io);
 
-            // Khởi tạo Telegram User Sync Service
-            this.telegramUserSyncService = new TelegramUserSyncService(this.dbManager, this.telegramClientService);
-
             // Khởi tạo OTP service với Telegram service
             const OTPService = require('./src/services/OTPService');
             this.otpService = new OTPService(this.dbManager, this.telegramClientService);
@@ -173,295 +168,6 @@ class CownTelegramApp {
                 res.sendFile(path.join(__dirname, 'public', 'app-main.html'));
             } else {
                 res.redirect('/login-phone.html');
-            }
-        });
-
-        // Telegram OTP Routes
-        this.app.post('/api/telegram/send-code', async (req, res) => {
-            try {
-                console.log('📱 Received Telegram send-code request');
-                console.log('📋 Request body:', req.body);
-                
-                const { phone } = req.body;
-                
-                if (!phone) {
-                    console.log('❌ Missing phone number');
-                    return res.status(400).json({ 
-                        error: 'Phone number is required',
-                        success: false
-                    });
-                }
-
-                // Validate phone format
-                if (!phone.startsWith('+') || phone.length < 10) {
-                    return res.status(400).json({ 
-                        error: 'Invalid phone number format. Must start with country code (e.g., +84)',
-                        success: false
-                    });
-                }
-
-                // Use OTP service to send code
-                const result = await this.otpService.sendOTP(phone);
-                
-                res.json({ 
-                    success: true,
-                    message: 'OTP code has been sent',
-                    method: result.method,
-                    expiryTime: result.expiryTime,
-                    // Include dev OTP if in development mode
-                    ...(result.devOTP && { devOTP: result.devOTP })
-                });
-            } catch (error) {
-                console.error('❌ Telegram send-code error:', error);
-                res.status(400).json({ 
-                    error: error.message,
-                    success: false
-                });
-            }
-        });
-
-        this.app.post('/api/telegram/verify-code', async (req, res) => {
-            try {
-                console.log('🔐 Received Telegram verify-code request');
-                const { phone, code } = req.body;
-                
-                if (!phone || !code) {
-                    return res.status(400).json({ 
-                        error: 'Phone number and code are required',
-                        success: false
-                    });
-                }
-
-                // Verify OTP
-                const isValid = await this.otpService.verifyOTP(phone, code);
-                
-                if (!isValid) {
-                    return res.status(400).json({ 
-                        error: 'Invalid or expired OTP code',
-                        success: false
-                    });
-                }
-
-                // Check if user has active Telegram client
-                let user = await this.dbManager.getUserByPhone(phone);
-                let isNewUser = false;
-                let syncedFromTelegram = false;
-
-                // Try to get Telegram client for this phone number
-                const telegramClient = await this.telegramClientService.getClientByPhone(phone);
-                
-                if (telegramClient && telegramClient.connected) {
-                    console.log('🔄 Syncing user data from Telegram...');
-                    
-                    try {
-                        // Sync user data from Telegram
-                        user = await this.telegramUserSyncService.syncUserFromTelegram(phone, telegramClient);
-                        syncedFromTelegram = true;
-                        console.log('✅ Successfully synced user data from Telegram');
-                    } catch (syncError) {
-                        console.error('⚠️ Failed to sync from Telegram:', syncError.message);
-                        // Continue with manual user creation if sync fails
-                    }
-                }
-
-                if (!user) {
-                    // Auto-register user with phone number
-                    const username = `user_${phone.replace(/[^0-9]/g, '')}`;
-                    const userId = await this.dbManager.createUser({
-                        username,
-                        phone_number: phone,
-                        telegram_phone: phone,
-                        password: crypto.randomBytes(16).toString('hex'), // Random password
-                        is_verified: true
-                    });
-                    user = await this.dbManager.getUserById(userId);
-                    isNewUser = true;
-                    console.log(`✅ Auto-registered new user: ${username}`);
-                } else if (!syncedFromTelegram) {
-                    // Update verification status for existing user
-                    await this.dbManager.updateUser(user.id, { is_verified: true });
-                }
-
-                // Create session
-                const sessionToken = crypto.randomBytes(32).toString('hex');
-                await this.dbManager.createSession(user.id, sessionToken);
-
-                // Set cookie
-                res.cookie('sessionToken', sessionToken, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-                    path: '/',
-                    sameSite: 'lax'
-                });
-
-                // Prepare user response with Telegram data
-                const userResponse = {
-                    id: user.id,
-                    username: user.username || user.telegram_username,
-                    phone_number: user.phone_number,
-                    display_name: user.telegram_first_name 
-                        ? `${user.telegram_first_name} ${user.telegram_last_name || ''}`.trim()
-                        : user.display_name,
-                    avatar_url: user.avatar_url,
-                    telegram_data: syncedFromTelegram ? {
-                        telegram_id: user.telegram_id,
-                        telegram_username: user.telegram_username,
-                        telegram_first_name: user.telegram_first_name,
-                        telegram_last_name: user.telegram_last_name
-                    } : null
-                };
-
-                res.json({
-                    success: true,
-                    message: syncedFromTelegram 
-                        ? 'OTP verified and user data synced from Telegram' 
-                        : 'OTP verified successfully',
-                    user: userResponse,
-                    isNewUser,
-                    syncedFromTelegram,
-                    sessionToken,
-                    hasTelegramSession: !!user.telegram_session || syncedFromTelegram
-                });
-            } catch (error) {
-                console.error('❌ Telegram verify-code error:', error);
-                res.status(400).json({ 
-                    error: error.message,
-                    success: false
-                });
-            }
-        });
-
-        // API để lấy thông tin người dùng với dữ liệu Telegram
-        this.app.get('/api/user/profile', this.authService.requireAuth(), async (req, res) => {
-            try {
-                const userId = req.user.userId;
-                const user = await this.dbManager.getUserById(userId);
-                
-                if (!user) {
-                    return res.status(404).json({
-                        success: false,
-                        error: 'User not found'
-                    });
-                }
-
-                // Prepare comprehensive user profile
-                const userProfile = {
-                    id: user.id,
-                    username: user.username,
-                    phone_number: user.phone_number,
-                    display_name: user.telegram_first_name 
-                        ? `${user.telegram_first_name} ${user.telegram_last_name || ''}`.trim()
-                        : user.display_name,
-                    avatar_url: user.avatar_url,
-                    created_at: user.created_at,
-                    updated_at: user.updated_at,
-                    telegram_connected: !!user.telegram_id,
-                    telegram_data: user.telegram_id ? {
-                        telegram_id: user.telegram_id,
-                        telegram_username: user.telegram_username,
-                        telegram_first_name: user.telegram_first_name,
-                        telegram_last_name: user.telegram_last_name,
-                        telegram_phone: user.telegram_phone
-                    } : null,
-                    client_status: {
-                        has_session: !!user.telegram_session,
-                        is_connected: this.telegramClientService.isUserClientConnected(userId)
-                    }
-                };
-
-                res.json({
-                    success: true,
-                    user: userProfile
-                });
-            } catch (error) {
-                console.error('❌ Get user profile error:', error);
-                res.status(500).json({
-                    success: false,
-                    error: error.message
-                });
-            }
-        });
-
-        // API để lấy danh sách cuộc trò chuyện từ Telegram
-        this.app.get('/api/telegram/conversations', this.authService.requireAuth(), async (req, res) => {
-            try {
-                const userId = req.user.userId;
-                const conversations = await this.dbManager.getUserConversations(userId);
-                
-                res.json({
-                    success: true,
-                    conversations: conversations.map(conv => ({
-                        id: conv.id,
-                        telegram_id: conv.telegram_id,
-                        type: conv.type,
-                        name: conv.name,
-                        description: conv.description,
-                        avatar_url: conv.avatar_url,
-                        updated_at: conv.updated_at,
-                        participant_role: conv.role
-                    }))
-                });
-            } catch (error) {
-                console.error('❌ Get conversations error:', error);
-                res.status(500).json({
-                    success: false,
-                    error: error.message
-                });
-            }
-        });
-
-        // API endpoint để đồng bộ dữ liệu Telegram
-        this.app.post('/api/telegram/sync-data', this.authService.requireAuth(), async (req, res) => {
-            try {
-                const userId = req.user.userId;
-                const user = await this.dbManager.getUserById(userId);
-                
-                if (!user || !user.telegram_phone) {
-                    return res.status(400).json({
-                        success: false,
-                        error: 'User does not have Telegram phone number'
-                    });
-                }
-
-                // Get Telegram client
-                const telegramClient = await this.telegramClientService.getClientByPhone(user.telegram_phone);
-                
-                if (!telegramClient) {
-                    return res.status(400).json({
-                        success: false,
-                        error: 'Telegram client not connected'
-                    });
-                }
-
-                console.log(`🔄 Manual sync requested for user ${userId}`);
-                
-                // Perform sync
-                const syncedUser = await this.telegramUserSyncService.syncUserFromTelegram(user.telegram_phone, telegramClient);
-                
-                res.json({
-                    success: true,
-                    message: 'Data synchronized successfully from Telegram',
-                    user: {
-                        id: syncedUser.id,
-                        username: syncedUser.username || syncedUser.telegram_username,
-                        display_name: syncedUser.telegram_first_name 
-                            ? `${syncedUser.telegram_first_name} ${syncedUser.telegram_last_name || ''}`.trim()
-                            : syncedUser.display_name,
-                        telegram_data: {
-                            telegram_id: syncedUser.telegram_id,
-                            telegram_username: syncedUser.telegram_username,
-                            telegram_first_name: syncedUser.telegram_first_name,
-                            telegram_last_name: syncedUser.telegram_last_name
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('❌ Manual sync error:', error);
-                res.status(500).json({
-                    success: false,
-                    error: error.message
-                });
             }
         });
 
@@ -536,15 +242,18 @@ class CownTelegramApp {
         // User info endpoint
         this.app.get('/api/auth/me', this.authService.requireAuth(), async (req, res) => {
             try {
+                const user = await this.dbManager.getUserById(req.user.userId);
                 res.json({
                     success: true,
                     user: {
-                        id: req.user.userId,
-                        username: req.user.username,
-                        phone_number: req.user.phone_number,
-                        display_name: req.user.display_name,
-                        avatar_url: req.user.avatar_url
-                    }
+                        id: user.id,
+                        username: user.username,
+                        phone_number: user.phone_number || user.telegram_phone,
+                        display_name: user.display_name,
+                        avatar_url: user.avatar_url,
+                        email: user.email
+                    },
+                    hasTelegramSession: !!user.telegram_session
                 });
             } catch (error) {
                 console.error('Get user info error:', error);
@@ -686,15 +395,19 @@ class CownTelegramApp {
             try {
                 const user = await this.dbManager.getUserById(req.user.userId);
                 res.json({
+                    success: true,
                     user: {
                         id: user.id,
                         username: user.username,
-                        email: user.email,
-                        telegram_phone: user.telegram_phone
+                        phone_number: user.phone_number || user.telegram_phone,
+                        display_name: user.display_name,
+                        avatar_url: user.avatar_url,
+                        email: user.email
                     },
                     hasTelegramSession: !!user.telegram_session
                 });
             } catch (error) {
+                console.error('Get user info error:', error);
                 res.status(500).json({ error: error.message });
             }
         });
@@ -702,6 +415,17 @@ class CownTelegramApp {
         // API Routes
         this.app.get('/api/health', (req, res) => {
             res.json({ status: 'OK', message: 'Cown Telegram App is running!' });
+        });
+
+        // API info endpoint
+        this.app.get('/api/info', (req, res) => {
+            res.json({
+                name: 'Cown Telegram App',
+                version: process.env.npm_package_version || '1.0.0',
+                status: 'running',
+                timestamp: new Date().toISOString(),
+                environment: process.env.NODE_ENV || 'development'
+            });
         });
 
         // Health check endpoint for Docker
