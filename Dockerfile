@@ -2,28 +2,35 @@
 FROM node:18-alpine
 
 # Install SQLite và các dependencies system cần thiết
-RUN apk add --no-cache sqlite python3 make g++
+RUN apk add --no-cache sqlite python3 make g++ dumb-init
 
 # Thêm metadata
 LABEL maintainer="Cown Telegram App"
-LABEL description="🐄 Modern Telegram messaging app with cow theme"
-LABEL version="1.0.0"
+LABEL description="🐄 Optimized Telegram messaging app with cow theme"
+LABEL version="2.0.0"
 
 # Tạo thư mục app
 WORKDIR /app
 
+# Tạo user non-root cho security trước
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S cown -u 1001
+
 # Sao chép package files trước để cache dependencies
 COPY package*.json ./
+COPY .npmrc ./
 
-# Install dependencies including sqlite3
+# Install dependencies với optimization
 RUN npm ci --only=production --silent --no-audit --no-fund && \
-    npm cache clean --force
+    npm cache clean --force && \
+    rm -rf /tmp/*
 
 # Sao chép source code
-COPY . .
+COPY --chown=cown:nodejs . .
 
-# Tạo thư mục cho SQLite database
-RUN mkdir -p /app/data
+# Tạo thư mục cần thiết
+RUN mkdir -p /app/data /app/logs && \
+    chown -R cown:nodejs /app
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -33,17 +40,15 @@ ENV PORT=3000
 # Expose port
 EXPOSE 3000
 
-# Tạo user non-root cho security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S cown -u 1001
-
-# Chuyển ownership cho user
-RUN chown -R cown:nodejs /app
+# Switch to non-root user
 USER cown
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+# Health check với timeout tối ưu
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node healthcheck.js
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
 
 # Start command
 CMD ["npm", "start"]

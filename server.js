@@ -3,6 +3,11 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const NodeCache = require('node-cache');
+const winston = require('winston');
 const path = require('path');
 require('dotenv').config();
 
@@ -23,11 +28,34 @@ class CownTelegramApp {
         });
         
         this.port = process.env.PORT || 3000;
+        this.cache = new NodeCache({ stdTTL: 600 }); // 10 minutes cache
+        this.setupLogger();
         console.log(`🔧 Environment: NODE_ENV=${process.env.NODE_ENV}, PORT=${process.env.PORT}, DB_PATH=${process.env.DB_PATH}`);
         this.setupMiddleware();
         
         // Initialize services and then setup routes
         this.initialize();
+    }
+
+    setupLogger() {
+        this.logger = winston.createLogger({
+            level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.errors({ stack: true }),
+                winston.format.json()
+            ),
+            transports: [
+                new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+                new winston.transports.File({ filename: 'logs/combined.log' })
+            ]
+        });
+
+        if (process.env.NODE_ENV !== 'production') {
+            this.logger.add(new winston.transports.Console({
+                format: winston.format.simple()
+            }));
+        }
     }
 
     async initialize() {
@@ -42,14 +70,47 @@ class CownTelegramApp {
     }
 
     setupMiddleware() {
+        // Security middleware
+        this.app.use(helmet({
+            contentSecurityPolicy: {
+                directives: {
+                    defaultSrc: ["'self'"],
+                    styleSrc: ["'self'", "'unsafe-inline'"],
+                    scriptSrc: ["'self'"],
+                    imgSrc: ["'self'", "data:", "https:"],
+                }
+            }
+        }));
+
+        // Compression middleware
+        this.app.use(compression());
+
+        // Rate limiting
+        const limiter = rateLimit({
+            windowMs: 15 * 60 * 1000, // 15 minutes
+            max: 100, // limit each IP to 100 requests per windowMs
+            message: 'Too many requests from this IP, please try again later.'
+        });
+        this.app.use('/api/', limiter);
+
+        // CORS configuration
         this.app.use(cors({
-            origin: true,
+            origin: process.env.NODE_ENV === 'production' 
+                ? ['https://cown-telegram-app.onrender.com'] 
+                : true,
             credentials: true
         }));
-        this.app.use(express.json());
-        this.app.use(express.urlencoded({ extended: true }));
+
+        // Body parsing middleware
+        this.app.use(express.json({ limit: '10mb' }));
+        this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
         this.app.use(cookieParser());
-        this.app.use(express.static(path.join(__dirname, 'public')));
+
+        // Static files with caching
+        this.app.use(express.static(path.join(__dirname, 'public'), {
+            maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
+            etag: true
+        }));
     }
 
     async initializeServices() {
