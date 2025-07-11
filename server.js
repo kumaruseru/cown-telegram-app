@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const NodeCache = require('node-cache');
 const winston = require('winston');
+const crypto = require('crypto');
 const path = require('path');
 require('dotenv').config();
 
@@ -168,6 +169,129 @@ class CownTelegramApp {
                 res.sendFile(path.join(__dirname, 'public', 'app-main.html'));
             } else {
                 res.redirect('/login-phone.html');
+            }
+        });
+
+        // Telegram OTP Routes
+        this.app.post('/api/telegram/send-code', async (req, res) => {
+            try {
+                console.log('📱 Received Telegram send-code request');
+                console.log('📋 Request body:', req.body);
+                
+                const { phone } = req.body;
+                
+                if (!phone) {
+                    console.log('❌ Missing phone number');
+                    return res.status(400).json({ 
+                        error: 'Phone number is required',
+                        success: false
+                    });
+                }
+
+                // Validate phone format
+                if (!phone.startsWith('+') || phone.length < 10) {
+                    return res.status(400).json({ 
+                        error: 'Invalid phone number format. Must start with country code (e.g., +84)',
+                        success: false
+                    });
+                }
+
+                // Use OTP service to send code
+                const result = await this.otpService.sendOTP(phone);
+                
+                res.json({ 
+                    success: true,
+                    message: 'OTP code has been sent',
+                    method: result.method,
+                    expiryTime: result.expiryTime,
+                    // Include dev OTP if in development mode
+                    ...(result.devOTP && { devOTP: result.devOTP })
+                });
+            } catch (error) {
+                console.error('❌ Telegram send-code error:', error);
+                res.status(400).json({ 
+                    error: error.message,
+                    success: false
+                });
+            }
+        });
+
+        this.app.post('/api/telegram/verify-code', async (req, res) => {
+            try {
+                console.log('🔐 Received Telegram verify-code request');
+                const { phone, code } = req.body;
+                
+                if (!phone || !code) {
+                    return res.status(400).json({ 
+                        error: 'Phone number and code are required',
+                        success: false
+                    });
+                }
+
+                // Verify OTP
+                const isValid = await this.otpService.verifyOTP(phone, code);
+                
+                if (!isValid) {
+                    return res.status(400).json({ 
+                        error: 'Invalid or expired OTP code',
+                        success: false
+                    });
+                }
+
+                // Check if user exists or create new one
+                let user = await this.dbManager.getUserByPhone(phone);
+                let isNewUser = false;
+                
+                if (!user) {
+                    // Auto-register user with phone number
+                    const username = `user_${phone.replace(/[^0-9]/g, '')}`;
+                    user = await this.dbManager.createUser({
+                        username,
+                        phone_number: phone,
+                        telegram_phone: phone,
+                        password: crypto.randomBytes(16).toString('hex'), // Random password
+                        is_verified: true
+                    });
+                    isNewUser = true;
+                    console.log(`✅ Auto-registered new user: ${username}`);
+                } else {
+                    // Update verification status
+                    await this.dbManager.updateUser(user.id, { is_verified: true });
+                }
+
+                // Create session
+                const sessionToken = crypto.randomBytes(32).toString('hex');
+                await this.dbManager.createSession(user.id, sessionToken);
+
+                // Set cookie
+                res.cookie('sessionToken', sessionToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                    path: '/',
+                    sameSite: 'lax'
+                });
+
+                res.json({
+                    success: true,
+                    message: 'OTP verified successfully',
+                    user: {
+                        id: user.id,
+                        username: user.username,
+                        phone_number: user.phone_number,
+                        display_name: user.display_name,
+                        avatar_url: user.avatar_url
+                    },
+                    isNewUser,
+                    sessionToken,
+                    hasTelegramSession: !!user.telegram_session
+                });
+            } catch (error) {
+                console.error('❌ Telegram verify-code error:', error);
+                res.status(400).json({ 
+                    error: error.message,
+                    success: false
+                });
             }
         });
 
