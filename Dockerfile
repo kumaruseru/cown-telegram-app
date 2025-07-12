@@ -20,7 +20,7 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY package*.json ./
 
 # Install dependencies với optimization
-RUN npm ci --production --silent --no-audit --no-fund && \
+RUN npm ci --omit=dev --silent --no-audit --no-fund && \
     npm cache clean --force
 
 # Sao chép source code
