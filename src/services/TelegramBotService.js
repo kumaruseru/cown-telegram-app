@@ -1,5 +1,6 @@
 const BaseService = require('../core/BaseService');
 const crypto = require('crypto');
+const https = require('https');
 
 /**
  * Telegram Bot Integration Service
@@ -11,6 +12,53 @@ class TelegramBotService extends BaseService {
         this.botToken = null;
         this.botUsername = null;
         this.apiUrl = 'https://api.telegram.org/bot';
+    }
+
+    /**
+     * HTTP request helper using Node.js built-in https
+     */
+    async makeRequest(url, method = 'GET', data = null) {
+        return new Promise((resolve, reject) => {
+            const urlObj = new URL(url);
+            const options = {
+                hostname: urlObj.hostname,
+                port: urlObj.port || 443,
+                path: urlObj.pathname + urlObj.search,
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Cown-Telegram-App/1.0'
+                }
+            };
+
+            if (data && method !== 'GET') {
+                const postData = JSON.stringify(data);
+                options.headers['Content-Length'] = Buffer.byteLength(postData);
+            }
+
+            const req = https.request(options, (res) => {
+                let responseData = '';
+                res.on('data', (chunk) => responseData += chunk);
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(responseData);
+                        resolve(parsed);
+                    } catch (error) {
+                        resolve({ ok: false, description: 'Invalid JSON response' });
+                    }
+                });
+            });
+
+            req.on('error', (error) => {
+                reject(error);
+            });
+
+            if (data && method !== 'GET') {
+                req.write(JSON.stringify(data));
+            }
+
+            req.end();
+        });
     }
 
     /**
@@ -40,8 +88,7 @@ class TelegramBotService extends BaseService {
      */
     async getBotInfo() {
         try {
-            const response = await fetch(`${this.apiUrl}${this.botToken}/getMe`);
-            const data = await response.json();
+            const data = await this.makeRequest(`${this.apiUrl}${this.botToken}/getMe`);
             
             if (!data.ok) {
                 throw new Error(`Bot API error: ${data.description}`);
@@ -79,15 +126,7 @@ class TelegramBotService extends BaseService {
                 ...options
             };
 
-            const response = await fetch(`${this.apiUrl}${this.botToken}/sendMessage`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
+            const data = await this.makeRequest(`${this.apiUrl}${this.botToken}/sendMessage`, 'POST', payload);
             
             if (!data.ok) {
                 throw new Error(`Send message error: ${data.description}`);
@@ -417,18 +456,12 @@ Nếu không phải bạn đăng nhập, vui lòng liên hệ support ngay lập
      */
     async setWebhook(webhookUrl) {
         try {
-            const response = await fetch(`${this.apiUrl}${this.botToken}/setWebhook`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    url: webhookUrl,
-                    allowed_updates: ['message', 'callback_query']
-                })
-            });
+            const payload = {
+                url: webhookUrl,
+                allowed_updates: ['message', 'callback_query']
+            };
 
-            const data = await response.json();
+            const data = await this.makeRequest(`${this.apiUrl}${this.botToken}/setWebhook`, 'POST', payload);
             
             if (!data.ok) {
                 throw new Error(`Webhook setup error: ${data.description}`);
@@ -470,16 +503,12 @@ Nếu không phải bạn đăng nhập, vui lòng liên hệ support ngay lập
             const data = callbackQuery.data;
 
             // Answer callback query
-            await fetch(`${this.apiUrl}${this.botToken}/answerCallbackQuery`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    callback_query_id: callbackQuery.id,
-                    text: 'Đã xử lý!'
-                })
-            });
+            const payload = {
+                callback_query_id: callbackQuery.id,
+                text: 'Đã xử lý!'
+            };
+            
+            await this.makeRequest(`${this.apiUrl}${this.botToken}/answerCallbackQuery`, 'POST', payload);
 
             // Handle different callback data
             if (data === 'dashboard') {

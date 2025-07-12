@@ -1,4 +1,5 @@
 const BaseService = require('../core/BaseService');
+const https = require('https');
 
 /**
  * Bot Configuration Service
@@ -13,6 +14,53 @@ class BotConfigService extends BaseService {
             webhookUrl: null,
             isConfigured: false
         };
+    }
+
+    /**
+     * HTTP request helper using Node.js built-in https
+     */
+    async makeRequest(url, method = 'GET', data = null) {
+        return new Promise((resolve, reject) => {
+            const urlObj = new URL(url);
+            const options = {
+                hostname: urlObj.hostname,
+                port: urlObj.port || 443,
+                path: urlObj.pathname + urlObj.search,
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Cown-Telegram-App/1.0'
+                }
+            };
+
+            if (data && method !== 'GET') {
+                const postData = JSON.stringify(data);
+                options.headers['Content-Length'] = Buffer.byteLength(postData);
+            }
+
+            const req = https.request(options, (res) => {
+                let responseData = '';
+                res.on('data', (chunk) => responseData += chunk);
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(responseData);
+                        resolve(parsed);
+                    } catch (error) {
+                        resolve({ ok: false, description: 'Invalid JSON response' });
+                    }
+                });
+            });
+
+            req.on('error', (error) => {
+                reject(error);
+            });
+
+            if (data && method !== 'GET') {
+                req.write(JSON.stringify(data));
+            }
+
+            req.end();
+        });
     }
 
     /**
@@ -150,8 +198,7 @@ class BotConfigService extends BaseService {
                 return { success: false, error: 'No bot token configured' };
             }
 
-            const response = await fetch(`https://api.telegram.org/bot${this.config.token}/getMe`);
-            const data = await response.json();
+            const data = await this.makeRequest(`https://api.telegram.org/bot${this.config.token}/getMe`);
 
             if (!data.ok) {
                 return { success: false, error: data.description || 'Bot API error' };

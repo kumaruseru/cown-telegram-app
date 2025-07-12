@@ -1,5 +1,6 @@
 const BaseService = require('../core/BaseService');
 const crypto = require('crypto');
+const https = require('https');
 
 /**
  * Telegram Authentication Service
@@ -11,6 +12,53 @@ class TelegramAuthService extends BaseService {
         this.botToken = process.env.TELEGRAM_BOT_TOKEN;
         this.botUsername = process.env.TELEGRAM_BOT_USERNAME;
         this.authSessions = new Map(); // Lưu trữ phiên đăng nhập tạm thời
+    }
+
+    /**
+     * HTTP request helper using Node.js built-in https
+     */
+    async makeRequest(url, method = 'GET', data = null) {
+        return new Promise((resolve, reject) => {
+            const urlObj = new URL(url);
+            const options = {
+                hostname: urlObj.hostname,
+                port: urlObj.port || 443,
+                path: urlObj.pathname + urlObj.search,
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Cown-Telegram-App/1.0'
+                }
+            };
+
+            if (data && method !== 'GET') {
+                const postData = JSON.stringify(data);
+                options.headers['Content-Length'] = Buffer.byteLength(postData);
+            }
+
+            const req = https.request(options, (res) => {
+                let responseData = '';
+                res.on('data', (chunk) => responseData += chunk);
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(responseData);
+                        resolve(parsed);
+                    } catch (error) {
+                        resolve({ ok: false, description: 'Invalid JSON response' });
+                    }
+                });
+            });
+
+            req.on('error', (error) => {
+                reject(error);
+            });
+
+            if (data && method !== 'GET') {
+                req.write(JSON.stringify(data));
+            }
+
+            req.end();
+        });
     }
 
     async onInitialize() {
@@ -366,8 +414,7 @@ class TelegramAuthService extends BaseService {
      */
     async getBotInfo() {
         try {
-            const response = await fetch(`https://api.telegram.org/bot${this.botToken}/getMe`);
-            const data = await response.json();
+            const data = await this.makeRequest(`https://api.telegram.org/bot${this.botToken}/getMe`);
             
             if (data.ok) {
                 return data.result;
