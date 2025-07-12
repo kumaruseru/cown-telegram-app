@@ -1,13 +1,12 @@
 services:
   - type: web
     name: cown-telegram-app
-    env: docker
-    dockerfilePath: ./Dockerfile
-    plan: starter
-    region: singapore
+    env: node
+    plan: free
+    region: oregon
     branch: main
-    buildCommand: docker build -t cown-app .
-    startCommand: ./start.sh
+    buildCommand: npm install
+    startCommand: node server.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
