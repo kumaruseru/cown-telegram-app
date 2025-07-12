@@ -45,7 +45,7 @@ USER cown
 
 # Health check với timeout tối ưu
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node healthcheck.js
+  CMD node healthcheck.js || exit 1
 
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]

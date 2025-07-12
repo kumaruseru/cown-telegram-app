@@ -21,8 +21,7 @@
     "docker:run": "docker run -p 3000:3000 cown-telegram-app",
     "docker:compose": "docker-compose up -d",
     "docker:stop": "docker-compose down",
-    "deploy:render": "git push origin main",
-    "postinstall": "npm run clean"
+    "deploy:render": "git push origin main"
   },
   "keywords": [
     "telegram",

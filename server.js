@@ -63,8 +63,11 @@ class CownTelegramApp {
             await this.initializeServices();
             this.setupRoutes();
             this.setupSocketEvents();
+            console.log('🎉 Application initialized successfully');
         } catch (error) {
-            console.error('❌ Lỗi khởi tạo ứng dụng:', error);
+            console.error('❌ Application initialization failed:', error.message);
+            console.error('Stack trace:', error.stack);
+            // Graceful shutdown
             process.exit(1);
         }
     }
@@ -111,41 +114,67 @@ class CownTelegramApp {
             maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
             etag: true
         }));
+
+        // Global error handler
+        this.app.use((err, req, res, next) => {
+            console.error('Global error handler:', err);
+            
+            if (res.headersSent) {
+                return next(err);
+            }
+            
+            const isDev = process.env.NODE_ENV !== 'production';
+            res.status(err.status || 500).json({
+                error: err.message,
+                ...(isDev && { stack: err.stack })
+            });
+        });
     }
 
     async initializeServices() {
         try {
+            console.log('🔧 Initializing services...');
+            
             // Khởi tạo database - sử dụng SQLite cho tất cả environments
+            console.log('📊 Initializing database...');
             const DatabaseManager = require('./src/database/DatabaseManager_SQLite');
             
             this.dbManager = new DatabaseManager();
             await this.dbManager.initialize();
+            console.log('✅ Database initialized successfully');
 
             // Khởi tạo Telegram Client service (MTProto) trước
+            console.log('📱 Initializing Telegram service...');
             this.telegramClientService = new TelegramClientService(this.dbManager, this.io);
 
             // Khởi tạo OTP service với Telegram service
+            console.log('🔐 Initializing OTP service...');
             const OTPService = require('./src/services/OTPService');
             this.otpService = new OTPService(this.dbManager, this.telegramClientService);
 
             // Khởi tạo Auth service với OTP service
+            console.log('🛡️ Initializing Auth service...');
             this.authService = new AuthService(this.dbManager, this.otpService);
             
             // Khởi tạo message handler
+            console.log('💬 Initializing Message handler...');
             this.messageHandler = new MessageHandler(this.dbManager, this.telegramClientService, this.io);
 
-            // Tự động kết nối lại các Telegram sessions đã lưu
+            // Tự động kết nối lại các Telegram sessions đã lưu (không chặn app start)
             setTimeout(async () => {
                 try {
+                    console.log('🔄 Initializing saved Telegram sessions...');
                     await this.telegramClientService.initializeAllUsersFromSessions();
                 } catch (error) {
-                    console.error('❌ Lỗi khởi tạo Telegram sessions:', error);
+                    console.warn('⚠️ Warning: Failed to initialize Telegram sessions:', error.message);
+                    // Not critical, continue running
                 }
             }, 2000); // Delay 2 giây để đảm bảo server đã sẵn sàng
 
-            console.log('✅ Tất cả services đã được khởi tạo thành công');
+            console.log('✅ All services initialized successfully');
         } catch (error) {
-            console.error('❌ Lỗi khởi tạo services:', error);
+            console.error('❌ Service initialization failed:', error.message);
+            throw error; // Re-throw to be caught by initialize()
         }
     }
 
@@ -793,28 +822,59 @@ class CownTelegramApp {
     }
 
     async start() {
-        await this.initialize();
-        const host = process.env.HOST || '0.0.0.0';
-        this.server.listen(this.port, host, () => {
-            console.log(`🚀 Cown Telegram App đang chạy trên ${host}:${this.port}`);
-            console.log(`🌐 Truy cập local: http://localhost:${this.port}`);
-            if (host === '0.0.0.0') {
-                console.log(`🌐 Truy cập mạng: http://[IP-ADDRESS]:${this.port}`);
-                console.log(`💡 Thay [IP-ADDRESS] bằng địa chỉ IP thực của máy`);
-            }
-        });
+        try {
+            await this.initialize();
+            const host = process.env.HOST || '0.0.0.0';
+            
+            this.server.listen(this.port, host, () => {
+                console.log(`🚀 Cown Telegram App is running on ${host}:${this.port}`);
+                console.log(`🌐 Local access: http://localhost:${this.port}`);
+                if (host === '0.0.0.0') {
+                    console.log(`🌐 Network access: http://[IP-ADDRESS]:${this.port}`);
+                    console.log(`💡 Replace [IP-ADDRESS] with your actual IP address`);
+                }
+                console.log(`🎯 Environment: ${process.env.NODE_ENV || 'development'}`);
+                console.log(`📊 Database: ${process.env.DB_PATH || './data/cown.db'}`);
+            });
+
+            // Graceful shutdown
+            process.on('SIGTERM', () => {
+                console.log('🛑 Received SIGTERM, shutting down gracefully...');
+                this.server.close(() => {
+                    console.log('✅ Process terminated gracefully');
+                    process.exit(0);
+                });
+            });
+
+            process.on('SIGINT', () => {
+                console.log('🛑 Received SIGINT, shutting down gracefully...');
+                this.server.close(() => {
+                    console.log('✅ Process terminated gracefully');
+                    process.exit(0);
+                });
+            });
+
+        } catch (error) {
+            console.error('❌ Failed to start application:', error.message);
+            console.error('Stack trace:', error.stack);
+            process.exit(1);
+        }
     }
 }
 
 // Khởi động ứng dụng
 async function startApp() {
-    const app = new CownTelegramApp();
-    await app.start();
+    try {
+        console.log('🚀 Starting Cown Telegram App...');
+        const app = new CownTelegramApp();
+        await app.start();
+    } catch (error) {
+        console.error('❌ Failed to start application:', error.message);
+        console.error('Stack trace:', error.stack);
+        process.exit(1);
+    }
 }
 
-startApp().catch(error => {
-    console.error('❌ Không thể khởi động ứng dụng:', error);
-    process.exit(1);
-});
+startApp();
 
 module.exports = CownTelegramApp;
