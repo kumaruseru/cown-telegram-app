@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # Install SQLite và các dependencies system cần thiết
-RUN apk add --no-cache sqlite python3 make g++ dumb-init
+RUN apk add --no-cache sqlite python3 make g++
 
 # Thêm metadata
 LABEL maintainer="Cown Telegram App"
@@ -18,12 +18,10 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Sao chép package files trước để cache dependencies
 COPY package*.json ./
-COPY .npmrc ./
 
 # Install dependencies với optimization
-RUN npm ci --only=production --silent --no-audit --no-fund && \
-    npm cache clean --force && \
-    rm -rf /tmp/*
+RUN npm ci --production --silent --no-audit --no-fund && \
+    npm cache clean --force
 
 # Sao chép source code
 COPY --chown=cown:nodejs . .
@@ -43,12 +41,9 @@ EXPOSE 3000
 # Switch to non-root user
 USER cown
 
-# Health check với timeout tối ưu
+# Health check đơn giản
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node healthcheck.js || exit 1
-
-# Use dumb-init for proper signal handling
-ENTRYPOINT ["dumb-init", "--"]
 
 # Start command
 CMD ["npm", "start"]
