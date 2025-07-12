@@ -6,7 +6,6 @@
     <title>🐄 Cown - Đăng nhập</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Reset và Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -14,42 +13,69 @@
         }
 
         :root {
-            --cow-brown: #8D6E63;
-            --cow-cream: #F5F5DC;
+            --cow-primary: #FF6B9D;
+            --cow-secondary: #C44CAF;
+            --cow-accent: #9C27B0;
+            --cow-cream: #FFF8E1;
             --cow-white: #FFFFFF;
-            --telegram-blue: #0088CC;
+            --telegram-blue: #229ED9;
             --success-green: #4CAF50;
-            --error-red: #E57373;
+            --shadow: rgba(255, 107, 157, 0.3);
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #FF6B9D 0%, #C44CAF 50%, #9C27B0 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            margin: 0;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Main Container - Compact cho 1 khung hình */
+        body::before {
+            content: '🐄';
+            position: absolute;
+            font-size: 8em;
+            opacity: 0.05;
+            top: 10%;
+            left: 10%;
+            animation: float-bg 15s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '🐄';
+            position: absolute;
+            font-size: 6em;
+            opacity: 0.05;
+            bottom: 15%;
+            right: 15%;
+            animation: float-bg 12s ease-in-out infinite reverse;
+        }
+
+        @keyframes float-bg {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
+        }
+
         .login-container {
             width: 100%;
             max-width: 800px;
             height: 500px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 25px;
+            box-shadow: 0 25px 80px var(--shadow);
             overflow: hidden;
             display: flex;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        /* Left Side - Welcome */
         .welcome-side {
             flex: 1;
-            background: linear-gradient(135deg, var(--cow-brown) 0%, #A1887F 100%);
+            background: linear-gradient(135deg, var(--cow-primary) 0%, var(--cow-secondary) 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -63,56 +89,59 @@
         .welcome-side::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                radial-gradient(ellipse 40px 30px at 20% 40%, rgba(255, 255, 255, 0.1) 60%, transparent 60%),
-                radial-gradient(ellipse 35px 25px at 80% 70%, rgba(255, 255, 255, 0.08) 60%, transparent 60%),
-                radial-gradient(ellipse 25px 20px at 60% 20%, rgba(255, 255, 255, 0.06) 60%, transparent 60%);
-            background-size: 150px 150px;
-            animation: float 20s ease-in-out infinite;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: dots-move 25s linear infinite;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+        @keyframes dots-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
         }
 
-        .cow-emoji {
-            font-size: 4em;
+        .cow-hero {
+            font-size: 4.5em;
             margin-bottom: 20px;
-            animation: bounce 2s infinite;
+            animation: bounce-cow 3s ease-in-out infinite;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+            z-index: 2;
+            position: relative;
         }
 
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-            60% { transform: translateY(-5px); }
+        @keyframes bounce-cow {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-15px) scale(1.05); }
         }
 
         .welcome-title {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+            position: relative;
         }
 
         .welcome-subtitle {
             font-size: 1.1em;
-            text-align: center;
             opacity: 0.9;
+            text-align: center;
             line-height: 1.4;
+            z-index: 2;
+            position: relative;
         }
 
-        /* Right Side - Login Form */
         .login-side {
             flex: 1;
             padding: 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            background: var(--cow-white);
         }
 
         .login-header {
@@ -120,37 +149,62 @@
             margin-bottom: 30px;
         }
 
-        .login-header h2 {
-            color: #333;
-            margin-bottom: 10px;
+        .login-title {
             font-size: 1.8em;
+            color: var(--cow-secondary);
+            margin-bottom: 8px;
+            font-weight: 700;
         }
 
-        .login-header p {
+        .login-subtitle {
             color: #666;
             font-size: 0.95em;
         }
 
-        /* Telegram Login Button - Tối ưu */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--cow-secondary);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E0E0E0;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #FAFAFA;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--cow-primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
         .telegram-btn {
             width: 100%;
-            padding: 16px 20px;
-            background: linear-gradient(135deg, var(--telegram-blue) 0%, #0066AA 100%);
+            padding: 15px;
+            background: linear-gradient(135deg, var(--telegram-blue) 0%, #1B8CC4 100%);
             color: white;
             border: none;
             border-radius: 12px;
             font-size: 1.1em;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 136, 204, 0.3);
-            margin-bottom: 25px;
             position: relative;
             overflow: hidden;
+            margin-bottom: 15px;
         }
 
         .telegram-btn::before {
@@ -160,8 +214,8 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
         }
 
         .telegram-btn:hover::before {
@@ -170,35 +224,14 @@
 
         .telegram-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(0, 136, 204, 0.4);
+            box-shadow: 0 8px 25px rgba(34, 158, 217, 0.4);
         }
 
-        .telegram-btn:active {
-            transform: translateY(0);
+        .telegram-btn i {
+            margin-right: 10px;
+            font-size: 1.2em;
         }
 
-        .telegram-icon {
-            font-size: 1.5em;
-        }
-
-        .telegram-text {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .telegram-main {
-            font-size: 1.1em;
-            font-weight: 600;
-        }
-
-        .telegram-sub {
-            font-size: 0.85em;
-            opacity: 0.9;
-            font-weight: 400;
-        }
-
-        /* Divider */
         .divider {
             text-align: center;
             margin: 20px 0;
@@ -214,7 +247,7 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: #ddd;
+            background: #E0E0E0;
             z-index: 1;
         }
 
@@ -225,259 +258,198 @@
             z-index: 2;
         }
 
-        /* Phone Input */
-        .phone-section {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .phone-input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .country-code {
-            width: 80px;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 600;
-            background: #f8f9fa;
-        }
-
-        .phone-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s ease;
-        }
-
-        .phone-input:focus {
-            outline: none;
-            border-color: var(--telegram-blue);
-            box-shadow: 0 0 0 3px rgba(0, 136, 204, 0.1);
-        }
-
-        .phone-help {
-            font-size: 0.85em;
-            color: #666;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .send-btn {
+        .phone-btn {
             width: 100%;
             padding: 12px;
-            background: var(--cow-brown);
+            background: linear-gradient(135deg, var(--cow-primary) 0%, var(--cow-secondary) 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 1em;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .send-btn:hover {
-            background: #6D4C41;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(141, 110, 99, 0.3);
+        .phone-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--shadow);
         }
 
-        .send-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Messages */
-        .message {
+        .back-to-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
             padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            border-radius: 50px;
+            text-decoration: none;
             font-size: 0.9em;
-            display: none;
+            transition: all 0.3s ease;
+            z-index: 10;
         }
 
-        .error-message {
-            background: #ffebee;
-            color: #c62828;
-            border-left: 4px solid var(--error-red);
+        .back-to-home:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
 
-        .success-message {
-            background: #e8f5e8;
-            color: #2e7d32;
-            border-left: 4px solid var(--success-green);
+        .back-to-home i {
+            margin-right: 8px;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .login-container {
                 flex-direction: column;
                 height: auto;
-                max-height: 90vh;
+                max-width: 400px;
+            }
+
+            .welcome-side, .login-side {
+                flex: none;
             }
 
             .welcome-side {
-                padding: 20px;
-                min-height: 200px;
+                padding: 30px 20px;
             }
 
-            .cow-emoji {
-                font-size: 3em;
-                margin-bottom: 15px;
+            .cow-hero {
+                font-size: 3.5em;
             }
 
             .welcome-title {
-                font-size: 2em;
-                margin-bottom: 10px;
-            }
-
-            .welcome-subtitle {
-                font-size: 1em;
+                font-size: 1.8em;
             }
 
             .login-side {
                 padding: 30px 20px;
             }
+        }
 
-            .telegram-btn {
-                padding: 14px 18px;
-            }
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
+    <a href="/" class="back-to-home">
+        <i class="fas fa-arrow-left"></i>
+        Trang chủ
+    </a>
+
     <div class="login-container">
-        <!-- Left Side - Welcome -->
         <div class="welcome-side">
-            <div class="cow-emoji">🐄</div>
-            <h1 class="welcome-title">Chào mừng đến với Cown!</h1>
-            <p class="welcome-subtitle">Ứng dụng nhắn tin Telegram với giao diện đáng yêu và hiện đại</p>
+            <div class="cow-hero">🐄</div>
+            <h1 class="welcome-title">Chào mừng đến Cown!</h1>
+            <p class="welcome-subtitle">
+                Kết nối thông minh với Telegram<br>
+                Trải nghiệm mới mẻ và hiện đại
+            </p>
         </div>
 
-        <!-- Right Side - Login -->
         <div class="login-side">
             <div class="login-header">
-                <h2>Đăng nhập</h2>
-                <p>Chọn phương thức đăng nhập phù hợp với bạn</p>
+                <h2 class="login-title">Đăng nhập</h2>
+                <p class="login-subtitle">Chọn phương thức đăng nhập của bạn</p>
             </div>
 
-            <div id="errorMessage" class="message error-message"></div>
-            <div id="successMessage" class="message success-message"></div>
-
-            <!-- Telegram Login Button - Tối ưu -->
-            <button type="button" class="telegram-btn" id="telegramLoginBtn" onclick="loginWithTelegram()">
-                <i class="fab fa-telegram telegram-icon"></i>
-                <div class="telegram-text">
-                    <span class="telegram-main">Đăng nhập bằng Telegram</span>
-                    <span class="telegram-sub">Nhanh chóng và bảo mật</span>
+            <button class="telegram-btn" id="telegramLogin">
+                <i class="fab fa-telegram-plane"></i>
+                Đăng nhập với Telegram
+                <div class="loading">
+                    <div class="spinner"></div>
                 </div>
             </button>
 
             <div class="divider">
-                <span>hoặc dùng số điện thoại</span>
+                <span>hoặc</span>
             </div>
 
-            <!-- Phone Login -->
-            <div class="phone-section">
-                <div class="phone-input-group">
-                    <input type="text" class="country-code" value="+84" readonly>
-                    <input type="tel" class="phone-input" id="phoneInput" placeholder="Nhập số điện thoại" maxlength="10">
-                </div>
-                <div class="phone-help">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Ví dụ: 912345678 (không cần số 0 đầu)</span>
-                </div>
-                <button type="button" class="send-btn" id="sendOtpBtn" onclick="sendOTP()">
-                    <i class="fas fa-paper-plane"></i> Gửi mã xác thực
-                </button>
+            <div class="form-group">
+                <label class="form-label" for="phoneNumber">Số điện thoại</label>
+                <input type="tel" class="form-input" id="phoneNumber" placeholder="+84 xxx xxx xxx" maxlength="15">
             </div>
+
+            <button class="phone-btn" id="phoneLogin">
+                <i class="fas fa-mobile-alt"></i>
+                Đăng nhập với SĐT
+            </button>
         </div>
     </div>
 
     <script>
-        // Telegram Login Function
-        function loginWithTelegram() {
-            showMessage('Đang chuyển hướng đến Telegram...', 'success');
-            // Redirect to Telegram auth
-            window.location.href = '/auth/telegram';
-        }
+        document.getElementById('telegramLogin').addEventListener('click', function() {
+            const btn = this;
+            const loading = btn.querySelector('.loading');
+            
+            btn.style.position = 'relative';
+            loading.style.display = 'block';
+            btn.disabled = true;
+            
+            // Redirect tới Telegram login
+            window.location.href = '/api/auth/telegram/login';
+        });
 
-        // Phone OTP Function
-        function sendOTP() {
-            const phone = document.getElementById('phoneInput').value;
-            if (!phone || phone.length < 9) {
-                showMessage('Vui lòng nhập số điện thoại hợp lệ', 'error');
+        document.getElementById('phoneLogin').addEventListener('click', function() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            
+            if (!phoneNumber) {
+                alert('Vui lòng nhập số điện thoại');
+                document.getElementById('phoneNumber').focus();
                 return;
             }
 
-            const fullPhone = '+84' + phone;
-            showMessage('Đang gửi mã xác thực...', 'success');
-
-            fetch('/api/auth/send-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ phone: fullPhone })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage('Mã xác thực đã được gửi!', 'success');
-                    // Redirect to OTP verification page
-                    setTimeout(() => {
-                        window.location.href = `/verify-otp?phone=${encodeURIComponent(fullPhone)}`;
-                    }, 1500);
-                } else {
-                    showMessage(data.message || 'Có lỗi xảy ra', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showMessage('Không thể gửi mã xác thực', 'error');
-            });
-        }
-
-        // Show Message Function
-        function showMessage(text, type) {
-            const errorEl = document.getElementById('errorMessage');
-            const successEl = document.getElementById('successMessage');
-            
-            // Hide all messages first
-            errorEl.style.display = 'none';
-            successEl.style.display = 'none';
-            
-            if (type === 'error') {
-                errorEl.textContent = text;
-                errorEl.style.display = 'block';
-            } else {
-                successEl.textContent = text;
-                successEl.style.display = 'block';
+            if (phoneNumber.length < 10) {
+                alert('Số điện thoại không hợp lệ');
+                document.getElementById('phoneNumber').focus();
+                return;
             }
-        }
 
-        // Phone input validation
-        document.getElementById('phoneInput').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-            if (value.startsWith('0')) {
-                value = value.substring(1); // Remove leading 0
+            // Redirect tới verify OTP page với phone number
+            localStorage.setItem('phoneNumber', phoneNumber);
+            window.location.href = '/verify-otp.html';
+        });
+
+        // Format phone number input
+        document.getElementById('phoneNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.startsWith('84')) {
+                value = '+' + value;
+            } else if (value.startsWith('0')) {
+                value = '+84' + value.substring(1);
+            } else if (!value.startsWith('+')) {
+                value = '+84' + value;
             }
+            
             e.target.value = value;
         });
 
         // Enter key support
-        document.getElementById('phoneInput').addEventListener('keypress', function(e) {
+        document.getElementById('phoneNumber').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                sendOTP();
+                document.getElementById('phoneLogin').click();
             }
         });
     </script>
