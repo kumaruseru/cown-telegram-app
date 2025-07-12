@@ -1,5 +1,5 @@
 # Production Dockerfile for Cown Telegram App
-FROM node:18-alpine
+FROM node:16-alpine
 
 # Install system dependencies
 RUN apk add --no-cache sqlite python3 make g++ dumb-init
@@ -19,8 +19,8 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies - production only
-RUN npm ci --only=production --silent --no-audit --no-fund && \
+# Install dependencies with more basic approach
+RUN npm install --production && \
     npm cache clean --force
 
 # Copy application code
