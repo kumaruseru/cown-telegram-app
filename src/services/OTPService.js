@@ -97,13 +97,18 @@ class OTPService {
                         console.error(`Voice error: ${voiceError.message}`);
                         
                         // For development, still allow console log
-                        if (process.env.NODE_ENV === 'development') {
-                            deliveryMethod = 'console';
-                            deliveryMessage = 'Mã OTP đã được hiển thị trong console (Development mode)';
-                            console.log(`🔧 Development mode: OTP ${otp} logged to console`);
-                        } else {
-                            throw new Error('Không thể gửi mã OTP. Vui lòng thử lại sau.');
-                        }
+                        deliveryMethod = 'console';
+                        deliveryMessage = 'Mã OTP được hiển thị trên màn hình (Demo mode)';
+                        console.log(`🔧 Development mode: OTP ${otp} logged to console`);
+                        
+                        // Return OTP in response for demo
+                        return {
+                            success: true,
+                            message: deliveryMessage,
+                            method: deliveryMethod,
+                            expiryTime: expiry,
+                            otp: otp // Always show OTP when all methods fail
+                        };
                     }
                 }
             }

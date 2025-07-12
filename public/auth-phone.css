@@ -903,23 +903,52 @@ body::before {
     text-align: center;
 }
 
-/* Cow Mascot */
+/* Cow Mascot with grass field */
 .cow-mascot {
     margin-bottom: 30px;
     position: relative;
+    padding-bottom: 20px;
+}
+
+.cow-mascot::before {
+    content: '🌱🌱🌱🌿🌱🌱🌿🌱🌱🌱🌿🌱🌱';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    animation: grassSway 3s ease-in-out infinite;
+    opacity: 0.7;
+}
+
+@keyframes grassSway {
+    0%, 100% { transform: translateX(-50%) rotate(0deg); }
+    50% { transform: translateX(-50%) rotate(2deg); }
 }
 
 .cow-face {
     font-size: 5rem;
-    animation: cowNod 4s ease-in-out infinite;
+    animation: cowWalk 6s ease-in-out infinite;
     display: block;
     filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
 }
 
-@keyframes cowNod {
-    0%, 100% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(-5deg) scale(1.05); }
-    75% { transform: rotate(5deg) scale(1.05); }
+@keyframes cowWalk {
+    0% { 
+        transform: translateX(-20px) rotate(0deg) scale(1); 
+    }
+    25% { 
+        transform: translateX(-10px) rotate(-2deg) scale(1.02); 
+    }
+    50% { 
+        transform: translateX(0px) rotate(0deg) scale(1.05); 
+    }
+    75% { 
+        transform: translateX(10px) rotate(2deg) scale(1.02); 
+    }
+    100% { 
+        transform: translateX(20px) rotate(0deg) scale(1); 
+    }
 }
 
 .cow-body {
