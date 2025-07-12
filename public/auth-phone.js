@@ -1,7 +1,9 @@
 class PhoneAuthManager {
     constructor() {
         console.log('🚀 PhoneAuthManager constructor started');
-        this.baseURL = '';
+        this.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? '' 
+            : 'https://cown-telegram-app.onrender.com';
         this.elements = {};
         this.currentStep = 'phone';
         this.phoneNumber = null;
@@ -260,8 +262,8 @@ class PhoneAuthManager {
             this.phoneNumber = this.countryCode + phone;
             console.log('📞 Full phone number:', this.phoneNumber);
 
-            console.log('🌐 Sending request to:', '/api/auth/send-phone-otp');
-            const response = await fetch('/api/auth/send-phone-otp', {
+            console.log('🌐 Sending request to:', this.baseURL + '/api/auth/send-phone-otp');
+            const response = await fetch(this.baseURL + '/api/auth/send-phone-otp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -336,7 +338,7 @@ class PhoneAuthManager {
                 return;
             }
 
-            const response = await fetch('/api/auth/login-with-phone', {
+            const response = await fetch(this.baseURL + '/api/auth/login-with-phone', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -379,7 +381,7 @@ class PhoneAuthManager {
             this.setLoading('resendOtpBtn', true);
             this.hideMessages();
 
-            const response = await fetch('/api/auth/send-phone-otp', {
+            const response = await fetch(this.baseURL + '/api/auth/send-phone-otp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

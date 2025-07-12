@@ -175,7 +175,10 @@
         window.testOTP = async function(phone = '+84999111222') {
             console.log('🧪 Testing OTP with phone:', phone);
             try {
-                const response = await fetch('/api/auth/send-phone-otp', {
+                const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                    ? '' 
+                    : 'https://cown-telegram-app.onrender.com';
+                const response = await fetch(baseURL + '/api/auth/send-phone-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ phone: phone }),
