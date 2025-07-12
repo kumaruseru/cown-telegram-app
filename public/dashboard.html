@@ -1,287 +1,297 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Dashboard - Cown Telegram App</title>
+        <link rel="stylesheet" href="styles.css" />
+        <style>
+            .dashboard-container {
+                max-width: 800px;
+                margin: 20px auto;
+                padding: 30px;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Cown Telegram App</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .dashboard-container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+            .user-profile {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                margin-bottom: 30px;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 10px;
+            }
 
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
+            .user-avatar {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: #0088cc;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 30px;
+                color: white;
+                font-weight: bold;
+            }
 
-        .user-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: #0088cc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            color: white;
-            font-weight: bold;
-        }
+            .user-info h2 {
+                margin: 0 0 5px 0;
+                color: #333;
+            }
 
-        .user-info h2 {
-            margin: 0 0 5px 0;
-            color: #333;
-        }
+            .user-info p {
+                margin: 0;
+                color: #666;
+            }
 
-        .user-info p {
-            margin: 0;
-            color: #666;
-        }
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+            .stat-card {
+                padding: 20px;
+                background: linear-gradient(135deg, #0088cc, #0066aa);
+                color: white;
+                border-radius: 10px;
+                text-align: center;
+            }
 
-        .stat-card {
-            padding: 20px;
-            background: linear-gradient(135deg, #0088cc, #0066aa);
-            color: white;
-            border-radius: 10px;
-            text-align: center;
-        }
+            .stat-value {
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
 
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
+            .stat-label {
+                font-size: 14px;
+                opacity: 0.9;
+            }
 
-        .stat-label {
-            font-size: 14px;
-            opacity: 0.9;
-        }
+            .actions-section {
+                margin-top: 30px;
+            }
 
-        .actions-section {
-            margin-top: 30px;
-        }
+            .action-btn {
+                display: inline-block;
+                padding: 12px 24px;
+                margin: 5px;
+                background: #0088cc;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                text-decoration: none;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
 
-        .action-btn {
-            display: inline-block;
-            padding: 12px 24px;
-            margin: 5px;
-            background: #0088cc;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
+            .action-btn:hover {
+                background: #006ba8;
+            }
 
-        .action-btn:hover {
-            background: #006ba8;
-        }
+            .logout-btn {
+                background: #dc3545;
+            }
 
-        .logout-btn {
-            background: #dc3545;
-        }
+            .logout-btn:hover {
+                background: #c82333;
+            }
 
-        .logout-btn:hover {
-            background: #c82333;
-        }
+            .loading {
+                text-align: center;
+                margin: 50px 0;
+            }
 
-        .loading {
-            text-align: center;
-            margin: 50px 0;
-        }
+            .error {
+                background: #f8d7da;
+                color: #721c24;
+                padding: 15px;
+                border-radius: 5px;
+                margin: 20px 0;
+            }
+        </style>
+    </head>
 
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-    </style>
-</head>
+    <body>
+        <div class="dashboard-container">
+            <h1>🚀 Dashboard - Cown Telegram App</h1>
 
-<body>
-    <div class="dashboard-container">
-        <h1>🚀 Dashboard - Cown Telegram App</h1>
-        
-        <div id="loading" class="loading">
-            <p>Đang tải thông tin...</p>
+            <div id="loading" class="loading">
+                <p>Đang tải thông tin...</p>
+            </div>
+
+            <div id="error-message" class="error" style="display: none"></div>
+
+            <div id="dashboard-content" style="display: none">
+                <div class="user-profile">
+                    <div id="user-avatar" class="user-avatar"></div>
+                    <div class="user-info">
+                        <h2 id="user-name">Loading...</h2>
+                        <p id="user-details">Loading...</p>
+                        <p id="user-auth-method">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="messages-count">-</div>
+                        <div class="stat-label">Tin nhắn</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="chats-count">-</div>
+                        <div class="stat-label">Cuộc trò chuyện</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uptime">-</div>
+                        <div class="stat-label">Thời gian hoạt động</div>
+                    </div>
+                </div>
+
+                <div class="actions-section">
+                    <h3>Hành động</h3>
+                    <a href="/app" class="action-btn"
+                        >📱 Mở ứng dụng Telegram</a
+                    >
+                    <a href="/settings" class="action-btn">⚙️ Cài đặt Bot</a>
+                    <a href="/login_telegram" class="action-btn"
+                        >🔗 Đăng nhập Telegram khác</a
+                    >
+                    <button id="logout-btn" class="action-btn logout-btn">
+                        🚪 Đăng xuất
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        <div id="error-message" class="error" style="display: none;"></div>
-        
-        <div id="dashboard-content" style="display: none;">
-            <div class="user-profile">
-                <div id="user-avatar" class="user-avatar"></div>
-                <div class="user-info">
-                    <h2 id="user-name">Loading...</h2>
-                    <p id="user-details">Loading...</p>
-                    <p id="user-auth-method">Loading...</p>
-                </div>
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="messages-count">-</div>
-                    <div class="stat-label">Tin nhắn</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="chats-count">-</div>
-                    <div class="stat-label">Cuộc trò chuyện</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="uptime">-</div>
-                    <div class="stat-label">Thời gian hoạt động</div>
-                </div>
-            </div>
-            
-            <div class="actions-section">
-                <h3>Hành động</h3>
-                <a href="/app" class="action-btn">📱 Mở ứng dụng Telegram</a>
-                <a href="/settings" class="action-btn">⚙️ Cài đặt Bot</a>
-                <a href="/login_telegram" class="action-btn">🔗 Đăng nhập Telegram khác</a>
-                <button id="logout-btn" class="action-btn logout-btn">🚪 Đăng xuất</button>
-            </div>
-        </div>
-    </div>
 
-    <script>
-        let userInfo = null;
-        
-        async function loadUserInfo() {
-            try {
-                const response = await fetch('/auth/telegram/status');
-                const data = await response.json();
-                
-                if (data.success && data.authenticated) {
-                    userInfo = data.user;
-                    displayUserInfo(data.user);
-                    await loadStats();
-                    showDashboard();
-                } else {
-                    throw new Error('Không thể xác thực người dùng');
-                }
-            } catch (error) {
-                console.error('Error loading user info:', error);
-                showError('Lỗi tải thông tin người dùng: ' + error.message);
-            }
-        }
-        
-        function displayUserInfo(user) {
-            // User avatar
-            const avatar = document.getElementById('user-avatar');
-            if (user.telegram_photo_url) {
-                avatar.innerHTML = `<img src="${user.telegram_photo_url}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
-            } else {
-                const initial = user.telegram_first_name ? user.telegram_first_name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase();
-                avatar.textContent = initial;
-            }
-            
-            // User name
-            const userName = document.getElementById('user-name');
-            if (user.telegram_first_name || user.telegram_last_name) {
-                userName.textContent = `${user.telegram_first_name || ''} ${user.telegram_last_name || ''}`.trim();
-            } else {
-                userName.textContent = user.username;
-            }
-            
-            // User details
-            const userDetails = document.getElementById('user-details');
-            let details = [];
-            if (user.telegram_username) {
-                details.push(`@${user.telegram_username}`);
-            }
-            if (user.email) {
-                details.push(user.email);
-            }
-            userDetails.textContent = details.join(' • ') || 'Người dùng Telegram';
-            
-            // Auth method
-            const authMethod = document.getElementById('user-auth-method');
-            if (user.telegram_id) {
-                authMethod.textContent = '🔐 Đăng nhập qua Telegram';
-            } else {
-                authMethod.textContent = '🔐 Đăng nhập thường';
-            }
-        }
-        
-        async function loadStats() {
-            try {
-                // Load health stats
-                const healthResponse = await fetch('/health');
-                const healthData = await healthResponse.json();
-                
-                // Update uptime
-                const uptimeElement = document.getElementById('uptime');
-                const uptime = Math.floor(healthData.uptime / 3600);
-                uptimeElement.textContent = `${uptime}h`;
-                
-                // Mock stats for now - in real app these would come from the API
-                document.getElementById('messages-count').textContent = '0';
-                document.getElementById('chats-count').textContent = '0';
-                
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-        
-        function showDashboard() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard-content').style.display = 'block';
-        }
-        
-        function showError(message) {
-            document.getElementById('loading').style.display = 'none';
-            const errorElement = document.getElementById('error-message');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-        }
-        
-        async function logout() {
-            try {
-                const response = await fetch('/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    window.location.href = '/login';
-                } else {
-                    throw new Error('Lỗi đăng xuất');
-                }
-            } catch (error) {
-                console.error('Logout error:', error);
-                alert('Lỗi đăng xuất: ' + error.message);
-            }
-        }
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadUserInfo();
-            
-            // Bind logout button
-            document.getElementById('logout-btn').addEventListener('click', logout);
-        });
-    </script>
-</body>
+        <script>
+            let userInfo = null;
 
+            async function loadUserInfo() {
+                try {
+                    const response = await fetch('/auth/telegram/status');
+                    const data = await response.json();
+
+                    if (data.success && data.authenticated) {
+                        userInfo = data.user;
+                        displayUserInfo(data.user);
+                        await loadStats();
+                        showDashboard();
+                    } else {
+                        throw new Error('Không thể xác thực người dùng');
+                    }
+                } catch (error) {
+                    console.error('Error loading user info:', error);
+                    showError('Lỗi tải thông tin người dùng: ' + error.message);
+                }
+            }
+
+            function displayUserInfo(user) {
+                // User avatar
+                const avatar = document.getElementById('user-avatar');
+                if (user.telegram_photo_url) {
+                    avatar.innerHTML = `<img src="${user.telegram_photo_url}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                } else {
+                    const initial = user.telegram_first_name
+                        ? user.telegram_first_name.charAt(0).toUpperCase()
+                        : user.username.charAt(0).toUpperCase();
+                    avatar.textContent = initial;
+                }
+
+                // User name
+                const userName = document.getElementById('user-name');
+                if (user.telegram_first_name || user.telegram_last_name) {
+                    userName.textContent =
+                        `${user.telegram_first_name || ''} ${user.telegram_last_name || ''}`.trim();
+                } else {
+                    userName.textContent = user.username;
+                }
+
+                // User details
+                const userDetails = document.getElementById('user-details');
+                let details = [];
+                if (user.telegram_username) {
+                    details.push(`@${user.telegram_username}`);
+                }
+                if (user.email) {
+                    details.push(user.email);
+                }
+                userDetails.textContent =
+                    details.join(' • ') || 'Người dùng Telegram';
+
+                // Auth method
+                const authMethod = document.getElementById('user-auth-method');
+                if (user.telegram_id) {
+                    authMethod.textContent = '🔐 Đăng nhập qua Telegram';
+                } else {
+                    authMethod.textContent = '🔐 Đăng nhập thường';
+                }
+            }
+
+            async function loadStats() {
+                try {
+                    // Load health stats
+                    const healthResponse = await fetch('/health');
+                    const healthData = await healthResponse.json();
+
+                    // Update uptime
+                    const uptimeElement = document.getElementById('uptime');
+                    const uptime = Math.floor(healthData.uptime / 3600);
+                    uptimeElement.textContent = `${uptime}h`;
+
+                    // Mock stats for now - in real app these would come from the API
+                    document.getElementById('messages-count').textContent = '0';
+                    document.getElementById('chats-count').textContent = '0';
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            }
+
+            function showDashboard() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard-content').style.display =
+                    'block';
+            }
+
+            function showError(message) {
+                document.getElementById('loading').style.display = 'none';
+                const errorElement = document.getElementById('error-message');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+
+            async function logout() {
+                try {
+                    const response = await fetch('/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include',
+                    });
+
+                    if (response.ok) {
+                        window.location.href = '/login';
+                    } else {
+                        throw new Error('Lỗi đăng xuất');
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    alert('Lỗi đăng xuất: ' + error.message);
+                }
+            }
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', () => {
+                loadUserInfo();
+
+                // Bind logout button
+                document
+                    .getElementById('logout-btn')
+                    .addEventListener('click', logout);
+            });
+        </script>
+    </body>
 </html>

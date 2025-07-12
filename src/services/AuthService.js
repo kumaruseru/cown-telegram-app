@@ -6,7 +6,8 @@ const BaseService = require('../core/BaseService');
 class AuthService extends BaseService {
     constructor(logger) {
         super('AuthService', logger);
-        this.jwtSecret = process.env.JWT_SECRET || 'cown_secret_key_change_in_production';
+        this.jwtSecret =
+            process.env.JWT_SECRET || 'cown_secret_key_change_in_production';
         this.saltRounds = 10;
         this.tokenCache = new Map(); // Cache for token validation
     }
@@ -14,15 +15,18 @@ class AuthService extends BaseService {
     async onInitialize() {
         // Get database dependency
         this.dbManager = this.getDependency('database');
-        
+
         // Validate JWT secret
-        if (this.jwtSecret === 'cown_secret_key_change_in_production' && process.env.NODE_ENV === 'production') {
+        if (
+            this.jwtSecret === 'cown_secret_key_change_in_production' &&
+            process.env.NODE_ENV === 'production'
+        ) {
             throw new Error('JWT_SECRET must be set in production environment');
         }
-        
+
         // Start cache cleanup
         this.startCacheCleanup();
-        
+
         this.log('info', 'AuthService initialized successfully');
     }
 
@@ -36,7 +40,7 @@ class AuthService extends BaseService {
                 phone: user.phone,
                 username: user.username,
                 role: user.role || 'user',
-                iat: Math.floor(Date.now() / 1000)
+                iat: Math.floor(Date.now() / 1000),
             };
 
             const expiresIn = 7 * 24 * 60 * 60; // 7 days in seconds
@@ -45,7 +49,7 @@ class AuthService extends BaseService {
             // Cache token for quick validation
             this.tokenCache.set(token, {
                 userId: user.id,
-                expiresAt: Date.now() + (expiresIn * 1000)
+                expiresAt: Date.now() + expiresIn * 1000,
             });
 
             this.log('debug', `Generated token for user ${user.id}`);
@@ -53,7 +57,7 @@ class AuthService extends BaseService {
             return {
                 token,
                 expiresIn,
-                type: 'Bearer'
+                type: 'Bearer',
             };
         } catch (error) {
             this.log('error', 'Error generating token:', error);
@@ -75,7 +79,9 @@ class AuthService extends BaseService {
             if (cached) {
                 if (cached.expiresAt > Date.now()) {
                     // Get fresh user data
-                    const user = await this.dbManager.getUserById(cached.userId);
+                    const user = await this.dbManager.getUserById(
+                        cached.userId
+                    );
                     return user;
                 } else {
                     // Remove expired token from cache
@@ -94,12 +100,15 @@ class AuthService extends BaseService {
             // Update cache
             this.tokenCache.set(token, {
                 userId: user.id,
-                expiresAt: decoded.exp * 1000
+                expiresAt: decoded.exp * 1000,
             });
 
             return user;
         } catch (error) {
-            if (error.name !== 'JsonWebTokenError' && error.name !== 'TokenExpiredError') {
+            if (
+                error.name !== 'JsonWebTokenError' &&
+                error.name !== 'TokenExpiredError'
+            ) {
                 this.log('error', 'Error verifying token:', error);
             }
             return null;
@@ -142,7 +151,7 @@ class AuthService extends BaseService {
                 ...userData,
                 role: userData.role || 'user',
                 createdAt: new Date(),
-                lastLogin: new Date()
+                lastLogin: new Date(),
             });
 
             this.log('info', `Created new user: ${user.id}`);
@@ -160,7 +169,7 @@ class AuthService extends BaseService {
         try {
             const user = await this.dbManager.updateUser(userId, {
                 ...updateData,
-                updatedAt: new Date()
+                updatedAt: new Date(),
             });
 
             this.log('info', `Updated user: ${userId}`);
@@ -177,10 +186,11 @@ class AuthService extends BaseService {
     async createOrUpdateTelegramUser(telegramData) {
         try {
             const { telegram_id } = telegramData;
-            
+
             // Check if user already exists
-            const existingUser = await this.dbManager.getUserByTelegramId(telegram_id);
-            
+            const existingUser =
+                await this.dbManager.getUserByTelegramId(telegram_id);
+
             if (existingUser) {
                 // Update existing user
                 await this.dbManager.updateUser(existingUser.id, {
@@ -188,10 +198,11 @@ class AuthService extends BaseService {
                     telegram_last_name: telegramData.last_name,
                     telegram_username: telegramData.username,
                     telegram_photo_url: telegramData.photo_url,
-                    lastLogin: new Date()
+                    lastLogin: new Date(),
                 });
                 // Return updated user data
-                const updatedUser = await this.dbManager.getUserByTelegramId(telegram_id);
+                const updatedUser =
+                    await this.dbManager.getUserByTelegramId(telegram_id);
                 this.log('info', `Updated Telegram user: ${telegram_id}`);
                 return updatedUser;
             } else {
@@ -208,7 +219,7 @@ class AuthService extends BaseService {
                     isVerified: true,
                     authMethod: 'telegram',
                     createdAt: new Date(),
-                    lastLogin: new Date()
+                    lastLogin: new Date(),
                 });
                 this.log('info', `Created new Telegram user: ${telegram_id}`);
                 return newUser;
@@ -252,20 +263,20 @@ class AuthService extends BaseService {
         try {
             // Test database connection
             await this.dbManager.testConnection();
-            
+
             return {
                 service: this.serviceName,
                 status: 'healthy',
                 dependencies: ['database'],
                 cacheSize: this.tokenCache.size,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         } catch (error) {
             return {
                 service: this.serviceName,
                 status: 'unhealthy',
                 error: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         }
     }
@@ -280,7 +291,10 @@ class AuthService extends BaseService {
                 this.tokenCache.delete(token);
             }
         }
-        this.log('debug', `Cleaned up token cache, remaining: ${this.tokenCache.size}`);
+        this.log(
+            'debug',
+            `Cleaned up token cache, remaining: ${this.tokenCache.size}`
+        );
     }
 
     /**
@@ -288,9 +302,12 @@ class AuthService extends BaseService {
      */
     startCacheCleanup() {
         // Cleanup every hour
-        setInterval(() => {
-            this.cleanupTokenCache();
-        }, 60 * 60 * 1000);
+        setInterval(
+            () => {
+                this.cleanupTokenCache();
+            },
+            60 * 60 * 1000
+        );
     }
 
     /**
@@ -303,17 +320,17 @@ class AuthService extends BaseService {
     async login(username, password) {
         try {
             this.log('info', `Login attempt for username: ${username}`);
-            
+
             // Find user
             const user = await this.dbManager.getUserByUsername(username);
-            
+
             if (!user) {
                 throw new Error('Invalid username or password');
             }
 
             // Verify password
             const isValid = await bcrypt.compare(password, user.password_hash);
-            
+
             if (!isValid) {
                 throw new Error('Invalid username or password');
             }
@@ -331,9 +348,9 @@ class AuthService extends BaseService {
                 user: {
                     id: user.id,
                     username: user.username,
-                    phone: user.phone
+                    phone: user.phone,
                 },
-                ...tokenData
+                ...tokenData,
             };
         } catch (error) {
             this.log('error', 'Login error:', error);
@@ -344,7 +361,7 @@ class AuthService extends BaseService {
     async loginWithPhone(phoneNumber, otp) {
         try {
             const user = await this.getUserByPhone(phoneNumber);
-            
+
             if (!user) {
                 throw new Error('User not found');
             }
@@ -358,9 +375,9 @@ class AuthService extends BaseService {
                 user: {
                     id: user.id,
                     phone: user.phone,
-                    username: user.username
+                    username: user.username,
                 },
-                ...tokenData
+                ...tokenData,
             };
         } catch (error) {
             this.log('error', 'Phone login error:', error);
@@ -374,12 +391,14 @@ class AuthService extends BaseService {
     requireAuth() {
         return async (req, res, next) => {
             try {
-                const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
+                const token =
+                    req.cookies.auth_token ||
+                    req.headers.authorization?.replace('Bearer ', '');
 
                 if (!token) {
                     return res.status(401).json({
                         success: false,
-                        message: 'Authentication required'
+                        message: 'Authentication required',
                     });
                 }
 
@@ -388,7 +407,7 @@ class AuthService extends BaseService {
                 if (!user) {
                     return res.status(401).json({
                         success: false,
-                        message: 'Invalid or expired token'
+                        message: 'Invalid or expired token',
                     });
                 }
 
@@ -398,7 +417,7 @@ class AuthService extends BaseService {
                 this.log('error', 'Auth middleware error:', error);
                 return res.status(401).json({
                     success: false,
-                    message: 'Authentication failed'
+                    message: 'Authentication failed',
                 });
             }
         };
@@ -407,7 +426,9 @@ class AuthService extends BaseService {
     optionalAuth() {
         return async (req, res, next) => {
             try {
-                const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
+                const token =
+                    req.cookies.auth_token ||
+                    req.headers.authorization?.replace('Bearer ', '');
 
                 if (token) {
                     const user = await this.verifyToken(token);

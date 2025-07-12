@@ -14,16 +14,43 @@ class BotSetupController extends BaseController {
      */
     setupRoutes() {
         // Bot configuration
-        this.registerRoute('get', '/api/bot-setup/config', this.getConfig.bind(this));
-        this.registerRoute('post', '/api/bot-setup/config', this.updateConfig.bind(this), [this.requireAuth.bind(this)]);
-        this.registerRoute('post', '/api/bot-setup/test', this.testConfig.bind(this), [this.requireAuth.bind(this)]);
-        
+        this.registerRoute(
+            'get',
+            '/api/bot-setup/config',
+            this.getConfig.bind(this)
+        );
+        this.registerRoute(
+            'post',
+            '/api/bot-setup/config',
+            this.updateConfig.bind(this),
+            [this.requireAuth.bind(this)]
+        );
+        this.registerRoute(
+            'post',
+            '/api/bot-setup/test',
+            this.testConfig.bind(this),
+            [this.requireAuth.bind(this)]
+        );
+
         // Setup wizard
-        this.registerRoute('get', '/api/bot-setup/instructions', this.getInstructions.bind(this));
-        this.registerRoute('post', '/api/bot-setup/complete', this.completeSetup.bind(this), [this.requireAuth.bind(this)]);
-        
+        this.registerRoute(
+            'get',
+            '/api/bot-setup/instructions',
+            this.getInstructions.bind(this)
+        );
+        this.registerRoute(
+            'post',
+            '/api/bot-setup/complete',
+            this.completeSetup.bind(this),
+            [this.requireAuth.bind(this)]
+        );
+
         // Health and status
-        this.registerRoute('get', '/api/bot-setup/health', this.getHealth.bind(this));
+        this.registerRoute(
+            'get',
+            '/api/bot-setup/health',
+            this.getHealth.bind(this)
+        );
     }
 
     /**
@@ -33,15 +60,18 @@ class BotSetupController extends BaseController {
         try {
             const botConfigService = this.getService('botConfig');
             if (!botConfigService) {
-                return this.sendError(res, 'Bot config service not available', 500);
+                return this.sendError(
+                    res,
+                    'Bot config service not available',
+                    500
+                );
             }
 
             const config = botConfigService.getConfiguration();
-            
-            return this.sendSuccess(res, {
-                config: config
-            });
 
+            return this.sendSuccess(res, {
+                config: config,
+            });
         } catch (error) {
             this.log('error', 'Get config error:', error);
             return this.sendError(res, 'Failed to get configuration', 500);
@@ -53,30 +83,36 @@ class BotSetupController extends BaseController {
      */
     async updateConfig(req, res) {
         try {
-            const { token, username, webhookUrl } = this.validateRequest({
-                token: { required: false },
-                username: { required: false },
-                webhookUrl: { required: false }
-            }, req.body);
+            const { token, username, webhookUrl } = this.validateRequest(
+                {
+                    token: { required: false },
+                    username: { required: false },
+                    webhookUrl: { required: false },
+                },
+                req.body
+            );
 
             const botConfigService = this.getService('botConfig');
             if (!botConfigService) {
-                return this.sendError(res, 'Bot config service not available', 500);
+                return this.sendError(
+                    res,
+                    'Bot config service not available',
+                    500
+                );
             }
 
             await botConfigService.updateConfiguration({
                 token,
                 username,
-                webhookUrl
+                webhookUrl,
             });
 
             const updatedConfig = botConfigService.getConfiguration();
 
             return this.sendSuccess(res, {
                 message: 'Configuration updated successfully',
-                config: updatedConfig
+                config: updatedConfig,
             });
-
         } catch (error) {
             this.log('error', 'Update config error:', error);
             return this.sendError(res, 'Failed to update configuration', 500);
@@ -90,15 +126,18 @@ class BotSetupController extends BaseController {
         try {
             const botConfigService = this.getService('botConfig');
             if (!botConfigService) {
-                return this.sendError(res, 'Bot config service not available', 500);
+                return this.sendError(
+                    res,
+                    'Bot config service not available',
+                    500
+                );
             }
 
             const testResult = await botConfigService.testConfiguration();
 
             return this.sendSuccess(res, {
-                test: testResult
+                test: testResult,
             });
-
         } catch (error) {
             this.log('error', 'Test config error:', error);
             return this.sendError(res, 'Failed to test configuration', 500);
@@ -112,15 +151,18 @@ class BotSetupController extends BaseController {
         try {
             const botConfigService = this.getService('botConfig');
             if (!botConfigService) {
-                return this.sendError(res, 'Bot config service not available', 500);
+                return this.sendError(
+                    res,
+                    'Bot config service not available',
+                    500
+                );
             }
 
             const instructions = botConfigService.generateSetupInstructions();
 
             return this.sendSuccess(res, {
-                instructions: instructions
+                instructions: instructions,
             });
-
         } catch (error) {
             this.log('error', 'Get instructions error:', error);
             return this.sendError(res, 'Failed to get setup instructions', 500);
@@ -132,14 +174,21 @@ class BotSetupController extends BaseController {
      */
     async completeSetup(req, res) {
         try {
-            const { token, username } = this.validateRequest({
-                token: { required: true },
-                username: { required: true }
-            }, req.body);
+            const { token, username } = this.validateRequest(
+                {
+                    token: { required: true },
+                    username: { required: true },
+                },
+                req.body
+            );
 
             const botConfigService = this.getService('botConfig');
             if (!botConfigService) {
-                return this.sendError(res, 'Bot config service not available', 500);
+                return this.sendError(
+                    res,
+                    'Bot config service not available',
+                    500
+                );
             }
 
             await botConfigService.setupFromBotFather(token, username);
@@ -148,12 +197,15 @@ class BotSetupController extends BaseController {
 
             return this.sendSuccess(res, {
                 message: 'Bot setup completed successfully',
-                config: config
+                config: config,
             });
-
         } catch (error) {
             this.log('error', 'Complete setup error:', error);
-            return this.sendError(res, 'Failed to complete setup: ' + error.message, 500);
+            return this.sendError(
+                res,
+                'Failed to complete setup: ' + error.message,
+                500
+            );
         }
     }
 
@@ -164,13 +216,16 @@ class BotSetupController extends BaseController {
         try {
             const botConfigService = this.getService('botConfig');
             if (!botConfigService) {
-                return this.sendError(res, 'Bot config service not available', 500);
+                return this.sendError(
+                    res,
+                    'Bot config service not available',
+                    500
+                );
             }
 
             const health = await botConfigService.getHealthStatus();
 
             return this.sendSuccess(res, health);
-
         } catch (error) {
             this.log('error', 'Bot setup health check error:', error);
             return this.sendError(res, 'Failed to check health', 500);
@@ -183,7 +238,9 @@ class BotSetupController extends BaseController {
     async requireAuth(req, res, next) {
         try {
             const authService = this.getService('auth');
-            const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
+            const token =
+                req.cookies.auth_token ||
+                req.headers.authorization?.replace('Bearer ', '');
 
             if (!token) {
                 return this.sendError(res, 'Authentication required', 401);

@@ -1,7 +1,7 @@
 // Telegram Widget Callback Function
 function onTelegramAuth(user) {
     console.log('🎉 Telegram Widget Auth successful:', user);
-    
+
     // Create or get PhoneAuthManager instance
     if (window.phoneAuthManager) {
         window.phoneAuthManager.handleTelegramWidgetAuth(user);
@@ -13,21 +13,25 @@ function onTelegramAuth(user) {
 // Custom Telegram Login Function
 async function handleTelegramLogin() {
     console.log('🔗 Starting custom Telegram login...');
-    
+
     try {
         // Redirect to Telegram bot for authentication
         const botUsername = 'Cown_Login_bot';
-        const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:3001' 
-            : 'https://cown-telegram-app.onrender.com';
-        
+        const baseURL =
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3001'
+                : 'https://cown-telegram-app.onrender.com';
+
         // Create return URL for callback
-        const returnURL = encodeURIComponent(`${baseURL}/auth/telegram/callback`);
+        const returnURL = encodeURIComponent(
+            `${baseURL}/auth/telegram/callback`
+        );
         const telegramAuthURL = `https://t.me/${botUsername}?start=auth_${Date.now()}`;
-        
+
         console.log('🔗 Telegram Auth URL:', telegramAuthURL);
         console.log('🔗 Return URL:', returnURL);
-        
+
         // Show loading state
         const loginBtn = document.getElementById('telegramLoginBtn');
         if (loginBtn) {
@@ -42,15 +46,14 @@ async function handleTelegramLogin() {
                 </div>
             `;
         }
-        
+
         // Open Telegram
         window.open(telegramAuthURL, '_blank');
-        
+
         // Start polling for authentication status
         setTimeout(() => {
             window.phoneAuthManager?.startTelegramAuthPolling();
         }, 2000);
-        
     } catch (error) {
         console.error('❌ Telegram login error:', error);
         showMessage('error', 'Lỗi kết nối Telegram. Vui lòng thử lại.');
@@ -61,16 +64,18 @@ class PhoneAuthManager {
     constructor() {
         console.log('🚀 PhoneAuthManager constructor started');
         alert('PhoneAuthManager constructor started');
-        this.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '' 
-            : 'https://cown-telegram-app.onrender.com';
+        this.baseURL =
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1'
+                ? ''
+                : 'https://cown-telegram-app.onrender.com';
         this.elements = {};
         this.currentStep = 'phone';
         this.phoneNumber = null;
         this.countryCode = '+84';
         this.otpTimer = null;
         this.otpTimeLeft = 300; // 5 minutes
-        
+
         console.log('🔧 Initializing PhoneAuth...');
         this.initializePhoneAuth();
         console.log('✅ PhoneAuthManager initialized');
@@ -80,7 +85,9 @@ class PhoneAuthManager {
     initializePhoneAuth() {
         console.log('🔧 Setting up elements...');
         if (!this.setupElements()) {
-            console.error('❌ Failed to setup elements, aborting initialization');
+            console.error(
+                '❌ Failed to setup elements, aborting initialization'
+            );
             return;
         }
         console.log('🔧 Setting up event listeners...');
@@ -98,10 +105,10 @@ class PhoneAuthManager {
             countryCode: document.getElementById('countryCode'),
             phoneNumber: document.getElementById('phoneNumber'),
             sendOtpBtn: document.getElementById('sendOtpBtn'),
-            
+
             // Telegram Login
             telegramLoginBtn: document.getElementById('telegramLoginBtn'),
-            
+
             // OTP Step
             otpStep: document.getElementById('otpStep'),
             otpForm: document.getElementById('otpForm'),
@@ -111,23 +118,33 @@ class PhoneAuthManager {
             otpTimer: document.getElementById('otpTimer'),
             resendOtpBtn: document.getElementById('resendOtpBtn'),
             changePhoneBtn: document.getElementById('changePhoneBtn'),
-            
+
             // Messages
             errorMessage: document.getElementById('errorMessage'),
-            successMessage: document.getElementById('successMessage')
+            successMessage: document.getElementById('successMessage'),
         };
-        
+
         // Validate critical elements (only phone step elements since OTP step is initially hidden)
-        const criticalElements = ['phoneForm', 'phoneNumber', 'sendOtpBtn', 'countryCode'];
+        const criticalElements = [
+            'phoneForm',
+            'phoneNumber',
+            'sendOtpBtn',
+            'countryCode',
+        ];
         for (const elementKey of criticalElements) {
             if (!this.elements[elementKey]) {
                 console.error(`❌ Critical element missing: ${elementKey}`);
-                console.log('📋 Available elements:', Object.keys(this.elements).filter(key => this.elements[key]));
-                alert(`Critical element missing: ${elementKey}. Please refresh page.`);
+                console.log(
+                    '📋 Available elements:',
+                    Object.keys(this.elements).filter(key => this.elements[key])
+                );
+                alert(
+                    `Critical element missing: ${elementKey}. Please refresh page.`
+                );
                 return false;
             }
         }
-        
+
         // Check OTP elements separately (they exist but may be hidden)
         const otpElements = ['otpForm', 'otpCode', 'verifyOtpBtn'];
         const missingOtpElements = [];
@@ -139,17 +156,17 @@ class PhoneAuthManager {
         if (missingOtpElements.length > 0) {
             console.warn('⚠️ OTP elements missing:', missingOtpElements);
         }
-        
+
         console.log('✅ All critical elements found');
         return true;
     }
 
     setupEventListeners() {
         console.log('🔧 Setting up event listeners...');
-        
+
         // Phone form submission
         if (this.elements.phoneForm) {
-            this.elements.phoneForm.addEventListener('submit', (e) => {
+            this.elements.phoneForm.addEventListener('submit', e => {
                 console.log('📋 Phone form submitted');
                 e.preventDefault();
                 this.handleSendOTP();
@@ -162,9 +179,9 @@ class PhoneAuthManager {
         // Note: Telegram login button now uses custom implementation
         const telegramBtn = document.getElementById('telegramLoginBtn');
         console.log('🔍 Looking for telegramLoginBtn:', telegramBtn);
-        
+
         if (telegramBtn) {
-            telegramBtn.addEventListener('click', (e) => {
+            telegramBtn.addEventListener('click', e => {
                 console.log('🔗 Telegram login button clicked', e);
                 alert('Button clicked! Check console for logs.');
                 e.preventDefault();
@@ -176,12 +193,15 @@ class PhoneAuthManager {
             alert('Button not found!');
             // Debug: list all elements with IDs
             const allElements = document.querySelectorAll('[id]');
-            console.log('🔍 All elements with IDs:', Array.from(allElements).map(el => el.id));
+            console.log(
+                '🔍 All elements with IDs:',
+                Array.from(allElements).map(el => el.id)
+            );
         }
 
         // OTP form submission
         if (this.elements.otpForm) {
-            this.elements.otpForm.addEventListener('submit', (e) => {
+            this.elements.otpForm.addEventListener('submit', e => {
                 console.log('📋 OTP form submitted');
                 e.preventDefault();
                 this.handleVerifyOTP();
@@ -191,7 +211,7 @@ class PhoneAuthManager {
 
         // Phone number input formatting
         if (this.elements.phoneNumber) {
-            this.elements.phoneNumber.addEventListener('input', (e) => {
+            this.elements.phoneNumber.addEventListener('input', e => {
                 this.formatPhoneNumber(e.target);
             });
             console.log('✅ Phone number input event listener added');
@@ -199,7 +219,7 @@ class PhoneAuthManager {
 
         // OTP code input formatting
         if (this.elements.otpCode) {
-            this.elements.otpCode.addEventListener('input', (e) => {
+            this.elements.otpCode.addEventListener('input', e => {
                 this.formatOTPCode(e.target);
             });
             console.log('✅ OTP code input event listener added');
@@ -207,7 +227,7 @@ class PhoneAuthManager {
 
         // Country code change
         if (this.elements.countryCode) {
-            this.elements.countryCode.addEventListener('change', (e) => {
+            this.elements.countryCode.addEventListener('change', e => {
                 this.countryCode = e.target.value;
                 console.log('🌍 Country code changed to:', this.countryCode);
             });
@@ -233,7 +253,7 @@ class PhoneAuthManager {
 
         // Auto-submit OTP when 6 digits entered
         if (this.elements.otpCode) {
-            this.elements.otpCode.addEventListener('input', (e) => {
+            this.elements.otpCode.addEventListener('input', e => {
                 if (e.target.value.length === 6) {
                     console.log('🎯 Auto-submitting OTP (6 digits entered)');
                     setTimeout(() => {
@@ -243,22 +263,22 @@ class PhoneAuthManager {
             });
             console.log('✅ OTP auto-submit event listener added');
         }
-        
+
         console.log('✅ All event listeners setup completed');
     }
 
     formatPhoneNumber(input) {
         // Remove non-digits
         let value = input.value.replace(/\D/g, '');
-        
+
         // Limit length based on country code
         const maxLength = this.getMaxPhoneLength();
         if (value.length > maxLength) {
             value = value.slice(0, maxLength);
         }
-        
+
         input.value = value;
-        
+
         // Real-time validation
         this.validatePhoneNumber(value);
     }
@@ -274,23 +294,33 @@ class PhoneAuthManager {
 
     getMaxPhoneLength() {
         switch (this.countryCode) {
-            case '+84': return 9;  // Vietnam
-            case '+1': return 10;  // US/Canada
-            case '+86': return 11; // China
-            case '+91': return 10; // India
-            case '+44': return 10; // UK
-            case '+33': return 9;  // France
-            case '+49': return 11; // Germany
-            case '+81': return 10; // Japan
-            case '+82': return 10; // South Korea
-            default: return 12;
+            case '+84':
+                return 9; // Vietnam
+            case '+1':
+                return 10; // US/Canada
+            case '+86':
+                return 11; // China
+            case '+91':
+                return 10; // India
+            case '+44':
+                return 10; // UK
+            case '+33':
+                return 9; // France
+            case '+49':
+                return 11; // Germany
+            case '+81':
+                return 10; // Japan
+            case '+82':
+                return 10; // South Korea
+            default:
+                return 12;
         }
     }
 
     validatePhoneNumber(phone) {
         const minLength = this.getMaxPhoneLength() - 2;
         const maxLength = this.getMaxPhoneLength();
-        
+
         if (phone.length < minLength) {
             this.showFieldError('phoneNumber', 'Số điện thoại quá ngắn');
             return false;
@@ -305,11 +335,11 @@ class PhoneAuthManager {
 
     showStep(step) {
         this.currentStep = step;
-        
+
         // Hide all steps
         this.elements.phoneStep.classList.remove('active');
         this.elements.otpStep.classList.remove('active');
-        
+
         // Show current step
         if (step === 'phone') {
             this.elements.phoneStep.classList.add('active');
@@ -319,7 +349,7 @@ class PhoneAuthManager {
             this.elements.otpCode.focus();
             this.startOTPTimer();
         }
-        
+
         this.hideMessages();
     }
 
@@ -328,37 +358,43 @@ class PhoneAuthManager {
         console.log('🔄 Starting Telegram auth polling...');
         let pollCount = 0;
         const maxPolls = 30; // 30 attempts = 1.5 minutes
-        
+
         const pollInterval = setInterval(async () => {
             pollCount++;
             console.log(`🔄 Polling attempt ${pollCount}/${maxPolls}`);
-            
+
             try {
-                const response = await fetch(`${this.baseURL}/api/auth/telegram/status`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                
+                const response = await fetch(
+                    `${this.baseURL}/api/auth/telegram/status`,
+                    {
+                        method: 'GET',
+                        credentials: 'include',
+                    }
+                );
+
                 if (response.ok) {
                     const result = await response.json();
                     console.log('📊 Telegram auth status:', result);
-                    
+
                     if (result.success && result.authenticated) {
                         clearInterval(pollInterval);
-                        this.showSuccess('Đăng nhập Telegram thành công! Đang chuyển hướng...');
+                        this.showSuccess(
+                            'Đăng nhập Telegram thành công! Đang chuyển hướng...'
+                        );
                         setTimeout(() => {
                             window.location.href = '/app';
                         }, 1500);
                         return;
                     }
                 }
-                
+
                 if (pollCount >= maxPolls) {
                     clearInterval(pollInterval);
                     this.resetTelegramButton();
-                    this.showError('Hết thời gian chờ xác thực Telegram. Vui lòng thử lại.');
+                    this.showError(
+                        'Hết thời gian chờ xác thực Telegram. Vui lòng thử lại.'
+                    );
                 }
-                
             } catch (error) {
                 console.error('❌ Polling error:', error);
                 if (pollCount >= maxPolls) {
@@ -369,7 +405,7 @@ class PhoneAuthManager {
             }
         }, 3000); // Poll every 3 seconds
     }
-    
+
     // Reset Telegram button to original state
     resetTelegramButton() {
         const loginBtn = document.getElementById('telegramLoginBtn');
@@ -394,30 +430,35 @@ class PhoneAuthManager {
             this.showTelegramStatus('Đang xác thực với Telegram...', 'info');
 
             // Send user data to backend for verification
-            const response = await fetch(`${this.baseURL}/api/auth/telegram/verify`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    id: user.id,
-                    first_name: user.first_name,
-                    last_name: user.last_name || '',
-                    username: user.username || '',
-                    photo_url: user.photo_url || '',
-                    auth_date: user.auth_date,
-                    hash: user.hash
-                })
-            });
+            const response = await fetch(
+                `${this.baseURL}/api/auth/telegram/verify`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        id: user.id,
+                        first_name: user.first_name,
+                        last_name: user.last_name || '',
+                        username: user.username || '',
+                        photo_url: user.photo_url || '',
+                        auth_date: user.auth_date,
+                        hash: user.hash,
+                    }),
+                }
+            );
 
             console.log('📡 Telegram verify response status:', response.status);
             const result = await response.json();
             console.log('📋 Telegram verify result:', result);
 
             if (response.ok && result.success) {
-                this.showSuccess('Đăng nhập Telegram thành công! Đang chuyển hướng...');
-                
+                this.showSuccess(
+                    'Đăng nhập Telegram thành công! Đang chuyển hướng...'
+                );
+
                 // Redirect to main app
                 setTimeout(() => {
                     window.location.href = '/app';
@@ -425,7 +466,6 @@ class PhoneAuthManager {
             } else {
                 throw new Error(result.message || 'Xác thực Telegram thất bại');
             }
-
         } catch (error) {
             console.error('❌ Telegram widget auth error:', error);
             this.showError(`Lỗi xác thực Telegram: ${error.message}`);
@@ -440,10 +480,13 @@ class PhoneAuthManager {
             this.hideMessages();
 
             // Generate Telegram login URL
-            const response = await fetch(`${this.baseURL}/api/auth/telegram/login`, {
-                method: 'GET',
-                credentials: 'include'
-            });
+            const response = await fetch(
+                `${this.baseURL}/api/auth/telegram/login`,
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                }
+            );
 
             console.log('📡 Telegram login response status:', response.status);
             const result = await response.json();
@@ -451,8 +494,11 @@ class PhoneAuthManager {
 
             if (response.ok && result.success) {
                 // Show status message
-                this.showTelegramStatus('Đang chuyển hướng đến Telegram...', 'info');
-                
+                this.showTelegramStatus(
+                    'Đang chuyển hướng đến Telegram...',
+                    'info'
+                );
+
                 // Open Telegram login in new window
                 const authWindow = window.open(
                     result.data.loginUrl,
@@ -461,19 +507,22 @@ class PhoneAuthManager {
                 );
 
                 if (!authWindow) {
-                    throw new Error('Popup bị chặn. Vui lòng cho phép popup và thử lại.');
+                    throw new Error(
+                        'Popup bị chặn. Vui lòng cho phép popup và thử lại.'
+                    );
                 }
 
                 // Store session ID for polling
                 this.telegramSessionId = result.data.sessionId;
-                
+
                 // Start polling for auth status
                 this.startTelegramAuthPolling(authWindow);
-                
             } else {
-                throw new Error(result.message || 'Không thể tạo liên kết đăng nhập Telegram');
+                throw new Error(
+                    result.message ||
+                        'Không thể tạo liên kết đăng nhập Telegram'
+                );
             }
-
         } catch (error) {
             console.error('❌ Telegram login error:', error);
             this.showError(`Lỗi đăng nhập Telegram: ${error.message}`);
@@ -484,7 +533,7 @@ class PhoneAuthManager {
 
     startTelegramAuthPolling(authWindow) {
         console.log('🔄 Starting Telegram auth polling...');
-        
+
         const pollInterval = setInterval(async () => {
             try {
                 // Check if window is closed
@@ -495,9 +544,12 @@ class PhoneAuthManager {
                 }
 
                 // Check auth status
-                const response = await fetch(`${this.baseURL}/api/auth/telegram/status/${this.telegramSessionId}`, {
-                    credentials: 'include'
-                });
+                const response = await fetch(
+                    `${this.baseURL}/api/auth/telegram/status/${this.telegramSessionId}`,
+                    {
+                        credentials: 'include',
+                    }
+                );
 
                 if (response.ok) {
                     const result = await response.json();
@@ -506,9 +558,12 @@ class PhoneAuthManager {
                     if (result.success && result.data.status === 'completed') {
                         clearInterval(pollInterval);
                         authWindow.close();
-                        
-                        this.showTelegramStatus('Đăng nhập thành công!', 'success');
-                        
+
+                        this.showTelegramStatus(
+                            'Đăng nhập thành công!',
+                            'success'
+                        );
+
                         // Redirect to main app
                         setTimeout(() => {
                             window.location.href = '/app-main.html';
@@ -521,13 +576,19 @@ class PhoneAuthManager {
         }, 2000);
 
         // Stop polling after 5 minutes
-        setTimeout(() => {
-            clearInterval(pollInterval);
-            if (!authWindow.closed) {
-                authWindow.close();
-                this.showTelegramStatus('Thời gian chờ đăng nhập đã hết', 'error');
-            }
-        }, 5 * 60 * 1000);
+        setTimeout(
+            () => {
+                clearInterval(pollInterval);
+                if (!authWindow.closed) {
+                    authWindow.close();
+                    this.showTelegramStatus(
+                        'Thời gian chờ đăng nhập đã hết',
+                        'error'
+                    );
+                }
+            },
+            5 * 60 * 1000
+        );
     }
 
     setTelegramLoading(loading) {
@@ -556,11 +617,11 @@ class PhoneAuthManager {
         // Create new status element
         const statusDiv = document.createElement('div');
         statusDiv.className = `telegram-auth-status ${type}`;
-        
+
         const iconMap = {
-            'info': '📱',
-            'success': '✅',
-            'error': '❌'
+            info: '📱',
+            success: '✅',
+            error: '❌',
         };
 
         statusDiv.innerHTML = `
@@ -569,7 +630,9 @@ class PhoneAuthManager {
         `;
 
         // Insert after telegram login section
-        const telegramSection = document.querySelector('.telegram-login-section');
+        const telegramSection = document.querySelector(
+            '.telegram-login-section'
+        );
         if (telegramSection) {
             telegramSection.appendChild(statusDiv);
         }
@@ -592,7 +655,7 @@ class PhoneAuthManager {
 
             const phone = this.elements.phoneNumber.value.trim();
             console.log('📱 Phone number:', phone);
-            
+
             if (!phone) {
                 this.showError('Vui lòng nhập số điện thoại');
                 this.setLoading('sendOtpBtn', false);
@@ -607,17 +670,23 @@ class PhoneAuthManager {
             this.phoneNumber = this.countryCode + phone;
             console.log('📞 Full phone number:', this.phoneNumber);
 
-            console.log('🌐 Sending request to:', this.baseURL + '/api/auth/send-phone-otp');
-            const response = await fetch(this.baseURL + '/api/auth/send-phone-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phone: this.phoneNumber
-                }),
-                credentials: 'include'
-            });
+            console.log(
+                '🌐 Sending request to:',
+                this.baseURL + '/api/auth/send-phone-otp'
+            );
+            const response = await fetch(
+                this.baseURL + '/api/auth/send-phone-otp',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phone: this.phoneNumber,
+                    }),
+                    credentials: 'include',
+                }
+            );
 
             console.log('📡 Response status:', response.status);
             console.log('📡 Response ok:', response.ok);
@@ -626,36 +695,45 @@ class PhoneAuthManager {
             console.log('📋 Response data:', result);
 
             if (response.ok && result.success) {
-                const method = result.method === 'telegram' ? 'Telegram' : 'SMS';
+                const method =
+                    result.method === 'telegram' ? 'Telegram' : 'SMS';
                 const icon = result.method === 'telegram' ? '📩' : '📱';
-                const methodInfo = result.method === 'telegram' 
-                    ? 'Kiểm tra tin nhắn trong Telegram của bạn' 
-                    : 'Kiểm tra tin nhắn SMS trên điện thoại';
-                
-                this.showSuccess(`${icon} Mã xác thực đã được gửi qua ${method} đến ${this.formatPhoneDisplay(this.phoneNumber)}`);
-                
+                const methodInfo =
+                    result.method === 'telegram'
+                        ? 'Kiểm tra tin nhắn trong Telegram của bạn'
+                        : 'Kiểm tra tin nhắn SMS trên điện thoại';
+
+                this.showSuccess(
+                    `${icon} Mã xác thực đã được gửi qua ${method} đến ${this.formatPhoneDisplay(this.phoneNumber)}`
+                );
+
                 // Update phone display and method info
-                this.elements.phoneDisplay.textContent = this.formatPhoneDisplay(this.phoneNumber);
-                
+                this.elements.phoneDisplay.textContent =
+                    this.formatPhoneDisplay(this.phoneNumber);
+
                 // Update OTP description with method info
-                const otpDescription = document.getElementById('otpDescription');
+                const otpDescription =
+                    document.getElementById('otpDescription');
                 if (otpDescription) {
                     otpDescription.innerHTML = `Mã xác thực đã được gửi qua <strong>${method}</strong><br><small style="color: #8D6E63; font-size: 0.9em;">${methodInfo}</small>`;
                 }
-                
+
                 setTimeout(() => {
                     this.showStep('otp');
                 }, 1500);
             } else {
                 console.log('❌ Request failed:', result);
-                this.showError(result.error || 'Không thể gửi mã xác thực. Vui lòng thử lại.');
+                this.showError(
+                    result.error ||
+                        'Không thể gửi mã xác thực. Vui lòng thử lại.'
+                );
             }
         } catch (error) {
             console.error('❌ Exception in handleSendOTP:', error);
             console.error('❌ Error details:', {
                 name: error.name,
                 message: error.message,
-                stack: error.stack
+                stack: error.stack,
             });
             this.showError('Lỗi kết nối. Vui lòng kiểm tra mạng và thử lại.');
         } finally {
@@ -670,7 +748,7 @@ class PhoneAuthManager {
             this.hideMessages();
 
             const otpCode = this.elements.otpCode.value.trim();
-            
+
             if (!otpCode) {
                 this.showError('Vui lòng nhập mã xác thực');
                 this.setLoading('verifyOtpBtn', false);
@@ -683,28 +761,34 @@ class PhoneAuthManager {
                 return;
             }
 
-            const response = await fetch(this.baseURL + '/api/auth/login-with-phone', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phone: this.phoneNumber,
-                    otp: otpCode
-                }),
-                credentials: 'include'
-            });
+            const response = await fetch(
+                this.baseURL + '/api/auth/login-with-phone',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phone: this.phoneNumber,
+                        otp: otpCode,
+                    }),
+                    credentials: 'include',
+                }
+            );
 
             const result = await response.json();
 
             if (response.ok && result.success) {
                 this.showSuccess('🎉 Xác thực thành công! Đang đăng nhập...');
-                
+
                 // Store user info if needed
                 if (result.user) {
-                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                    localStorage.setItem(
+                        'currentUser',
+                        JSON.stringify(result.user)
+                    );
                 }
-                
+
                 setTimeout(() => {
                     window.location.href = '/';
                 }, 2000);
@@ -726,16 +810,19 @@ class PhoneAuthManager {
             this.setLoading('resendOtpBtn', true);
             this.hideMessages();
 
-            const response = await fetch(this.baseURL + '/api/auth/send-phone-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phone: this.phoneNumber
-                }),
-                credentials: 'include'
-            });
+            const response = await fetch(
+                this.baseURL + '/api/auth/send-phone-otp',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phone: this.phoneNumber,
+                    }),
+                    credentials: 'include',
+                }
+            );
 
             const result = await response.json();
 
@@ -758,20 +845,20 @@ class PhoneAuthManager {
     startOTPTimer() {
         this.otpTimeLeft = 300; // 5 minutes
         this.updateTimerDisplay();
-        
+
         this.otpTimer = setInterval(() => {
             this.otpTimeLeft--;
             this.updateTimerDisplay();
-            
+
             if (this.otpTimeLeft <= 0) {
                 this.stopOTPTimer();
                 this.enableResendButton();
             }
         }, 1000);
-        
+
         // Disable resend button initially
         this.elements.resendOtpBtn.disabled = true;
-        
+
         // Enable resend after 30 seconds
         setTimeout(() => {
             this.enableResendButton();
@@ -794,7 +881,7 @@ class PhoneAuthManager {
         const minutes = Math.floor(this.otpTimeLeft / 60);
         const seconds = this.otpTimeLeft % 60;
         this.elements.otpTimer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        
+
         // Change color when time is running out
         if (this.otpTimeLeft <= 60) {
             this.elements.otpTimer.style.color = 'var(--error-red)';
@@ -827,7 +914,7 @@ class PhoneAuthManager {
         const button = this.elements[buttonId];
         const textSpan = button.querySelector('.btn-text');
         const loadingSpan = button.querySelector('.btn-loading');
-        
+
         if (loading) {
             textSpan.style.display = 'none';
             loadingSpan.style.display = 'flex';
@@ -843,7 +930,7 @@ class PhoneAuthManager {
         this.elements.errorMessage.textContent = message;
         this.elements.errorMessage.style.display = 'flex';
         this.elements.successMessage.style.display = 'none';
-        
+
         // Auto hide after 5 seconds
         setTimeout(() => {
             this.hideMessages();
@@ -865,10 +952,10 @@ class PhoneAuthManager {
         const input = this.elements[fieldName];
         const container = input.closest('.input-container');
         const formGroup = container.closest('.form-group');
-        
+
         container.style.borderColor = 'var(--error-red)';
         formGroup.classList.add('invalid');
-        
+
         // Show error in help text if exists
         const helpText = formGroup.querySelector('.help-text');
         if (helpText) {
@@ -881,17 +968,21 @@ class PhoneAuthManager {
         const input = this.elements[fieldName];
         const container = input.closest('.input-container');
         const formGroup = container.closest('.form-group');
-        
+
         container.style.borderColor = 'var(--cow-beige)';
         formGroup.classList.remove('invalid');
-        
+
         // Reset help text
         const helpText = formGroup.querySelector('.help-text');
-        if (helpText && helpText.textContent !== helpText.getAttribute('data-original')) {
+        if (
+            helpText &&
+            helpText.textContent !== helpText.getAttribute('data-original')
+        ) {
             helpText.style.color = 'var(--cow-brown-light)';
             // Restore original help text
             if (fieldName === 'phoneNumber') {
-                helpText.innerHTML = '<i class="fas fa-info-circle"></i> Ví dụ: 912345678 (không nhập số 0 đầu)';
+                helpText.innerHTML =
+                    '<i class="fas fa-info-circle"></i> Ví dụ: 912345678 (không nhập số 0 đầu)';
             }
         }
     }
@@ -901,18 +992,19 @@ class PhoneAuthManager {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🌐 DOM Content Loaded, initializing PhoneAuthManager...');
     window.phoneAuthManager = new PhoneAuthManager();
-    
+
     // Add some cow sound effects for fun (optional)
     const addCowSounds = () => {
         const sounds = ['🐄', '🥛', '🐮'];
         let soundIndex = 0;
-        
+
         setInterval(() => {
             // Add floating cow emojis occasionally
-            if (Math.random() < 0.1) { // 10% chance every 5 seconds
+            if (Math.random() < 0.1) {
+                // 10% chance every 5 seconds
                 const emoji = sounds[soundIndex % sounds.length];
                 soundIndex++;
-                
+
                 const floatingEmoji = document.createElement('div');
                 floatingEmoji.textContent = emoji;
                 floatingEmoji.style.cssText = `
@@ -924,9 +1016,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     left: ${Math.random() * window.innerWidth}px;
                     top: ${window.innerHeight}px;
                 `;
-                
+
                 document.body.appendChild(floatingEmoji);
-                
+
                 // Remove after animation
                 setTimeout(() => {
                     floatingEmoji.remove();
@@ -934,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 5000);
     };
-    
+
     // Add floating animation style
     const style = document.createElement('style');
     style.textContent = `
@@ -950,7 +1042,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(style);
-    
+
     // Start cow effects after 5 seconds
     setTimeout(addCowSounds, 5000);
 });

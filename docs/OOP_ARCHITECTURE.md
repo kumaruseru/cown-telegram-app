@@ -9,6 +9,7 @@ Dự án đã được chuyển đổi sang kiến trúc hướng đối tượn
 ### Core Components
 
 #### 1. BaseService
+
 ```javascript
 // Lớp cơ sở cho tất cả services
 class BaseService {
@@ -24,6 +25,7 @@ class BaseService {
 ```
 
 #### 2. BaseController
+
 ```javascript
 // Lớp cơ sở cho tất cả controllers
 class BaseController {
@@ -37,6 +39,7 @@ class BaseController {
 ```
 
 #### 3. ServiceContainer
+
 ```javascript
 // Dependency Injection Container
 class ServiceContainer {
@@ -50,6 +53,7 @@ class ServiceContainer {
 ```
 
 #### 4. Application
+
 ```javascript
 // Main Application Class
 class Application extends BaseService {
@@ -145,7 +149,7 @@ class MyNewService extends BaseService {
         return {
             service: this.serviceName,
             status: 'healthy',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         };
     }
 }
@@ -174,15 +178,24 @@ class MyController extends BaseController {
     }
 
     setupRoutes() {
-        this.registerRoute('get', '/api/my-endpoint', this.handleGet.bind(this));
-        this.registerRoute('post', '/api/my-endpoint', this.handlePost.bind(this), [this.requireAuth.bind(this)]);
+        this.registerRoute(
+            'get',
+            '/api/my-endpoint',
+            this.handleGet.bind(this)
+        );
+        this.registerRoute(
+            'post',
+            '/api/my-endpoint',
+            this.handlePost.bind(this),
+            [this.requireAuth.bind(this)]
+        );
     }
 
     async handleGet(req, res) {
         try {
             const myService = this.getService('myNewService');
             const result = await myService.doSomething();
-            
+
             return this.sendSuccess(res, result);
         } catch (error) {
             return this.sendError(res, 'Failed to handle request', 500);
@@ -191,9 +204,12 @@ class MyController extends BaseController {
 
     async handlePost(req, res) {
         try {
-            const { data } = this.validateRequest({
-                data: { required: true }
-            }, req.body);
+            const { data } = this.validateRequest(
+                {
+                    data: { required: true },
+                },
+                req.body
+            );
 
             // Process request
             return this.sendSuccess(res, { processed: data });
@@ -214,11 +230,13 @@ module.exports = MyController;
 ## 📊 Monitoring & Health Checks
 
 ### Health Check Endpoint
+
 ```
 GET /health
 ```
 
 Response:
+
 ```json
 {
     "application": {
@@ -240,6 +258,7 @@ Response:
 ```
 
 ### Application Info
+
 ```
 GET /info
 ```
@@ -249,23 +268,25 @@ GET /info
 ### Các Bước Migration
 
 1. **Backup hiện tại**
-   ```bash
-   node scripts/migrate-to-oop.js
-   ```
+
+    ```bash
+    node scripts/migrate-to-oop.js
+    ```
 
 2. **Test OOP structure**
-   ```bash
-   npm run dev:oop
-   ```
+
+    ```bash
+    npm run dev:oop
+    ```
 
 3. **Cập nhật Render deployment**
-   - Thay đổi start command từ `server.js` sang `server-oop.js`
-   - Test thoroughly
+    - Thay đổi start command từ `server.js` sang `server-oop.js`
+    - Test thoroughly
 
 4. **Monitor và debug**
-   - Check logs
-   - Monitor performance
-   - Verify all functionality works
+    - Check logs
+    - Monitor performance
+    - Verify all functionality works
 
 ### Compatibility
 
@@ -317,17 +338,18 @@ this.log('debug', 'Cache hit', { key, value });
 ## 🧪 Testing
 
 ### Unit Tests
+
 ```javascript
 const MyService = require('../src/services/MyService');
 
 describe('MyService', () => {
     let service;
-    
+
     beforeEach(async () => {
         service = new MyService(mockLogger);
         await service.initialize();
     });
-    
+
     test('should do something', async () => {
         const result = await service.doSomething();
         expect(result.success).toBe(true);
@@ -336,21 +358,22 @@ describe('MyService', () => {
 ```
 
 ### Integration Tests
+
 ```javascript
 const Application = require('../src/core/Application');
 
 describe('Application Integration', () => {
     let app;
-    
+
     beforeEach(async () => {
         app = new Application({ port: 0 });
         await app.initialize();
     });
-    
+
     afterEach(async () => {
         await app.stop();
     });
-    
+
     test('should start and stop gracefully', () => {
         // Test application lifecycle
     });
@@ -376,34 +399,40 @@ describe('Application Integration', () => {
 ## 🚢 Deployment
 
 ### Development
+
 ```bash
 npm run dev:oop
 ```
 
 ### Production
+
 ```bash
 NODE_ENV=production npm run start:oop
 ```
 
 ### Docker
+
 ```dockerfile
 # Update Dockerfile to use server-oop.js
 CMD ["node", "server-oop.js"]
 ```
 
 ### Render
+
 Update render.yaml:
+
 ```yaml
 services:
-  - type: web
-    name: cown-telegram-app
-    env: node
-    startCommand: node server-oop.js
+    - type: web
+      name: cown-telegram-app
+      env: node
+      startCommand: node server-oop.js
 ```
 
 ## 📝 Changelog
 
 ### v2.0.0 - OOP Architecture
+
 - ✅ Implemented BaseService and BaseController
 - ✅ Added ServiceContainer for dependency injection
 - ✅ Created Application orchestrator class
@@ -414,6 +443,7 @@ services:
 - ✅ Created migration scripts and documentation
 
 ### Migration Benefits
+
 - 🔧 Better maintainability and extensibility
 - 🧪 Easier testing with dependency injection
 - 📊 Built-in monitoring and health checks
@@ -426,27 +456,29 @@ services:
 ### Common Issues
 
 1. **Service not found error**
-   - Check service registration in Application.js
-   - Verify dependency names match
+    - Check service registration in Application.js
+    - Verify dependency names match
 
 2. **Database connection issues**
-   - Check database service health: GET /health
-   - Verify environment variables
+    - Check database service health: GET /health
+    - Verify environment variables
 
 3. **Authentication failures**
-   - Check JWT_SECRET is set
-   - Verify token format and expiration
+    - Check JWT_SECRET is set
+    - Verify token format and expiration
 
 4. **Route not found**
-   - Check controller registration
-   - Verify route path and method
+    - Check controller registration
+    - Verify route path and method
 
 ### Debug Mode
+
 ```bash
 DEBUG=* npm run dev:oop
 ```
 
 ### Health Monitoring
+
 ```bash
 curl http://localhost:3000/health
 curl http://localhost:3000/info

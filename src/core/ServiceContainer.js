@@ -28,9 +28,9 @@ class ServiceContainer {
             class: serviceClass,
             config,
             instance: null,
-            dependencies: []
+            dependencies: [],
         });
-        
+
         this.log('debug', `Registered singleton service: ${name}`);
         return this;
     }
@@ -43,9 +43,9 @@ class ServiceContainer {
             type: 'transient',
             class: serviceClass,
             config,
-            dependencies: []
+            dependencies: [],
         });
-        
+
         this.log('debug', `Registered transient service: ${name}`);
         return this;
     }
@@ -57,9 +57,9 @@ class ServiceContainer {
         this.factories.set(name, {
             factory,
             config,
-            dependencies: []
+            dependencies: [],
         });
-        
+
         this.log('debug', `Registered factory: ${name}`);
         return this;
     }
@@ -82,8 +82,11 @@ class ServiceContainer {
         } else if (this.factories.has(serviceName)) {
             this.factories.get(serviceName).dependencies = dependencies;
         }
-        
-        this.log('debug', `Set dependencies for ${serviceName}: ${dependencies.join(', ')}`);
+
+        this.log(
+            'debug',
+            `Set dependencies for ${serviceName}: ${dependencies.join(', ')}`
+        );
         return this;
     }
 
@@ -114,16 +117,19 @@ class ServiceContainer {
      */
     async createFromFactory(name) {
         const factoryDef = this.factories.get(name);
-        
+
         // Resolve dependencies
         const dependencies = {};
         for (const depName of factoryDef.dependencies) {
             dependencies[depName] = await this.get(depName);
         }
 
-        const instance = await factoryDef.factory(dependencies, factoryDef.config);
+        const instance = await factoryDef.factory(
+            dependencies,
+            factoryDef.config
+        );
         this.log('debug', `Created instance from factory: ${name}`);
-        
+
         return instance;
     }
 
@@ -132,7 +138,7 @@ class ServiceContainer {
      */
     async createService(name) {
         const serviceDef = this.services.get(name);
-        
+
         // Nếu là singleton và đã có instance
         if (serviceDef.type === 'singleton' && serviceDef.instance) {
             return serviceDef.instance;
@@ -146,7 +152,7 @@ class ServiceContainer {
 
         // Tạo instance
         const instance = new serviceDef.class(this.logger);
-        
+
         // Inject dependencies
         for (const [depName, depInstance] of Object.entries(dependencies)) {
             if (typeof instance.addDependency === 'function') {
@@ -173,9 +179,11 @@ class ServiceContainer {
      * Kiểm tra service có tồn tại không
      */
     has(name) {
-        return this.services.has(name) || 
-               this.factories.has(name) || 
-               this.singletons.has(name);
+        return (
+            this.services.has(name) ||
+            this.factories.has(name) ||
+            this.singletons.has(name)
+        );
     }
 
     /**
@@ -183,15 +191,16 @@ class ServiceContainer {
      */
     async initializeAll() {
         this.log('info', 'Initializing all services...');
-        
-        const singletonServices = Array.from(this.services.entries())
-            .filter(([, def]) => def.type === 'singleton');
+
+        const singletonServices = Array.from(this.services.entries()).filter(
+            ([, def]) => def.type === 'singleton'
+        );
 
         // Khởi tạo theo thứ tự dependencies
         const initialized = new Set();
         const initializing = new Set();
 
-        const initializeService = async (name) => {
+        const initializeService = async name => {
             if (initialized.has(name) || initializing.has(name)) {
                 return;
             }
@@ -257,7 +266,10 @@ class ServiceContainer {
                 if (typeof instance.healthCheck === 'function') {
                     results[name] = await instance.healthCheck();
                 } else {
-                    results[name] = { status: 'unknown', message: 'No health check method' };
+                    results[name] = {
+                        status: 'unknown',
+                        message: 'No health check method',
+                    };
                 }
             } catch (error) {
                 results[name] = { status: 'error', message: error.message };
@@ -267,9 +279,9 @@ class ServiceContainer {
         return {
             container: {
                 status: this.isInitialized ? 'healthy' : 'not_initialized',
-                serviceCount: this.singletons.size
+                serviceCount: this.singletons.size,
             },
-            services: results
+            services: results,
         };
     }
 
@@ -281,7 +293,7 @@ class ServiceContainer {
             initialized: this.isInitialized,
             registeredServices: Array.from(this.services.keys()),
             singletonInstances: Array.from(this.singletons.keys()),
-            factories: Array.from(this.factories.keys())
+            factories: Array.from(this.factories.keys()),
         };
     }
 
@@ -290,11 +302,14 @@ class ServiceContainer {
      */
     log(level, message, ...args) {
         const logMessage = `[ServiceContainer] ${message}`;
-        
+
         if (this.logger && typeof this.logger[level] === 'function') {
             this.logger[level](logMessage, ...args);
         } else {
-            console[level === 'error' ? 'error' : 'log'](`${new Date().toISOString()} - ${level.toUpperCase()}: ${logMessage}`, ...args);
+            console[level === 'error' ? 'error' : 'log'](
+                `${new Date().toISOString()} - ${level.toUpperCase()}: ${logMessage}`,
+                ...args
+            );
         }
     }
 }

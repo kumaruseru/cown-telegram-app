@@ -27,8 +27,8 @@ class TelegramBotService extends BaseService {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'User-Agent': 'Cown-Telegram-App/1.0'
-                }
+                    'User-Agent': 'Cown-Telegram-App/1.0',
+                },
             };
 
             if (data && method !== 'GET') {
@@ -36,20 +36,23 @@ class TelegramBotService extends BaseService {
                 options.headers['Content-Length'] = Buffer.byteLength(postData);
             }
 
-            const req = https.request(options, (res) => {
+            const req = https.request(options, res => {
                 let responseData = '';
-                res.on('data', (chunk) => responseData += chunk);
+                res.on('data', chunk => (responseData += chunk));
                 res.on('end', () => {
                     try {
                         const parsed = JSON.parse(responseData);
                         resolve(parsed);
                     } catch (error) {
-                        resolve({ ok: false, description: 'Invalid JSON response' });
+                        resolve({
+                            ok: false,
+                            description: 'Invalid JSON response',
+                        });
                     }
                 });
             });
 
-            req.on('error', (error) => {
+            req.on('error', error => {
                 reject(error);
             });
 
@@ -69,7 +72,10 @@ class TelegramBotService extends BaseService {
         this.botUsername = process.env.TELEGRAM_BOT_USERNAME;
 
         if (!this.botToken) {
-            this.log('warn', 'TELEGRAM_BOT_TOKEN not provided, bot features will be disabled');
+            this.log(
+                'warn',
+                'TELEGRAM_BOT_TOKEN not provided, bot features will be disabled'
+            );
             return;
         }
 
@@ -78,7 +84,11 @@ class TelegramBotService extends BaseService {
             await this.getBotInfo();
             this.log('info', 'TelegramBotService initialized successfully');
         } catch (error) {
-            this.log('warn', 'Bot token may be invalid, bot features will be disabled:', error.message);
+            this.log(
+                'warn',
+                'Bot token may be invalid, bot features will be disabled:',
+                error.message
+            );
             // Don't throw error to allow app to continue
         }
     }
@@ -88,8 +98,10 @@ class TelegramBotService extends BaseService {
      */
     async getBotInfo() {
         try {
-            const data = await this.makeRequest(`${this.apiUrl}${this.botToken}/getMe`);
-            
+            const data = await this.makeRequest(
+                `${this.apiUrl}${this.botToken}/getMe`
+            );
+
             if (!data.ok) {
                 throw new Error(`Bot API error: ${data.description}`);
             }
@@ -114,7 +126,10 @@ class TelegramBotService extends BaseService {
      */
     async sendMessage(chatId, text, options = {}) {
         if (!this.isAvailable()) {
-            this.log('warn', 'Bot service not available, skipping message send');
+            this.log(
+                'warn',
+                'Bot service not available, skipping message send'
+            );
             return null;
         }
 
@@ -123,11 +138,15 @@ class TelegramBotService extends BaseService {
                 chat_id: chatId,
                 text: text,
                 parse_mode: 'HTML',
-                ...options
+                ...options,
             };
 
-            const data = await this.makeRequest(`${this.apiUrl}${this.botToken}/sendMessage`, 'POST', payload);
-            
+            const data = await this.makeRequest(
+                `${this.apiUrl}${this.botToken}/sendMessage`,
+                'POST',
+                payload
+            );
+
             if (!data.ok) {
                 throw new Error(`Send message error: ${data.description}`);
             }
@@ -145,7 +164,10 @@ class TelegramBotService extends BaseService {
      */
     async sendWelcomeMessage(telegramUser) {
         if (!this.isAvailable()) {
-            this.log('warn', 'Bot service not available, skipping welcome message');
+            this.log(
+                'warn',
+                'Bot service not available, skipping welcome message'
+            );
             return;
         }
 
@@ -179,7 +201,11 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
      */
     async handleWebhookUpdate(update) {
         try {
-            this.log('info', 'Processing webhook update:', JSON.stringify(update, null, 2));
+            this.log(
+                'info',
+                'Processing webhook update:',
+                JSON.stringify(update, null, 2)
+            );
 
             // Handle text messages (including /start commands)
             if (update.message) {
@@ -190,7 +216,6 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
             if (update.callback_query) {
                 await this.handleCallbackQuery(update.callback_query);
             }
-
         } catch (error) {
             this.log('error', 'Error processing webhook update:', error);
             throw error;
@@ -206,7 +231,10 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
             const text = message.text;
             const from = message.from;
 
-            this.log('info', `Message from ${from.first_name} (${from.id}): ${text}`);
+            this.log(
+                'info',
+                `Message from ${from.first_name} (${from.id}): ${text}`
+            );
 
             // Handle /start command with auth parameter
             if (text && text.startsWith('/start auth_')) {
@@ -222,7 +250,6 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
 
             // Handle other messages
             await this.handleGeneralMessage(message);
-
         } catch (error) {
             this.log('error', 'Error handling message:', error);
         }
@@ -237,7 +264,10 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
             const from = message.from;
             const authToken = message.text.split('auth_')[1];
 
-            this.log('info', `Auth command from ${from.first_name}, token: ${authToken}`);
+            this.log(
+                'info',
+                `Auth command from ${from.first_name}, token: ${authToken}`
+            );
 
             // Get database service
             const database = this.getDependency('database');
@@ -254,7 +284,7 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
                 last_name: from.last_name || '',
                 username: from.username || '',
                 photo_url: '', // We don't get photo from webhook
-                auth_date: Math.floor(Date.now() / 1000)
+                auth_date: Math.floor(Date.now() / 1000),
             };
 
             // Create/update user in database
@@ -268,10 +298,13 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
                 user: user,
                 token: token,
                 authenticated: true,
-                timestamp: Date.now()
+                timestamp: Date.now(),
             });
 
-            this.log('info', `Authentication successful for user ${from.id}, session stored`);
+            this.log(
+                'info',
+                `Authentication successful for user ${from.id}, session stored`
+            );
 
             // Send confirmation message (if this fails, auth still works)
             try {
@@ -290,18 +323,25 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
                 `;
 
                 await this.sendMessage(chatId, confirmText);
-                this.log('info', `Confirmation message sent to user ${from.id}`);
+                this.log(
+                    'info',
+                    `Confirmation message sent to user ${from.id}`
+                );
             } catch (sendError) {
-                this.log('warn', `Failed to send confirmation message (auth still successful): ${sendError.message}`);
+                this.log(
+                    'warn',
+                    `Failed to send confirmation message (auth still successful): ${sendError.message}`
+                );
             }
-
         } catch (error) {
             this.log('error', 'Error handling auth command:', error);
-            
+
             // Send error message to user (if possible)
             try {
-                await this.sendMessage(message.chat.id, 
-                    '❌ Có lỗi xảy ra trong quá trình xác thực. Vui lòng thử lại.');
+                await this.sendMessage(
+                    message.chat.id,
+                    '❌ Có lỗi xảy ra trong quá trình xác thực. Vui lòng thử lại.'
+                );
             } catch (sendError) {
                 this.log('error', 'Failed to send error message:', sendError);
             }
@@ -332,7 +372,6 @@ Hãy khám phá ứng dụng tại: http://localhost:3001/dashboard
             `;
 
             await this.sendMessage(message.chat.id, welcomeText);
-
         } catch (error) {
             this.log('error', 'Error handling start command:', error);
         }
@@ -359,7 +398,6 @@ Truy cập http://localhost:3001 và nhấn "Đăng nhập bằng Telegram"
             `;
 
             await this.sendMessage(message.chat.id, helpText);
-
         } catch (error) {
             this.log('error', 'Error handling general message:', error);
         }
@@ -386,7 +424,6 @@ Truy cập http://localhost:3001 và nhấn "Đăng nhập bằng Telegram"
             }, 600000);
 
             this.log('info', `Auth session stored: ${sessionId}`);
-
         } catch (error) {
             this.log('error', 'Error storing auth session:', error);
         }
@@ -402,9 +439,9 @@ Truy cập http://localhost:3001 và nhấn "Đăng nhập bằng Telegram"
                 phone: user.phone,
                 telegramId: user.telegram_id,
                 firstName: user.first_name,
-                timestamp: Date.now()
+                timestamp: Date.now(),
             };
-            
+
             // Simple token generation - in production use proper JWT
             return Buffer.from(JSON.stringify(payload)).toString('base64');
         } catch (error) {
@@ -423,7 +460,6 @@ Truy cập http://localhost:3001 và nhấn "Đăng nhập bằng Telegram"
             }
 
             return global.authSessions.get(sessionId);
-
         } catch (error) {
             this.log('error', 'Error getting auth session:', error);
             return null;
@@ -458,11 +494,15 @@ Nếu không phải bạn đăng nhập, vui lòng liên hệ support ngay lập
         try {
             const payload = {
                 url: webhookUrl,
-                allowed_updates: ['message', 'callback_query']
+                allowed_updates: ['message', 'callback_query'],
             };
 
-            const data = await this.makeRequest(`${this.apiUrl}${this.botToken}/setWebhook`, 'POST', payload);
-            
+            const data = await this.makeRequest(
+                `${this.apiUrl}${this.botToken}/setWebhook`,
+                'POST',
+                payload
+            );
+
             if (!data.ok) {
                 throw new Error(`Webhook setup error: ${data.description}`);
             }
@@ -505,14 +545,21 @@ Nếu không phải bạn đăng nhập, vui lòng liên hệ support ngay lập
             // Answer callback query
             const payload = {
                 callback_query_id: callbackQuery.id,
-                text: 'Đã xử lý!'
+                text: 'Đã xử lý!',
             };
-            
-            await this.makeRequest(`${this.apiUrl}${this.botToken}/answerCallbackQuery`, 'POST', payload);
+
+            await this.makeRequest(
+                `${this.apiUrl}${this.botToken}/answerCallbackQuery`,
+                'POST',
+                payload
+            );
 
             // Handle different callback data
             if (data === 'dashboard') {
-                await this.sendMessage(chatId, 'Truy cập dashboard tại: http://localhost:3001/dashboard');
+                await this.sendMessage(
+                    chatId,
+                    'Truy cập dashboard tại: http://localhost:3001/dashboard'
+                );
             }
         } catch (error) {
             this.log('error', 'Failed to handle callback query:', error);
@@ -525,8 +572,8 @@ Nếu không phải bạn đăng nhập, vui lòng liên hệ support ngay lập
     createInlineKeyboard(buttons) {
         return {
             reply_markup: {
-                inline_keyboard: buttons
-            }
+                inline_keyboard: buttons,
+            },
         };
     }
 
@@ -557,17 +604,18 @@ Nếu không phải bạn đăng nhập, vui lòng liên hệ support ngay lập
                     username: botInfo.username,
                     first_name: botInfo.first_name,
                     can_join_groups: botInfo.can_join_groups,
-                    can_read_all_group_messages: botInfo.can_read_all_group_messages,
-                    supports_inline_queries: botInfo.supports_inline_queries
+                    can_read_all_group_messages:
+                        botInfo.can_read_all_group_messages,
+                    supports_inline_queries: botInfo.supports_inline_queries,
                 },
-                dependencies: ['internet_connection']
+                dependencies: ['internet_connection'],
             };
         } catch (error) {
             return {
                 service: 'TelegramBotService',
                 status: 'unhealthy',
                 error: error.message,
-                dependencies: ['internet_connection']
+                dependencies: ['internet_connection'],
             };
         }
     }

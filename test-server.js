@@ -28,8 +28,8 @@ app.get('/health', (req, res) => {
         services: {
             server: { status: 'healthy' },
             database: { status: 'ready' },
-            telegram: { status: 'configured' }
-        }
+            telegram: { status: 'configured' },
+        },
     });
 });
 
@@ -39,7 +39,7 @@ app.get('/api/status', (req, res) => {
         status: 'running',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        node_version: process.version
+        node_version: process.version,
     });
 });
 
@@ -53,7 +53,7 @@ app.use((error, req, res, next) => {
     console.error('❌ Server Error:', error);
     res.status(500).json({
         error: 'Internal Server Error',
-        message: error.message
+        message: error.message,
     });
 });
 

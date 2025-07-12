@@ -14,29 +14,83 @@ class AuthController extends BaseController {
      */
     setupRoutes() {
         // Phone-based authentication
-        this.registerRoute('post', '/api/auth/send-phone-otp', this.sendPhoneOTP.bind(this));
-        this.registerRoute('post', '/api/auth/verify-phone-otp', this.verifyPhoneOTP.bind(this));
-        
+        this.registerRoute(
+            'post',
+            '/api/auth/send-phone-otp',
+            this.sendPhoneOTP.bind(this)
+        );
+        this.registerRoute(
+            'post',
+            '/api/auth/verify-phone-otp',
+            this.verifyPhoneOTP.bind(this)
+        );
+
         // Telegram authentication
-        this.registerRoute('get', '/api/auth/telegram/login', this.getTelegramLoginUrl.bind(this));
-        this.registerRoute('get', '/auth/telegram/login', this.getTelegramLoginUrl.bind(this)); // No API prefix for web
-        this.registerRoute('get', '/api/auth/telegram/callback', this.handleTelegramCallback.bind(this));
-        this.registerRoute('get', '/auth/telegram/callback', this.handleTelegramCallback.bind(this)); // No API prefix for web
-        this.registerRoute('post', '/api/auth/telegram/verify', this.verifyTelegramAuth.bind(this));
-        this.registerRoute('post', '/auth/telegram/verify', this.verifyTelegramAuth.bind(this)); // No API prefix for web
-        this.registerRoute('get', '/api/auth/telegram/status/:sessionId', this.getTelegramAuthStatus.bind(this));
-        this.registerRoute('get', '/auth/telegram/status', this.getTelegramAuthStatus.bind(this)); // No API prefix for web
-        
+        this.registerRoute(
+            'get',
+            '/api/auth/telegram/login',
+            this.getTelegramLoginUrl.bind(this)
+        );
+        this.registerRoute(
+            'get',
+            '/auth/telegram/login',
+            this.getTelegramLoginUrl.bind(this)
+        ); // No API prefix for web
+        this.registerRoute(
+            'get',
+            '/api/auth/telegram/callback',
+            this.handleTelegramCallback.bind(this)
+        );
+        this.registerRoute(
+            'get',
+            '/auth/telegram/callback',
+            this.handleTelegramCallback.bind(this)
+        ); // No API prefix for web
+        this.registerRoute(
+            'post',
+            '/api/auth/telegram/verify',
+            this.verifyTelegramAuth.bind(this)
+        );
+        this.registerRoute(
+            'post',
+            '/auth/telegram/verify',
+            this.verifyTelegramAuth.bind(this)
+        ); // No API prefix for web
+        this.registerRoute(
+            'get',
+            '/api/auth/telegram/status/:sessionId',
+            this.getTelegramAuthStatus.bind(this)
+        );
+        this.registerRoute(
+            'get',
+            '/auth/telegram/status',
+            this.getTelegramAuthStatus.bind(this)
+        ); // No API prefix for web
+
         // Token management
-        this.registerRoute('post', '/api/auth/refresh-token', this.refreshToken.bind(this));
+        this.registerRoute(
+            'post',
+            '/api/auth/refresh-token',
+            this.refreshToken.bind(this)
+        );
         this.registerRoute('post', '/api/auth/logout', this.logout.bind(this));
         this.registerRoute('post', '/auth/logout', this.logout.bind(this)); // No API prefix for web
-        
+
         // User info
-        this.registerRoute('get', '/api/auth/me', this.getCurrentUser.bind(this), [this.requireAuth.bind(this)]);
-        
+        this.registerRoute(
+            'get',
+            '/api/auth/me',
+            this.getCurrentUser.bind(this),
+            [this.requireAuth.bind(this)]
+        );
+
         // Admin routes
-        this.registerRoute('get', '/api/auth/users', this.getAllUsers.bind(this), [this.requireAuth.bind(this), this.requireAdmin.bind(this)]);
+        this.registerRoute(
+            'get',
+            '/api/auth/users',
+            this.getAllUsers.bind(this),
+            [this.requireAuth.bind(this), this.requireAdmin.bind(this)]
+        );
     }
 
     /**
@@ -45,15 +99,18 @@ class AuthController extends BaseController {
     async sendPhoneOTP(req, res) {
         try {
             this.log('info', 'Received send-phone-otp request');
-            
+
             // Validate input
-            const { phone } = this.validateRequest({
-                phone: { required: true }
-            }, req.body);
+            const { phone } = this.validateRequest(
+                {
+                    phone: { required: true },
+                },
+                req.body
+            );
 
             if (!phone || typeof phone !== 'string') {
                 return this.sendValidationError(res, [
-                    { field: 'phone', message: 'Phone number is required' }
+                    { field: 'phone', message: 'Phone number is required' },
                 ]);
             }
 
@@ -61,7 +118,7 @@ class AuthController extends BaseController {
             const normalizedPhone = phone.replace(/[^\d+]/g, '');
             if (normalizedPhone.length < 10) {
                 return this.sendValidationError(res, [
-                    { field: 'phone', message: 'Invalid phone number format' }
+                    { field: 'phone', message: 'Invalid phone number format' },
                 ]);
             }
 
@@ -69,11 +126,15 @@ class AuthController extends BaseController {
             const result = await otpService.sendOTP(normalizedPhone, 'phone');
 
             if (result.success) {
-                return this.sendSuccess(res, {
-                    phone: normalizedPhone,
-                    method: result.method,
-                    ...(result.otp && { otp: result.otp }) // Include OTP in demo mode
-                }, result.message);
+                return this.sendSuccess(
+                    res,
+                    {
+                        phone: normalizedPhone,
+                        method: result.method,
+                        ...(result.otp && { otp: result.otp }), // Include OTP in demo mode
+                    },
+                    result.message
+                );
             } else {
                 return this.sendError(res, result.message, 400);
             }
@@ -89,14 +150,23 @@ class AuthController extends BaseController {
     async getTelegramLoginUrl(req, res) {
         try {
             const { redirectUrl } = req.query;
-            
+
             const telegramAuthService = this.getService('telegramAuth');
-            const result = telegramAuthService.generateTelegramLoginUrl(redirectUrl);
-            
-            return this.sendSuccess(res, result, 'Telegram login URL generated');
+            const result =
+                telegramAuthService.generateTelegramLoginUrl(redirectUrl);
+
+            return this.sendSuccess(
+                res,
+                result,
+                'Telegram login URL generated'
+            );
         } catch (error) {
             this.log('error', 'Error generating Telegram login URL:', error);
-            return this.sendError(res, 'Failed to generate Telegram login URL', 500);
+            return this.sendError(
+                res,
+                'Failed to generate Telegram login URL',
+                500
+            );
         }
     }
 
@@ -106,23 +176,27 @@ class AuthController extends BaseController {
     async handleTelegramCallback(req, res) {
         try {
             this.log('info', 'Received Telegram callback');
-            
+
             const telegramAuthService = this.getService('telegramAuth');
-            const result = await telegramAuthService.handleTelegramCallback(req.query);
-            
+            const result = await telegramAuthService.handleTelegramCallback(
+                req.query
+            );
+
             if (result.success) {
                 // Set HTTP-only cookie
                 res.cookie('auth_token', result.token, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
-                    maxAge: result.expiresIn * 1000
+                    maxAge: result.expiresIn * 1000,
                 });
 
                 // Redirect to app
                 return res.redirect('/app-main.html');
             } else {
-                return res.redirect('/login-phone.html?error=telegram_auth_failed');
+                return res.redirect(
+                    '/login-phone.html?error=telegram_auth_failed'
+                );
             }
         } catch (error) {
             this.log('error', 'Error handling Telegram callback:', error);
@@ -136,30 +210,44 @@ class AuthController extends BaseController {
     async verifyTelegramAuth(req, res) {
         try {
             this.log('info', 'Received Telegram auth verification');
-            
+
             const telegramAuthService = this.getService('telegramAuth');
-            const result = await telegramAuthService.handleTelegramCallback(req.body);
-            
+            const result = await telegramAuthService.handleTelegramCallback(
+                req.body
+            );
+
             if (result.success) {
                 // Set HTTP-only cookie
                 res.cookie('auth_token', result.token, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
-                    maxAge: result.expiresIn * 1000
+                    maxAge: result.expiresIn * 1000,
                 });
 
-                return this.sendSuccess(res, {
-                    user: result.user,
-                    token: result.token,
-                    expiresIn: result.expiresIn
-                }, 'Telegram authentication successful');
+                return this.sendSuccess(
+                    res,
+                    {
+                        user: result.user,
+                        token: result.token,
+                        expiresIn: result.expiresIn,
+                    },
+                    'Telegram authentication successful'
+                );
             } else {
-                return this.sendError(res, 'Telegram authentication failed', 400);
+                return this.sendError(
+                    res,
+                    'Telegram authentication failed',
+                    400
+                );
             }
         } catch (error) {
             this.log('error', 'Error verifying Telegram auth:', error);
-            return this.sendError(res, 'Failed to verify Telegram authentication', 500);
+            return this.sendError(
+                res,
+                'Failed to verify Telegram authentication',
+                500
+            );
         }
     }
 
@@ -170,29 +258,36 @@ class AuthController extends BaseController {
         try {
             // Get session ID from params or query
             const sessionId = req.params.sessionId || req.query.sessionId;
-            
+
             if (!sessionId) {
                 // For polling without session ID, check latest session for this IP/browser
                 const telegramBotService = this.getService('telegramBot');
-                
+
                 // Check if there's any recent auth session
                 // This is a simplified approach for demo
                 if (global.authSessions) {
-                    for (const [key, session] of global.authSessions.entries()) {
-                        if (session.authenticated && Date.now() - session.timestamp < 300000) { // 5 minutes
+                    for (const [
+                        key,
+                        session,
+                    ] of global.authSessions.entries()) {
+                        if (
+                            session.authenticated &&
+                            Date.now() - session.timestamp < 300000
+                        ) {
+                            // 5 minutes
                             // Set auth cookie
                             res.cookie('auth_token', session.token, {
                                 httpOnly: true,
                                 secure: process.env.NODE_ENV === 'production',
                                 sameSite: 'strict',
-                                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
                             });
 
                             return this.sendSuccess(res, {
                                 success: true,
                                 authenticated: true,
                                 user: session.user,
-                                message: 'Authentication successful'
+                                message: 'Authentication successful',
                             });
                         }
                     }
@@ -201,14 +296,14 @@ class AuthController extends BaseController {
                 return this.sendSuccess(res, {
                     success: false,
                     authenticated: false,
-                    message: 'No active authentication session'
+                    message: 'No active authentication session',
                 });
             }
 
             // Original session-based check
             const telegramAuthService = this.getService('telegramAuth');
             const status = telegramAuthService.getSessionStatus(sessionId);
-            
+
             if (status.status === 'not_found') {
                 return this.sendNotFound(res, 'Session not found');
             }
@@ -219,7 +314,7 @@ class AuthController extends BaseController {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
-                    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
                 });
             }
 
@@ -227,14 +322,18 @@ class AuthController extends BaseController {
                 status: status.status,
                 userId: status.userId,
                 createdAt: status.createdAt,
-                ...(status.status === 'completed' && { 
+                ...(status.status === 'completed' && {
                     token: status.token,
-                    redirect: '/app-main.html'
-                })
+                    redirect: '/app-main.html',
+                }),
             });
         } catch (error) {
             this.log('error', 'Error getting Telegram auth status:', error);
-            return this.sendError(res, 'Failed to get authentication status', 500);
+            return this.sendError(
+                res,
+                'Failed to get authentication status',
+                500
+            );
         }
     }
     async verifyPhoneOTP(req, res) {
@@ -242,15 +341,18 @@ class AuthController extends BaseController {
             this.log('info', 'Received verify-phone-otp request');
 
             // Validate input
-            const { phone, otpCode } = this.validateRequest({
-                phone: { required: true },
-                otpCode: { required: true }
-            }, req.body);
+            const { phone, otpCode } = this.validateRequest(
+                {
+                    phone: { required: true },
+                    otpCode: { required: true },
+                },
+                req.body
+            );
 
             if (!phone || !otpCode) {
                 return this.sendValidationError(res, [
                     { field: 'phone', message: 'Phone number is required' },
-                    { field: 'otpCode', message: 'OTP code is required' }
+                    { field: 'otpCode', message: 'OTP code is required' },
                 ]);
             }
 
@@ -261,31 +363,35 @@ class AuthController extends BaseController {
             const authService = this.getService('auth');
 
             // Verify OTP
-            const otpVerification = await otpService.verifyOTP(normalizedPhone, normalizedOTP, 'phone');
-            
+            const otpVerification = await otpService.verifyOTP(
+                normalizedPhone,
+                normalizedOTP,
+                'phone'
+            );
+
             if (!otpVerification.success) {
                 return this.sendError(res, otpVerification.message, 400);
             }
 
             // Get or create user
             let user = await authService.getUserByPhone(normalizedPhone);
-            
+
             if (!user) {
                 // Create new user
                 user = await authService.createUser({
                     phone: normalizedPhone,
                     username: `user_${normalizedPhone.slice(-8)}`,
-                    isVerified: true
+                    isVerified: true,
                 });
-                
+
                 this.log('info', `Created new user: ${user.id}`);
             } else {
                 // Update verification status
-                await authService.updateUser(user.id, { 
+                await authService.updateUser(user.id, {
                     isVerified: true,
-                    lastLogin: new Date()
+                    lastLogin: new Date(),
                 });
-                
+
                 this.log('info', `User logged in: ${user.id}`);
             }
 
@@ -297,20 +403,23 @@ class AuthController extends BaseController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: tokenData.expiresIn * 1000
+                maxAge: tokenData.expiresIn * 1000,
             });
 
-            return this.sendSuccess(res, {
-                user: {
-                    id: user.id,
-                    phone: user.phone,
-                    username: user.username,
-                    isVerified: user.isVerified
+            return this.sendSuccess(
+                res,
+                {
+                    user: {
+                        id: user.id,
+                        phone: user.phone,
+                        username: user.username,
+                        isVerified: user.isVerified,
+                    },
+                    token: tokenData.token,
+                    expiresIn: tokenData.expiresIn,
                 },
-                token: tokenData.token,
-                expiresIn: tokenData.expiresIn
-            }, 'Login successful');
-
+                'Login successful'
+            );
         } catch (error) {
             this.log('error', 'Error verifying phone OTP:', error);
             return this.sendError(res, 'Failed to verify OTP', 500);
@@ -322,15 +431,17 @@ class AuthController extends BaseController {
      */
     async refreshToken(req, res) {
         try {
-            const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
-            
+            const token =
+                req.cookies.auth_token ||
+                req.headers.authorization?.replace('Bearer ', '');
+
             if (!token) {
                 return this.sendUnauthorized(res, 'No token provided');
             }
 
             const authService = this.getService('auth');
             const user = await authService.verifyToken(token);
-            
+
             if (!user) {
                 return this.sendUnauthorized(res, 'Invalid token');
             }
@@ -343,14 +454,17 @@ class AuthController extends BaseController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: tokenData.expiresIn * 1000
+                maxAge: tokenData.expiresIn * 1000,
             });
 
-            return this.sendSuccess(res, {
-                token: tokenData.token,
-                expiresIn: tokenData.expiresIn
-            }, 'Token refreshed');
-
+            return this.sendSuccess(
+                res,
+                {
+                    token: tokenData.token,
+                    expiresIn: tokenData.expiresIn,
+                },
+                'Token refreshed'
+            );
         } catch (error) {
             this.log('error', 'Error refreshing token:', error);
             return this.sendError(res, 'Failed to refresh token', 500);
@@ -364,9 +478,11 @@ class AuthController extends BaseController {
         try {
             // Clear cookie
             res.clearCookie('auth_token');
-            
+
             // Optionally add token to blacklist
-            const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
+            const token =
+                req.cookies.auth_token ||
+                req.headers.authorization?.replace('Bearer ', '');
             if (token) {
                 const authService = this.getService('auth');
                 await authService.invalidateToken(token);
@@ -385,7 +501,7 @@ class AuthController extends BaseController {
     async getCurrentUser(req, res) {
         try {
             const user = req.user;
-            
+
             return this.sendSuccess(res, {
                 id: user.id,
                 phone: user.phone,
@@ -393,7 +509,7 @@ class AuthController extends BaseController {
                 isVerified: user.isVerified,
                 role: user.role,
                 createdAt: user.createdAt,
-                lastLogin: user.lastLogin
+                lastLogin: user.lastLogin,
             });
         } catch (error) {
             this.log('error', 'Error getting current user:', error);
@@ -408,17 +524,17 @@ class AuthController extends BaseController {
         try {
             const { page, limit, offset } = this.getPaginationParams(req);
             const authService = this.getService('auth');
-            
+
             const result = await authService.getAllUsers({ limit, offset });
-            
+
             return this.sendSuccess(res, {
                 users: result.users,
                 pagination: {
                     page,
                     limit,
                     total: result.total,
-                    totalPages: Math.ceil(result.total / limit)
-                }
+                    totalPages: Math.ceil(result.total / limit),
+                },
             });
         } catch (error) {
             this.log('error', 'Error getting all users:', error);
@@ -431,7 +547,9 @@ class AuthController extends BaseController {
      */
     async requireAuth(req, res, next) {
         try {
-            const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
+            const token =
+                req.cookies.auth_token ||
+                req.headers.authorization?.replace('Bearer ', '');
 
             if (!token) {
                 return this.sendUnauthorized(res, 'Authentication required');

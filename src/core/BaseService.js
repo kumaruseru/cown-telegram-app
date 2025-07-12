@@ -19,14 +19,18 @@ class BaseService {
         try {
             this.config = { ...this.config, ...config };
             this.log('info', `Initializing ${this.serviceName}...`);
-            
+
             await this.onInitialize();
             this.isInitialized = true;
-            
+
             this.log('info', `${this.serviceName} initialized successfully`);
             this.emit('initialized', this);
         } catch (error) {
-            this.log('error', `Failed to initialize ${this.serviceName}:`, error);
+            this.log(
+                'error',
+                `Failed to initialize ${this.serviceName}:`,
+                error
+            );
             throw error;
         }
     }
@@ -51,7 +55,9 @@ class BaseService {
      */
     getDependency(name) {
         if (!this.dependencies.has(name)) {
-            throw new Error(`Dependency '${name}' not found in ${this.serviceName}`);
+            throw new Error(
+                `Dependency '${name}' not found in ${this.serviceName}`
+            );
         }
         return this.dependencies.get(name);
     }
@@ -68,11 +74,14 @@ class BaseService {
      */
     log(level, message, ...args) {
         const logMessage = `[${this.serviceName}] ${message}`;
-        
+
         if (this.logger && typeof this.logger[level] === 'function') {
             this.logger[level](logMessage, ...args);
         } else {
-            console[level === 'error' ? 'error' : 'log'](`${new Date().toISOString()} - ${level.toUpperCase()}: ${logMessage}`, ...args);
+            console[level === 'error' ? 'error' : 'log'](
+                `${new Date().toISOString()} - ${level.toUpperCase()}: ${logMessage}`,
+                ...args
+            );
         }
     }
 
@@ -95,7 +104,11 @@ class BaseService {
                 try {
                     callback(...args);
                 } catch (error) {
-                    this.log('error', `Error in event handler for ${event}:`, error);
+                    this.log(
+                        'error',
+                        `Error in event handler for ${event}:`,
+                        error
+                    );
                 }
             });
         }
@@ -108,11 +121,11 @@ class BaseService {
         try {
             this.log('info', `Destroying ${this.serviceName}...`);
             await this.onDestroy();
-            
+
             this.dependencies.clear();
             this.events.clear();
             this.isInitialized = false;
-            
+
             this.log('info', `${this.serviceName} destroyed successfully`);
         } catch (error) {
             this.log('error', `Error destroying ${this.serviceName}:`, error);
@@ -135,7 +148,7 @@ class BaseService {
             service: this.serviceName,
             status: this.isInitialized ? 'healthy' : 'not_initialized',
             dependencies: Array.from(this.dependencies.keys()),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         };
     }
 
@@ -147,7 +160,7 @@ class BaseService {
             name: this.serviceName,
             initialized: this.isInitialized,
             dependencies: Array.from(this.dependencies.keys()),
-            config: Object.keys(this.config)
+            config: Object.keys(this.config),
         };
     }
 }

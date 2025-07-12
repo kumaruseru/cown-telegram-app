@@ -8,7 +8,7 @@ class DatabaseManager {
             user: process.env.DB_USER || 'root',
             password: process.env.DB_PASSWORD || '',
             database: process.env.DB_NAME || 'cown_telegram',
-            charset: 'utf8mb4'
+            charset: 'utf8mb4',
         };
         this.connection = null;
         this.pool = null;
@@ -18,20 +18,20 @@ class DatabaseManager {
         try {
             // Tạo database trước
             await this.createDatabase();
-            
+
             // Tạo connection pool sau khi đã có database
             this.pool = mysql.createPool({
                 ...this.config,
                 waitForConnections: true,
                 connectionLimit: 10,
-                queueLimit: 0
+                queueLimit: 0,
             });
 
             // Test connection
             const connection = await this.pool.getConnection();
             console.log('✅ Kết nối MySQL thành công');
             connection.release();
-            
+
             // Tạo tables
             await this.createTables();
             console.log('✅ Database đã được khởi tạo thành công');
@@ -46,12 +46,16 @@ class DatabaseManager {
             // Kết nối không chỉ định database để tạo database
             const tempConfig = { ...this.config };
             delete tempConfig.database;
-            
+
             const tempConnection = await mysql.createConnection(tempConfig);
-            await tempConnection.execute(`CREATE DATABASE IF NOT EXISTS \`${this.config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+            await tempConnection.execute(
+                `CREATE DATABASE IF NOT EXISTS \`${this.config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+            );
             await tempConnection.end();
-            
-            console.log(`✅ Database '${this.config.database}' đã được tạo/tồn tại`);
+
+            console.log(
+                `✅ Database '${this.config.database}' đã được tạo/tồn tại`
+            );
         } catch (error) {
             console.error('❌ Lỗi tạo database:', error);
             throw error;
@@ -182,12 +186,26 @@ class DatabaseManager {
     // User methods
     async createUser(userData) {
         try {
-            const { username, email, password_hash, telegram_phone, telegram_api_id, telegram_api_hash } = userData;
-            
+            const {
+                username,
+                email,
+                password_hash,
+                telegram_phone,
+                telegram_api_id,
+                telegram_api_hash,
+            } = userData;
+
             const [result] = await this.pool.execute(
                 `INSERT INTO user_accounts (username, email, password_hash, telegram_phone, telegram_api_id, telegram_api_hash) 
                  VALUES (?, ?, ?, ?, ?, ?)`,
-                [username, email, password_hash, telegram_phone, telegram_api_id, telegram_api_hash]
+                [
+                    username,
+                    email,
+                    password_hash,
+                    telegram_phone,
+                    telegram_api_id,
+                    telegram_api_hash,
+                ]
             );
 
             const [newUser] = await this.pool.execute(
@@ -204,21 +222,27 @@ class DatabaseManager {
 
     async createPhoneUser(userData) {
         try {
-            const { username, phone_number, display_name, is_phone_verified, registered_via } = userData;
-            
+            const {
+                username,
+                phone_number,
+                display_name,
+                is_phone_verified,
+                registered_via,
+            } = userData;
+
             // Use telegram_phone column for phone storage
             const [result] = await this.pool.execute(
                 `INSERT INTO user_accounts (username, telegram_phone, password_hash, created_at) 
                  VALUES (?, ?, '', CURRENT_TIMESTAMP)`,
                 [username, phone_number]
             );
-            
+
             // Get the created user
             const [rows] = await this.pool.execute(
                 'SELECT id, username, telegram_phone as phone_number, created_at FROM user_accounts WHERE id = ?',
                 [result.insertId]
             );
-            
+
             return rows[0];
         } catch (error) {
             console.error('❌ Lỗi tạo phone user:', error);
@@ -280,7 +304,15 @@ class DatabaseManager {
 
     async updateUser(userId, updateData) {
         try {
-            const allowedFields = ['username', 'email', 'password_hash', 'telegram_phone', 'telegram_api_id', 'telegram_api_hash', 'telegram_session'];
+            const allowedFields = [
+                'username',
+                'email',
+                'password_hash',
+                'telegram_phone',
+                'telegram_api_id',
+                'telegram_api_hash',
+                'telegram_session',
+            ];
             const fields = [];
             const values = [];
 
@@ -302,7 +334,7 @@ class DatabaseManager {
 
             const query = `UPDATE user_accounts SET ${fields.join(', ')} WHERE id = ?`;
             await this.pool.execute(query, values);
-            
+
             console.log('✅ User updated successfully');
         } catch (error) {
             console.error('❌ Lỗi cập nhật user:', error);
@@ -440,8 +472,18 @@ class DatabaseManager {
     // Chat methods
     async saveChat(userId, chatData) {
         try {
-            const { id: chatId, type, title, username, first_name, last_name, is_verified, is_scam, is_fake } = chatData;
-            
+            const {
+                id: chatId,
+                type,
+                title,
+                username,
+                first_name,
+                last_name,
+                is_verified,
+                is_scam,
+                is_fake,
+            } = chatData;
+
             await this.pool.execute(
                 `INSERT INTO chats (user_account_id, chat_id, chat_type, title, username, first_name, last_name, is_verified, is_scam, is_fake) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
@@ -449,7 +491,18 @@ class DatabaseManager {
                  title = VALUES(title), username = VALUES(username), first_name = VALUES(first_name), 
                  last_name = VALUES(last_name), is_verified = VALUES(is_verified), is_scam = VALUES(is_scam), 
                  is_fake = VALUES(is_fake), updated_at = CURRENT_TIMESTAMP`,
-                [userId, chatId, type, title, username, first_name, last_name, is_verified || false, is_scam || false, is_fake || false]
+                [
+                    userId,
+                    chatId,
+                    type,
+                    title,
+                    username,
+                    first_name,
+                    last_name,
+                    is_verified || false,
+                    is_scam || false,
+                    is_fake || false,
+                ]
             );
         } catch (error) {
             console.error('❌ Lỗi lưu chat:', error);
@@ -475,10 +528,20 @@ class DatabaseManager {
     async saveMessage(userId, messageData) {
         try {
             const {
-                id: messageId, chat_id, sender_id, reply_to_message_id,
-                text, date, edit_date, media_type = 'text', media_data,
-                is_outgoing = false, is_forwarded = false,
-                forward_from_chat_id, forward_from_message_id, forward_date
+                id: messageId,
+                chat_id,
+                sender_id,
+                reply_to_message_id,
+                text,
+                date,
+                edit_date,
+                media_type = 'text',
+                media_data,
+                is_outgoing = false,
+                is_forwarded = false,
+                forward_from_chat_id,
+                forward_from_message_id,
+                forward_date,
             } = messageData;
 
             await this.pool.execute(
@@ -491,9 +554,21 @@ class DatabaseManager {
                 text = VALUES(text), edit_date = VALUES(edit_date), media_type = VALUES(media_type),
                 media_data = VALUES(media_data)`,
                 [
-                    userId, messageId, chat_id, sender_id, reply_to_message_id,
-                    text, date, edit_date, media_type, JSON.stringify(media_data),
-                    is_outgoing, is_forwarded, forward_from_chat_id, forward_from_message_id, forward_date
+                    userId,
+                    messageId,
+                    chat_id,
+                    sender_id,
+                    reply_to_message_id,
+                    text,
+                    date,
+                    edit_date,
+                    media_type,
+                    JSON.stringify(media_data),
+                    is_outgoing,
+                    is_forwarded,
+                    forward_from_chat_id,
+                    forward_from_message_id,
+                    forward_date,
                 ]
             );
         } catch (error) {
@@ -509,10 +584,10 @@ class DatabaseManager {
                  ORDER BY date DESC LIMIT ? OFFSET ?`,
                 [userId, chatId, limit, offset]
             );
-            
+
             return rows.map(row => ({
                 ...row,
-                media_data: row.media_data ? JSON.parse(row.media_data) : null
+                media_data: row.media_data ? JSON.parse(row.media_data) : null,
             }));
         } catch (error) {
             console.error('❌ Lỗi lấy messages:', error);
@@ -529,10 +604,10 @@ class DatabaseManager {
                  ORDER BY m.date DESC LIMIT ?`,
                 [userId, `%${query}%`, limit]
             );
-            
+
             return rows.map(row => ({
                 ...row,
-                media_data: row.media_data ? JSON.parse(row.media_data) : null
+                media_data: row.media_data ? JSON.parse(row.media_data) : null,
             }));
         } catch (error) {
             console.error('❌ Lỗi tìm kiếm messages:', error);
@@ -543,8 +618,16 @@ class DatabaseManager {
     // Contact methods
     async saveContact(userId, contactData) {
         try {
-            const { id: contactId, phone, first_name, last_name, username, is_mutual_contact, is_close_friend } = contactData;
-            
+            const {
+                id: contactId,
+                phone,
+                first_name,
+                last_name,
+                username,
+                is_mutual_contact,
+                is_close_friend,
+            } = contactData;
+
             await this.pool.execute(
                 `INSERT INTO contacts (user_account_id, contact_id, phone, first_name, last_name, username, is_mutual_contact, is_close_friend) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
@@ -552,7 +635,16 @@ class DatabaseManager {
                  phone = VALUES(phone), first_name = VALUES(first_name), last_name = VALUES(last_name), 
                  username = VALUES(username), is_mutual_contact = VALUES(is_mutual_contact), 
                  is_close_friend = VALUES(is_close_friend), updated_at = CURRENT_TIMESTAMP`,
-                [userId, contactId, phone, first_name, last_name, username, is_mutual_contact || false, is_close_friend || false]
+                [
+                    userId,
+                    contactId,
+                    phone,
+                    first_name,
+                    last_name,
+                    username,
+                    is_mutual_contact || false,
+                    is_close_friend || false,
+                ]
             );
         } catch (error) {
             console.error('❌ Lỗi lưu contact:', error);

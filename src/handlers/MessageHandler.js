@@ -14,43 +14,65 @@ class MessageHandler {
             }
 
             if (!this.telegramClientService.isUserClientConnected(userId)) {
-                throw new Error('Telegram Client chưa kết nối cho tài khoản này');
+                throw new Error(
+                    'Telegram Client chưa kết nối cho tài khoản này'
+                );
             }
 
             let result;
 
             switch (messageType) {
                 case 'text':
-                    result = await this.telegramClientService.sendMessageForUser(userId, chatId, message, options);
+                    result =
+                        await this.telegramClientService.sendMessageForUser(
+                            userId,
+                            chatId,
+                            message,
+                            options
+                        );
                     break;
                 case 'photo':
                     // Client API có cách gửi ảnh khác
-                    result = await this.telegramClientService.sendMessageForUser(userId, chatId, message, { ...options, file: message });
+                    result =
+                        await this.telegramClientService.sendMessageForUser(
+                            userId,
+                            chatId,
+                            message,
+                            { ...options, file: message }
+                        );
                     break;
                 case 'document':
                     // Client API có cách gửi file khác
-                    result = await this.telegramClientService.sendMessageForUser(userId, chatId, message, { ...options, file: message });
+                    result =
+                        await this.telegramClientService.sendMessageForUser(
+                            userId,
+                            chatId,
+                            message,
+                            { ...options, file: message }
+                        );
                     break;
                 default:
-                    throw new Error(`Loại tin nhắn không được hỗ trợ: ${messageType}`);
+                    throw new Error(
+                        `Loại tin nhắn không được hỗ trợ: ${messageType}`
+                    );
             }
 
             // Emit thành công
             socket.emit('message-sent', {
                 success: true,
                 result: result,
-                originalData: data
+                originalData: data,
             });
 
             return result;
         } catch (error) {
             console.error(`Lỗi gửi tin nhắn cho user ${userId}:`, error);
-            
+
             // Emit lỗi
             socket.emit('message-error', {
                 success: false,
                 error: error.message,
-                originalData: data
+                originalData: data,
             });
 
             throw error;
@@ -115,16 +137,16 @@ class MessageHandler {
                 username: messageData.username,
                 first_name: messageData.first_name,
                 last_name: messageData.last_name,
-                display_name: this.getDisplayName(messageData)
+                display_name: this.getDisplayName(messageData),
             },
             content: {
                 text: messageData.message_text,
                 type: messageData.message_type,
-                media_url: messageData.media_url
+                media_url: messageData.media_url,
             },
             timestamp: messageData.timestamp,
             is_outgoing: messageData.is_outgoing,
-            reply_to_message_id: messageData.reply_to_message_id
+            reply_to_message_id: messageData.reply_to_message_id,
         };
     }
 
@@ -142,7 +164,7 @@ class MessageHandler {
             return {
                 total_messages: 0,
                 today_messages: 0,
-                active_chats: 0
+                active_chats: 0,
             };
         } catch (error) {
             console.error('Lỗi lấy thống kê tin nhắn:', error);

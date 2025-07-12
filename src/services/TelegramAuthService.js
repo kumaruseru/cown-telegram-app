@@ -27,8 +27,8 @@ class TelegramAuthService extends BaseService {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'User-Agent': 'Cown-Telegram-App/1.0'
-                }
+                    'User-Agent': 'Cown-Telegram-App/1.0',
+                },
             };
 
             if (data && method !== 'GET') {
@@ -36,20 +36,23 @@ class TelegramAuthService extends BaseService {
                 options.headers['Content-Length'] = Buffer.byteLength(postData);
             }
 
-            const req = https.request(options, (res) => {
+            const req = https.request(options, res => {
                 let responseData = '';
-                res.on('data', (chunk) => responseData += chunk);
+                res.on('data', chunk => (responseData += chunk));
                 res.on('end', () => {
                     try {
                         const parsed = JSON.parse(responseData);
                         resolve(parsed);
                     } catch (error) {
-                        resolve({ ok: false, description: 'Invalid JSON response' });
+                        resolve({
+                            ok: false,
+                            description: 'Invalid JSON response',
+                        });
                     }
                 });
             });
 
-            req.on('error', (error) => {
+            req.on('error', error => {
                 reject(error);
             });
 
@@ -68,11 +71,16 @@ class TelegramAuthService extends BaseService {
 
         // Validate bot configuration
         if (!this.botToken) {
-            throw new Error('TELEGRAM_BOT_TOKEN is required for Telegram authentication');
+            throw new Error(
+                'TELEGRAM_BOT_TOKEN is required for Telegram authentication'
+            );
         }
 
         if (!this.botUsername) {
-            this.log('warn', 'TELEGRAM_BOT_USERNAME not set, some features may not work');
+            this.log(
+                'warn',
+                'TELEGRAM_BOT_USERNAME not set, some features may not work'
+            );
         }
 
         // Setup periodic cleanup
@@ -86,32 +94,40 @@ class TelegramAuthService extends BaseService {
      */
     generateTelegramLoginUrl(redirectUrl = null) {
         try {
-            const baseUrl = process.env.NODE_ENV === 'production' 
-                ? 'https://cown-telegram-app.onrender.com'
-                : `http://localhost:${process.env.PORT || 3000}`;
+            const baseUrl =
+                process.env.NODE_ENV === 'production'
+                    ? 'https://cown-telegram-app.onrender.com'
+                    : `http://localhost:${process.env.PORT || 3000}`;
 
-            const callbackUrl = redirectUrl || `${baseUrl}/api/auth/telegram/callback`;
-            
+            const callbackUrl =
+                redirectUrl || `${baseUrl}/api/auth/telegram/callback`;
+
             // Tạo session ID để tracking
             const sessionId = this.generateSessionId();
-            
+
             // Lưu session tạm thời
             this.authSessions.set(sessionId, {
                 createdAt: Date.now(),
                 redirectUrl: callbackUrl,
-                status: 'pending'
+                status: 'pending',
             });
 
             // Tạo URL với Telegram Widget
-            const telegramUrl = new URL('https://telegram.me/' + this.botUsername);
+            const telegramUrl = new URL(
+                'https://telegram.me/' + this.botUsername
+            );
             telegramUrl.searchParams.set('start', `auth_${sessionId}`);
 
-            this.log('info', `Generated Telegram login URL for session: ${sessionId}`);
+            this.log(
+                'info',
+                `Generated Telegram login URL for session: ${sessionId}`
+            );
 
             return {
                 loginUrl: telegramUrl.toString(),
                 sessionId,
-                instructions: 'Nhấn vào link và gửi /start cho bot để đăng nhập'
+                instructions:
+                    'Nhấn vào link và gửi /start cho bot để đăng nhập',
             };
         } catch (error) {
             this.log('error', 'Error generating Telegram login URL:', error);
@@ -124,7 +140,10 @@ class TelegramAuthService extends BaseService {
      */
     async handleTelegramLogin(telegramUser, sessionId = null) {
         try {
-            this.log('info', `Telegram login attempt for user: ${telegramUser.id}`);
+            this.log(
+                'info',
+                `Telegram login attempt for user: ${telegramUser.id}`
+            );
 
             // Validate Telegram user data
             if (!this.validateTelegramUser(telegramUser)) {
@@ -146,7 +165,7 @@ class TelegramAuthService extends BaseService {
                     ...this.authSessions.get(sessionId),
                     status: 'completed',
                     userId: user.id,
-                    token: tokenData.token
+                    token: tokenData.token,
                 });
             }
 
@@ -160,10 +179,10 @@ class TelegramAuthService extends BaseService {
                     telegramId: user.telegramId,
                     firstName: user.firstName,
                     lastName: user.lastName,
-                    photoUrl: user.photoUrl
+                    photoUrl: user.photoUrl,
                 },
                 ...tokenData,
-                sessionId
+                sessionId,
             };
         } catch (error) {
             this.log('error', 'Telegram login error:', error);
@@ -178,7 +197,7 @@ class TelegramAuthService extends BaseService {
         try {
             // Verify authentication data từ Telegram
             const authData = this.verifyTelegramAuth(queryParams);
-            
+
             if (!authData.valid) {
                 throw new Error('Invalid Telegram authentication data');
             }
@@ -198,7 +217,7 @@ class TelegramAuthService extends BaseService {
      */
     getSessionStatus(sessionId) {
         const session = this.authSessions.get(sessionId);
-        
+
         if (!session) {
             return { status: 'not_found' };
         }
@@ -207,7 +226,7 @@ class TelegramAuthService extends BaseService {
             status: session.status,
             userId: session.userId,
             token: session.token,
-            createdAt: session.createdAt
+            createdAt: session.createdAt,
         };
     }
 
@@ -228,7 +247,7 @@ class TelegramAuthService extends BaseService {
     verifyTelegramAuth(queryParams) {
         try {
             const { hash, ...data } = queryParams;
-            
+
             if (!hash) {
                 return { valid: false, error: 'No hash provided' };
             }
@@ -262,8 +281,8 @@ class TelegramAuthService extends BaseService {
                         first_name: data.first_name,
                         last_name: data.last_name,
                         photo_url: data.photo_url,
-                        auth_date: data.auth_date
-                    }
+                        auth_date: data.auth_date,
+                    },
                 };
             } else {
                 return { valid: false, error: 'Hash verification failed' };
@@ -280,19 +299,24 @@ class TelegramAuthService extends BaseService {
     async findOrCreateUser(telegramUser) {
         try {
             // Tìm user theo Telegram ID
-            let user = await this.dbManager.getUserByTelegramId(telegramUser.id);
+            let user = await this.dbManager.getUserByTelegramId(
+                telegramUser.id
+            );
 
             if (user) {
                 // Cập nhật last login
                 await this.authService.updateUser(user.id, {
-                    lastLogin: new Date()
+                    lastLogin: new Date(),
                 });
                 return user;
             }
 
             // Tạo username từ Telegram data
-            const username = telegramUser.username || 
-                            `${telegramUser.first_name}_${telegramUser.id}`.toLowerCase().replace(/\s+/g, '_');
+            const username =
+                telegramUser.username ||
+                `${telegramUser.first_name}_${telegramUser.id}`
+                    .toLowerCase()
+                    .replace(/\s+/g, '_');
 
             // Tạo user mới
             user = await this.authService.createUser({
@@ -303,7 +327,7 @@ class TelegramAuthService extends BaseService {
                 photoUrl: telegramUser.photo_url,
                 isVerified: true,
                 authMethod: 'telegram',
-                role: 'user'
+                role: 'user',
             });
 
             this.log('info', `Created new user from Telegram: ${user.id}`);
@@ -321,27 +345,42 @@ class TelegramAuthService extends BaseService {
         try {
             const updateData = {
                 telegramId: telegramUser.id,
-                lastLogin: new Date()
+                lastLogin: new Date(),
             };
 
             // Cập nhật thông tin nếu có thay đổi
-            if (telegramUser.username && telegramUser.username !== user.telegramUsername) {
+            if (
+                telegramUser.username &&
+                telegramUser.username !== user.telegramUsername
+            ) {
                 updateData.telegramUsername = telegramUser.username;
             }
 
-            if (telegramUser.first_name && telegramUser.first_name !== user.firstName) {
+            if (
+                telegramUser.first_name &&
+                telegramUser.first_name !== user.firstName
+            ) {
                 updateData.firstName = telegramUser.first_name;
             }
 
-            if (telegramUser.last_name && telegramUser.last_name !== user.lastName) {
+            if (
+                telegramUser.last_name &&
+                telegramUser.last_name !== user.lastName
+            ) {
                 updateData.lastName = telegramUser.last_name;
             }
 
-            if (telegramUser.photo_url && telegramUser.photo_url !== user.photoUrl) {
+            if (
+                telegramUser.photo_url &&
+                telegramUser.photo_url !== user.photoUrl
+            ) {
                 updateData.photoUrl = telegramUser.photo_url;
             }
 
-            const updatedUser = await this.authService.updateUser(user.id, updateData);
+            const updatedUser = await this.authService.updateUser(
+                user.id,
+                updateData
+            );
             return updatedUser;
         } catch (error) {
             this.log('error', 'Error updating Telegram info:', error);
@@ -369,7 +408,10 @@ class TelegramAuthService extends BaseService {
             }
         }
 
-        this.log('debug', `Cleaned up expired sessions, remaining: ${this.authSessions.size}`);
+        this.log(
+            'debug',
+            `Cleaned up expired sessions, remaining: ${this.authSessions.size}`
+        );
     }
 
     /**
@@ -377,9 +419,12 @@ class TelegramAuthService extends BaseService {
      */
     startSessionCleanup() {
         // Cleanup every 5 minutes
-        setInterval(() => {
-            this.cleanupExpiredSessions();
-        }, 5 * 60 * 1000);
+        setInterval(
+            () => {
+                this.cleanupExpiredSessions();
+            },
+            5 * 60 * 1000
+        );
     }
 
     /**
@@ -388,23 +433,23 @@ class TelegramAuthService extends BaseService {
     async healthCheck() {
         try {
             const botInfo = await this.getBotInfo();
-            
+
             return {
                 service: this.serviceName,
                 status: 'healthy',
                 bot: {
                     username: this.botUsername,
-                    isActive: !!botInfo
+                    isActive: !!botInfo,
                 },
                 activeSessions: this.authSessions.size,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         } catch (error) {
             return {
                 service: this.serviceName,
                 status: 'unhealthy',
                 error: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         }
     }
@@ -414,8 +459,10 @@ class TelegramAuthService extends BaseService {
      */
     async getBotInfo() {
         try {
-            const data = await this.makeRequest(`https://api.telegram.org/bot${this.botToken}/getMe`);
-            
+            const data = await this.makeRequest(
+                `https://api.telegram.org/bot${this.botToken}/getMe`
+            );
+
             if (data.ok) {
                 return data.result;
             } else {

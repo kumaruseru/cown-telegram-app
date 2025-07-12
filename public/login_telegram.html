@@ -1,244 +1,262 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login - Cown Telegram App</title>
+        <link rel="stylesheet" href="styles.css" />
+        <style>
+            .telegram-login-container {
+                max-width: 400px;
+                margin: 50px auto;
+                padding: 30px;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Cown Telegram App</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .telegram-login-container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
+            .telegram-login-button {
+                background: #0088cc;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background 0.3s;
+                text-decoration: none;
+                display: inline-block;
+                margin: 10px 0;
+            }
 
-        .telegram-login-button {
-            background: #0088cc;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            margin: 10px 0;
-        }
+            .telegram-login-button:hover {
+                background: #006ba8;
+            }
 
-        .telegram-login-button:hover {
-            background: #006ba8;
-        }
+            .auth-status {
+                margin: 20px 0;
+                padding: 10px;
+                border-radius: 5px;
+            }
 
-        .auth-status {
-            margin: 20px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
+            .status-pending {
+                background: #fff3cd;
+                color: #856404;
+                border: 1px solid #ffeaa7;
+            }
 
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
+            .status-success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
 
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
+            .status-error {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
 
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
+            .loading {
+                display: none;
+                margin: 20px 0;
+            }
 
-        .loading {
-            display: none;
-            margin: 20px 0;
-        }
+            .spinner {
+                border: 3px solid #f3f3f3;
+                border-top: 3px solid #0088cc;
+                border-radius: 50%;
+                width: 30px;
+                height: 30px;
+                animation: spin 1s linear infinite;
+                margin: 0 auto;
+            }
 
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #0088cc;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </head>
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
+    <body>
+        <div class="telegram-login-container">
+            <h1>🚀 Cown Telegram App</h1>
+            <p>Đăng nhập qua Telegram để sử dụng ứng dụng</p>
 
-<body>
-    <div class="telegram-login-container">
-        <h1>🚀 Cown Telegram App</h1>
-        <p>Đăng nhập qua Telegram để sử dụng ứng dụng</p>
-        
-        <div id="auth-status" class="auth-status" style="display: none;"></div>
-        
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>Đang xử lý đăng nhập...</p>
+            <div
+                id="auth-status"
+                class="auth-status"
+                style="display: none"
+            ></div>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Đang xử lý đăng nhập...</p>
+            </div>
+
+            <button id="telegram-login-btn" class="telegram-login-button">
+                📱 Đăng nhập qua Telegram
+            </button>
+
+            <div style="margin-top: 20px">
+                <a href="/login" style="color: #666; text-decoration: none"
+                    >← Quay lại đăng nhập thường</a
+                >
+            </div>
         </div>
-        
-        <button id="telegram-login-btn" class="telegram-login-button">
-            📱 Đăng nhập qua Telegram
-        </button>
-        
-        <div style="margin-top: 20px;">
-            <a href="/login" style="color: #666; text-decoration: none;">← Quay lại đăng nhập thường</a>
-        </div>
-    </div>
 
-    <script>
-        let authCheckInterval;
-        
-        // Check authentication status
-        async function checkAuthStatus() {
-            try {
-                const response = await fetch('/auth/telegram/status');
-                const data = await response.json();
-                
-                if (data.success) {
-                    if (data.authenticated) {
-                        showStatus('Đăng nhập thành công! Đang chuyển hướng...', 'success');
-                        setTimeout(() => {
-                            window.location.href = '/dashboard';
-                        }, 2000);
-                        return true;
+        <script>
+            let authCheckInterval;
+
+            // Check authentication status
+            async function checkAuthStatus() {
+                try {
+                    const response = await fetch('/auth/telegram/status');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        if (data.authenticated) {
+                            showStatus(
+                                'Đăng nhập thành công! Đang chuyển hướng...',
+                                'success'
+                            );
+                            setTimeout(() => {
+                                window.location.href = '/dashboard';
+                            }, 2000);
+                            return true;
+                        }
                     }
+                    return false;
+                } catch (error) {
+                    console.error('Error checking auth status:', error);
+                    return false;
                 }
-                return false;
-            } catch (error) {
-                console.error('Error checking auth status:', error);
-                return false;
             }
-        }
-        
-        // Show status message
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('auth-status');
-            statusDiv.textContent = message;
-            statusDiv.className = `auth-status status-${type}`;
-            statusDiv.style.display = 'block';
-        }
-        
-        // Hide loading
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('telegram-login-btn').style.display = 'inline-block';
-        }
-        
-        // Show loading
-        function showLoading() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('telegram-login-btn').style.display = 'none';
-        }
-        
-        // Handle Telegram login
-        async function handleTelegramLogin() {
-            try {
-                showLoading();
-                showStatus('Đang tạo liên kết đăng nhập...', 'pending');
-                
-                const response = await fetch('/auth/telegram/login');
-                const data = await response.json();
-                
-                if (data.success && data.loginUrl) {
-                    showStatus('Đang chuyển hướng đến Telegram...', 'pending');
-                    
-                    // Open Telegram login in new window
-                    const authWindow = window.open(
-                        data.loginUrl,
-                        'telegram-auth',
-                        'width=500,height=600,scrollbars=yes,resizable=yes'
-                    );
-                    
-                    // Start checking auth status
-                    authCheckInterval = setInterval(async () => {
-                        const isAuthenticated = await checkAuthStatus();
-                        if (isAuthenticated) {
-                            clearInterval(authCheckInterval);
-                            if (authWindow && !authWindow.closed) {
-                                authWindow.close();
-                            }
-                        }
-                    }, 2000);
-                    
-                    // Check if window is closed manually
-                    const windowCheckInterval = setInterval(() => {
-                        if (authWindow.closed) {
-                            clearInterval(windowCheckInterval);
-                            clearInterval(authCheckInterval);
-                            hideLoading();
-                            showStatus('Đăng nhập bị hủy', 'error');
-                        }
-                    }, 1000);
-                    
-                } else {
-                    throw new Error(data.message || 'Không thể tạo liên kết đăng nhập');
-                }
-                
-            } catch (error) {
-                console.error('Telegram login error:', error);
-                hideLoading();
-                showStatus('Lỗi: ' + error.message, 'error');
-            }
-        }
-        
-        // Handle URL parameters (for callback)
-        function handleUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            const error = urlParams.get('error');
-            
-            if (error) {
-                showStatus('Lỗi đăng nhập: ' + error, 'error');
-                return;
-            }
-            
-            if (code) {
-                showLoading();
-                showStatus('Đang xử lý xác thực...', 'pending');
-                // Auth will be handled by the callback endpoint
-                checkAuthStatus();
-            }
-        }
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Check if already authenticated
-            const isAuthenticated = await checkAuthStatus();
-            if (isAuthenticated) {
-                return;
-            }
-            
-            // Handle URL parameters
-            handleUrlParams();
-            
-            // Bind login button
-            document.getElementById('telegram-login-btn').addEventListener('click', handleTelegramLogin);
-        });
-        
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (authCheckInterval) {
-                clearInterval(authCheckInterval);
-            }
-        });
-    </script>
-</body>
 
+            // Show status message
+            function showStatus(message, type) {
+                const statusDiv = document.getElementById('auth-status');
+                statusDiv.textContent = message;
+                statusDiv.className = `auth-status status-${type}`;
+                statusDiv.style.display = 'block';
+            }
+
+            // Hide loading
+            function hideLoading() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('telegram-login-btn').style.display =
+                    'inline-block';
+            }
+
+            // Show loading
+            function showLoading() {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('telegram-login-btn').style.display =
+                    'none';
+            }
+
+            // Handle Telegram login
+            async function handleTelegramLogin() {
+                try {
+                    showLoading();
+                    showStatus('Đang tạo liên kết đăng nhập...', 'pending');
+
+                    const response = await fetch('/auth/telegram/login');
+                    const data = await response.json();
+
+                    if (data.success && data.loginUrl) {
+                        showStatus(
+                            'Đang chuyển hướng đến Telegram...',
+                            'pending'
+                        );
+
+                        // Open Telegram login in new window
+                        const authWindow = window.open(
+                            data.loginUrl,
+                            'telegram-auth',
+                            'width=500,height=600,scrollbars=yes,resizable=yes'
+                        );
+
+                        // Start checking auth status
+                        authCheckInterval = setInterval(async () => {
+                            const isAuthenticated = await checkAuthStatus();
+                            if (isAuthenticated) {
+                                clearInterval(authCheckInterval);
+                                if (authWindow && !authWindow.closed) {
+                                    authWindow.close();
+                                }
+                            }
+                        }, 2000);
+
+                        // Check if window is closed manually
+                        const windowCheckInterval = setInterval(() => {
+                            if (authWindow.closed) {
+                                clearInterval(windowCheckInterval);
+                                clearInterval(authCheckInterval);
+                                hideLoading();
+                                showStatus('Đăng nhập bị hủy', 'error');
+                            }
+                        }, 1000);
+                    } else {
+                        throw new Error(
+                            data.message || 'Không thể tạo liên kết đăng nhập'
+                        );
+                    }
+                } catch (error) {
+                    console.error('Telegram login error:', error);
+                    hideLoading();
+                    showStatus('Lỗi: ' + error.message, 'error');
+                }
+            }
+
+            // Handle URL parameters (for callback)
+            function handleUrlParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const error = urlParams.get('error');
+
+                if (error) {
+                    showStatus('Lỗi đăng nhập: ' + error, 'error');
+                    return;
+                }
+
+                if (code) {
+                    showLoading();
+                    showStatus('Đang xử lý xác thực...', 'pending');
+                    // Auth will be handled by the callback endpoint
+                    checkAuthStatus();
+                }
+            }
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', async () => {
+                // Check if already authenticated
+                const isAuthenticated = await checkAuthStatus();
+                if (isAuthenticated) {
+                    return;
+                }
+
+                // Handle URL parameters
+                handleUrlParams();
+
+                // Bind login button
+                document
+                    .getElementById('telegram-login-btn')
+                    .addEventListener('click', handleTelegramLogin);
+            });
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                if (authCheckInterval) {
+                    clearInterval(authCheckInterval);
+                }
+            });
+        </script>
+    </body>
 </html>

@@ -1,25 +1,25 @@
 name: 🚂 Deploy to Railway
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+    push:
+        branches: [main]
+    workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
 
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+        steps:
+            - name: 📥 Checkout code
+              uses: actions/checkout@v4
 
-    - name: 🚂 Deploy to Railway
-      uses: railway-app/actions@v1
-      with:
-        token: ${{ secrets.RAILWAY_TOKEN }}
-        command: up
-        
-    - name: ✅ Deployment complete
-      run: |
-        echo "🎉 Successfully deployed to Railway!"
-        echo "🔗 Your app should be available at your Railway domain"
+            - name: 🚂 Deploy to Railway
+              uses: railway-app/actions@v1
+              with:
+                  token: ${{ secrets.RAILWAY_TOKEN }}
+                  command: up
+
+            - name: ✅ Deployment complete
+              run: |
+                  echo "🎉 Successfully deployed to Railway!"
+                  echo "🔗 Your app should be available at your Railway domain"

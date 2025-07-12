@@ -1,134 +1,162 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐄 Cown - Ứng dụng Telegram Bò Sữa</title>
-    <link rel="stylesheet" href="styles-cow.css">
-    <link rel="stylesheet" href="enhanced-messages.css">
-    <link rel="stylesheet" href="advanced-effects.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐄</text></svg>">
-</head>
-<body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" id="mobileMenuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>🐄 Cown - Ứng dụng Telegram Bò Sữa</title>
+        <link rel="stylesheet" href="styles-cow.css" />
+        <link rel="stylesheet" href="enhanced-messages.css" />
+        <link rel="stylesheet" href="advanced-effects.css" />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            rel="icon"
+            type="image/x-icon"
+            href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐄</text></svg>"
+        />
+    </head>
+    <body>
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
 
-    <div class="app-container">
-        <!-- Sidebar với Cow Theme -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="app-logo">
-                    <div class="cow-logo">
-                        <span class="cow-icon">🐄</span>
-                        <div class="milk-bubble"></div>
+        <div class="app-container">
+            <!-- Sidebar với Cow Theme -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="app-logo">
+                        <div class="cow-logo">
+                            <span class="cow-icon">🐄</span>
+                            <div class="milk-bubble"></div>
+                        </div>
+                        <h2>🥛 Cown</h2>
+                        <p class="app-subtitle">Bò sữa nhắn tin</p>
                     </div>
-                    <h2>🥛 Cown</h2>
-                    <p class="app-subtitle">Bò sữa nhắn tin</p>
+                    <div class="connection-status" id="connectionStatus">
+                        <span class="status-dot offline"></span>
+                        <span class="status-text">Đang kết nối...</span>
+                    </div>
                 </div>
-                <div class="connection-status" id="connectionStatus">
-                    <span class="status-dot offline"></span>
-                    <span class="status-text">Đang kết nối...</span>
+
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input
+                            type="text"
+                            id="searchChats"
+                            placeholder="Tìm kiếm cuộc trò chuyện bò bò..."
+                        />
+                        <i class="fas fa-search search-icon"></i>
+                        <div class="search-decoration">🔍</div>
+                    </div>
+                </div>
+
+                <div class="chat-list" id="chatList">
+                    <!-- Chat items sẽ được thêm động -->
+                </div>
+
+                <div class="sidebar-footer">
+                    <button class="btn btn-primary cow-btn" id="newChatBtn">
+                        <i class="fas fa-plus"></i>
+                        <span>Cuộc trò chuyện mới</span>
+                        <div class="cow-btn-decoration">🐄</div>
+                    </button>
                 </div>
             </div>
-            
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <input type="text" id="searchChats" placeholder="Tìm kiếm cuộc trò chuyện bò bò...">
-                    <i class="fas fa-search search-icon"></i>
-                    <div class="search-decoration">🔍</div>
+
+            <!-- Main Chat Area -->
+            <div class="main-content">
+                <div class="chat-header" id="chatHeader">
+                    <div class="chat-info">
+                        <h3 id="chatTitle">Chọn cuộc trò chuyện</h3>
+                        <p id="chatStatus">Sẵn sàng để nhắn tin bò bò!</p>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="chat-list" id="chatList">
-                <!-- Chat items sẽ được thêm động -->
-            </div>
-            
-            <div class="sidebar-footer">
-                <button class="btn btn-primary cow-btn" id="newChatBtn">
-                    <i class="fas fa-plus"></i>
-                    <span>Cuộc trò chuyện mới</span>
-                    <div class="cow-btn-decoration">🐄</div>
-                </button>
+
+                <div class="messages-container" id="messagesContainer">
+                    <div class="welcome-message">
+                        <div class="welcome-cow">🐄</div>
+                        <h3>Chào mừng đến với Cown!</h3>
+                        <p>
+                            Chọn một cuộc trò chuyện để bắt đầu nhắn tin với
+                            giao diện bò sữa đáng yêu!
+                        </p>
+                        <div class="welcome-features">
+                            <div class="feature">
+                                <i class="fas fa-comments cow-feature-icon"></i>
+                                <span>Nhắn tin Telegram</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-heart cow-feature-icon"></i>
+                                <span>Giao diện đáng yêu</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-bolt cow-feature-icon"></i>
+                                <span>Nhanh chóng</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="message-input-container"
+                    id="messageInputContainer"
+                    style="display: none"
+                >
+                    <div class="input-wrapper">
+                        <textarea
+                            id="messageInput"
+                            placeholder="Nhập tin nhắn bò bò..."
+                            rows="1"
+                        ></textarea>
+                        <button id="sendBtn" class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            <div class="send-decoration">🚀</div>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Main Chat Area -->
-        <div class="main-content">
-            <div class="chat-header" id="chatHeader">
-                <div class="chat-info">
-                    <h3 id="chatTitle">Chọn cuộc trò chuyện</h3>
-                    <p id="chatStatus">Sẵn sàng để nhắn tin bò bò!</p>
+        <!-- New Chat Modal -->
+        <div class="modal" id="newChatModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🐄 Tạo cuộc trò chuyện mới</h3>
+                    <button class="close-btn" id="modalClose">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-            </div>
-
-            <div class="messages-container" id="messagesContainer">
-                <div class="welcome-message">
-                    <div class="welcome-cow">🐄</div>
-                    <h3>Chào mừng đến với Cown!</h3>
-                    <p>Chọn một cuộc trò chuyện để bắt đầu nhắn tin với giao diện bò sữa đáng yêu!</p>
-                    <div class="welcome-features">
-                        <div class="feature">
-                            <i class="fas fa-comments cow-feature-icon"></i>
-                            <span>Nhắn tin Telegram</span>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-heart cow-feature-icon"></i>
-                            <span>Giao diện đáng yêu</span>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-bolt cow-feature-icon"></i>
-                            <span>Nhanh chóng</span>
-                        </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="chatIdInput">ID Chat hoặc Username</label>
+                        <input
+                            type="text"
+                            id="chatIdInput"
+                            placeholder="Ví dụ: @username hoặc chat_id"
+                        />
+                        <small class="help-text">
+                            <i class="fas fa-info-circle"></i>
+                            Nhập username (bắt đầu với @) hoặc chat ID
+                        </small>
                     </div>
                 </div>
-            </div>
-
-            <div class="message-input-container" id="messageInputContainer" style="display: none;">
-                <div class="input-wrapper">
-                    <textarea id="messageInput" placeholder="Nhập tin nhắn bò bò..." rows="1"></textarea>
-                    <button id="sendBtn" class="send-btn">
-                        <i class="fas fa-paper-plane"></i>
-                        <div class="send-decoration">🚀</div>
+                <div class="modal-footer">
+                    <button id="modalCancel" class="btn btn-secondary">
+                        Hủy
+                    </button>
+                    <button id="modalConfirm" class="btn btn-primary cow-btn">
+                        <i class="fas fa-plus"></i>
+                        Tạo cuộc trò chuyện
                     </button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- New Chat Modal -->
-    <div class="modal" id="newChatModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>🐄 Tạo cuộc trò chuyện mới</h3>
-                <button class="close-btn" id="modalClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="chatIdInput">ID Chat hoặc Username</label>
-                    <input type="text" id="chatIdInput" placeholder="Ví dụ: @username hoặc chat_id">
-                    <small class="help-text">
-                        <i class="fas fa-info-circle"></i>
-                        Nhập username (bắt đầu với @) hoặc chat ID
-                    </small>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="modalCancel" class="btn btn-secondary">Hủy</button>
-                <button id="modalConfirm" class="btn btn-primary cow-btn">
-                    <i class="fas fa-plus"></i>
-                    Tạo cuộc trò chuyện
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Socket.IO -->
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="app.js"></script>
-</body>
+        <!-- Socket.IO -->
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="app.js"></script>
+    </body>
 </html>

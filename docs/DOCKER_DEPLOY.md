@@ -3,6 +3,7 @@
 ## 📦 **Containerized với Docker - MIỄN PHÍ 100%**
 
 ### **Chi phí:**
+
 - ✅ **Docker Hub**: Miễn phí unlimited public repos
 - ✅ **GitHub Container Registry**: Miễn phí 500MB
 - ✅ **Railway/Render**: Miễn phí hosting
@@ -12,11 +13,13 @@
 ## 🚀 **Cách 1: Deploy lên Docker Hub**
 
 ### Bước 1: Tạo tài khoản Docker Hub
+
 1. Vào [hub.docker.com](https://hub.docker.com)
 2. Sign up miễn phí
 3. Tạo repository: `cown-telegram-app`
 
 ### Bước 2: Build và Push
+
 ```bash
 # Build image
 docker build -t cown-telegram-app .
@@ -32,6 +35,7 @@ docker push your-dockerhub-username/cown-telegram-app:latest
 ```
 
 ### Bước 3: Deploy trên Railway/Render
+
 ```bash
 # Pull và run từ Docker Hub
 docker pull your-dockerhub-username/cown-telegram-app:latest
@@ -43,11 +47,13 @@ docker run -p 3000:3000 your-dockerhub-username/cown-telegram-app:latest
 ## 🐙 **Cách 2: GitHub Container Registry**
 
 ### Bước 1: Setup GitHub Token
+
 1. GitHub → Settings → Developer settings → Personal access tokens
 2. Generate token với quyền `write:packages`
 3. Login: `echo $TOKEN | docker login ghcr.io -u USERNAME --password-stdin`
 
 ### Bước 2: Build và Push
+
 ```bash
 # Build
 docker build -t cown-telegram-app .
@@ -64,6 +70,7 @@ docker push ghcr.io/your-github-username/cown-telegram-app:latest
 ## 🎯 **Cách 3: Deploy trên Railway (Miễn phí)**
 
 ### Railway với Docker:
+
 1. Vào [railway.app](https://railway.app)
 2. New Project → Deploy from GitHub
 3. Chọn repository
@@ -71,6 +78,7 @@ docker push ghcr.io/your-github-username/cown-telegram-app:latest
 5. **Miễn phí**: $5 credit/tháng, đủ cho hobby project
 
 ### Environment Variables:
+
 ```
 NODE_ENV=production
 TELEGRAM_API_ID=20657396
@@ -83,6 +91,7 @@ SESSION_SECRET=cown-super-secret-key-2025
 ## 🔧 **Local Development**
 
 ### Chạy với Docker Compose:
+
 ```bash
 # Start services
 docker-compose up -d
@@ -95,6 +104,7 @@ docker-compose down
 ```
 
 ### Chạy trực tiếp:
+
 ```bash
 # Build image
 npm run docker:build
@@ -108,10 +118,12 @@ npm run docker:run
 ## 📊 **Monitoring & Logs**
 
 ### Health Check:
+
 - URL: `http://your-app-url/health`
 - Docker tự động check health mỗi 30s
 
 ### View Logs:
+
 ```bash
 # Docker Compose
 docker-compose logs -f cown-app

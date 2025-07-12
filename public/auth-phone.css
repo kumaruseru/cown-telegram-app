@@ -7,24 +7,36 @@
 
 :root {
     /* Cow Color Palette */
-    --cow-brown-dark: #5D4037;
-    --cow-brown: #8D6E63;
-    --cow-brown-light: #A1887F;
-    --cow-beige: #BCAAA4;
-    --cow-cream: #F5F5DC;
-    --cow-white: #FFFFFF;
-    --cow-milk: #F8F8FF;
-    --cow-spot: #2E2E2E;
-    
+    --cow-brown-dark: #5d4037;
+    --cow-brown: #8d6e63;
+    --cow-brown-light: #a1887f;
+    --cow-beige: #bcaaa4;
+    --cow-cream: #f5f5dc;
+    --cow-white: #ffffff;
+    --cow-milk: #f8f8ff;
+    --cow-spot: #2e2e2e;
+
     /* Status Colors with Cow Theme */
-    --success-green: #4CAF50;
-    --error-red: #E57373;
-    --warning-orange: #FFB74D;
-    --info-blue: #64B5F6;
-    
+    --success-green: #4caf50;
+    --error-red: #e57373;
+    --warning-orange: #ffb74d;
+    --info-blue: #64b5f6;
+
     /* Gradients */
-    --cow-gradient: linear-gradient(135deg, var(--cow-brown-dark) 0%, var(--cow-brown) 25%, var(--cow-brown-light) 50%, var(--cow-beige) 75%, var(--cow-cream) 100%);
-    --milk-gradient: linear-gradient(180deg, var(--cow-white) 0%, var(--cow-milk) 50%, var(--cow-cream) 100%);
+    --cow-gradient: linear-gradient(
+        135deg,
+        var(--cow-brown-dark) 0%,
+        var(--cow-brown) 25%,
+        var(--cow-brown-light) 50%,
+        var(--cow-beige) 75%,
+        var(--cow-cream) 100%
+    );
+    --milk-gradient: linear-gradient(
+        180deg,
+        var(--cow-white) 0%,
+        var(--cow-milk) 50%,
+        var(--cow-cream) 100%
+    );
 }
 
 body {
@@ -50,35 +62,76 @@ body::before {
     bottom: 0;
     background-image: 
         /* Cow spots */
-        radial-gradient(ellipse 25px 18px at 15% 30%, rgba(46, 46, 46, 0.08) 60%, transparent 60%),
-        radial-gradient(ellipse 30px 22px at 85% 20%, rgba(46, 46, 46, 0.06) 60%, transparent 60%),
-        radial-gradient(ellipse 20px 15px at 70% 70%, rgba(46, 46, 46, 0.07) 60%, transparent 60%),
-        radial-gradient(ellipse 35px 25px at 25% 80%, rgba(46, 46, 46, 0.05) 60%, transparent 60%),
-        radial-gradient(ellipse 22px 16px at 50% 40%, rgba(46, 46, 46, 0.06) 60%, transparent 60%),
+        radial-gradient(
+            ellipse 25px 18px at 15% 30%,
+            rgba(46, 46, 46, 0.08) 60%,
+            transparent 60%
+        ),
+        radial-gradient(
+            ellipse 30px 22px at 85% 20%,
+            rgba(46, 46, 46, 0.06) 60%,
+            transparent 60%
+        ),
+        radial-gradient(
+            ellipse 20px 15px at 70% 70%,
+            rgba(46, 46, 46, 0.07) 60%,
+            transparent 60%
+        ),
+        radial-gradient(
+            ellipse 35px 25px at 25% 80%,
+            rgba(46, 46, 46, 0.05) 60%,
+            transparent 60%
+        ),
+        radial-gradient(
+            ellipse 22px 16px at 50% 40%,
+            rgba(46, 46, 46, 0.06) 60%,
+            transparent 60%
+        ),
         /* Milk bubbles */
-        radial-gradient(circle at 20% 60%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
-        radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.08) 3px, transparent 3px),
-        radial-gradient(circle at 40% 90%, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-    background-size: 200px 200px, 250px 250px, 180px 180px, 220px 220px, 160px 160px, 60px 60px, 80px 80px, 40px 40px;
+            radial-gradient(
+                circle at 20% 60%,
+                rgba(255, 255, 255, 0.1) 2px,
+                transparent 2px
+            ),
+        radial-gradient(
+            circle at 80% 30%,
+            rgba(255, 255, 255, 0.08) 3px,
+            transparent 3px
+        ),
+        radial-gradient(
+            circle at 40% 90%,
+            rgba(255, 255, 255, 0.06) 1px,
+            transparent 1px
+        );
+    background-size:
+        200px 200px,
+        250px 250px,
+        180px 180px,
+        220px 220px,
+        160px 160px,
+        60px 60px,
+        80px 80px,
+        40px 40px;
     animation: cowFloat 30s ease-in-out infinite;
     z-index: 0;
 }
 
 @keyframes cowFloat {
-    0%, 100% { 
-        transform: translateY(0px) rotate(0deg); 
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
         opacity: 0.8;
     }
-    25% { 
-        transform: translateY(-10px) rotate(0.5deg); 
+    25% {
+        transform: translateY(-10px) rotate(0.5deg);
         opacity: 0.9;
     }
-    50% { 
-        transform: translateY(5px) rotate(-0.3deg); 
+    50% {
+        transform: translateY(5px) rotate(-0.3deg);
         opacity: 0.7;
     }
-    75% { 
-        transform: translateY(-5px) rotate(0.2deg); 
+    75% {
+        transform: translateY(-5px) rotate(0.2deg);
         opacity: 0.85;
     }
 }
@@ -91,7 +144,7 @@ body::before {
     min-height: 600px;
     background: rgba(255, 255, 255, 0.98);
     border-radius: 20px;
-    box-shadow: 
+    box-shadow:
         0 20px 60px rgba(93, 64, 55, 0.25),
         0 0 0 2px rgba(255, 255, 255, 0.4),
         inset 0 2px 0 rgba(255, 255, 255, 0.9);
@@ -121,7 +174,13 @@ body::before {
     left: 0;
     right: 0;
     height: 6px;
-    background: linear-gradient(90deg, var(--cow-brown-dark), var(--cow-brown), var(--cow-brown-light), var(--cow-beige));
+    background: linear-gradient(
+        90deg,
+        var(--cow-brown-dark),
+        var(--cow-brown),
+        var(--cow-brown-light),
+        var(--cow-beige)
+    );
     border-radius: 0 0 20px 20px;
 }
 
@@ -138,7 +197,12 @@ body::before {
     margin-bottom: 15px;
     font-weight: 800;
     text-shadow: 0 4px 8px rgba(93, 64, 55, 0.3);
-    background: linear-gradient(135deg, var(--cow-brown-dark) 0%, var(--cow-brown) 50%, var(--cow-brown-light) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--cow-brown-dark) 0%,
+        var(--cow-brown) 50%,
+        var(--cow-brown-light) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -195,12 +259,16 @@ body::before {
     font-size: 3rem;
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: linear-gradient(135deg, var(--cow-brown-light), var(--cow-beige));
+    background: linear-gradient(
+        135deg,
+        var(--cow-brown-light),
+        var(--cow-beige)
+    );
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 
+    box-shadow:
         0 10px 30px rgba(161, 136, 127, 0.3),
         inset 0 2px 0 rgba(255, 255, 255, 0.3);
     animation: iconFloat 3s ease-in-out infinite;
@@ -215,19 +283,33 @@ body::before {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transform: rotate(45deg);
     animation: shimmer 2s infinite;
 }
 
 @keyframes iconFloat {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-5px) rotate(2deg); }
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-5px) rotate(2deg);
+    }
 }
 
 @keyframes shimmer {
-    0% { transform: translateX(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) rotate(45deg); }
+    0% {
+        transform: translateX(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) rotate(45deg);
+    }
 }
 
 .step-info h3 {
@@ -263,7 +345,7 @@ body::before {
     font-size: 1.1rem;
     text-align: center;
     border: 2px solid rgba(161, 136, 127, 0.2);
-    box-shadow: 
+    box-shadow:
         0 4px 15px rgba(161, 136, 127, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
@@ -274,7 +356,7 @@ body::before {
     background: white;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 
+    box-shadow:
         0 8px 25px rgba(93, 64, 55, 0.1),
         0 0 0 1px rgba(161, 136, 127, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -283,7 +365,7 @@ body::before {
 
 .otp-input-container-modern:focus-within {
     transform: translateY(-2px);
-    box-shadow: 
+    box-shadow:
         0 15px 35px rgba(93, 64, 55, 0.15),
         0 0 0 2px var(--cow-brown-light),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -354,7 +436,7 @@ body::before {
     background: white;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 
+    box-shadow:
         0 8px 25px rgba(93, 64, 55, 0.1),
         0 0 0 1px rgba(161, 136, 127, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -363,7 +445,7 @@ body::before {
 
 .input-container-modern:focus-within {
     transform: translateY(-2px);
-    box-shadow: 
+    box-shadow:
         0 15px 35px rgba(93, 64, 55, 0.15),
         0 0 0 2px var(--cow-brown-light),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -377,7 +459,7 @@ body::before {
 
 .input-container-modern:focus-within {
     transform: translateY(-2px);
-    box-shadow: 
+    box-shadow:
         0 15px 35px rgba(93, 64, 55, 0.15),
         0 0 0 2px var(--cow-brown-light),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -551,7 +633,7 @@ body::before {
 /* Enhanced Submit Button */
 .submit-btn {
     width: 100%;
-    background: linear-gradient(135deg, #8B5A3C 0%, #A0724E 50%, #B8956A 100%);
+    background: linear-gradient(135deg, #8b5a3c 0%, #a0724e 50%, #b8956a 100%);
     color: white;
     border: none;
     padding: 0;
@@ -563,7 +645,7 @@ body::before {
     position: relative;
     overflow: hidden;
     margin-top: 1.5rem;
-    box-shadow: 
+    box-shadow:
         0 12px 30px rgba(139, 90, 60, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.25),
@@ -583,8 +665,8 @@ body::before {
 
 .submit-btn:hover {
     transform: translateY(-3px);
-    background: linear-gradient(135deg, #9A6B48 0%, #B8865B 50%, #D4A876 100%);
-    box-shadow: 
+    background: linear-gradient(135deg, #9a6b48 0%, #b8865b 50%, #d4a876 100%);
+    box-shadow:
         0 20px 40px rgba(139, 90, 60, 0.5),
         0 0 0 1px rgba(255, 255, 255, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.3),
@@ -593,8 +675,8 @@ body::before {
 
 .submit-btn:active {
     transform: translateY(-1px);
-    background: linear-gradient(135deg, #7A4F35 0%, #8F6142 50%, #A57A59 100%);
-    box-shadow: 
+    background: linear-gradient(135deg, #7a4f35 0%, #8f6142 50%, #a57a59 100%);
+    box-shadow:
         0 8px 20px rgba(139, 90, 60, 0.3),
         0 0 0 1px rgba(255, 255, 255, 0.1),
         inset 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -605,15 +687,15 @@ body::before {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
-    background: linear-gradient(135deg, #999999 0%, #BBBBBB 100%);
-    box-shadow: 
+    background: linear-gradient(135deg, #999999 0%, #bbbbbb 100%);
+    box-shadow:
         0 4px 12px rgba(0, 0, 0, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .submit-btn-modern {
     width: 100%;
-    background: linear-gradient(135deg, #8B5A3C 0%, #A0724E 50%, #B8956A 100%);
+    background: linear-gradient(135deg, #8b5a3c 0%, #a0724e 50%, #b8956a 100%);
     border: none;
     border-radius: 24px;
     padding: 0;
@@ -624,7 +706,7 @@ body::before {
     position: relative;
     overflow: hidden;
     margin-top: 1.5rem;
-    box-shadow: 
+    box-shadow:
         0 12px 30px rgba(139, 90, 60, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.25),
@@ -656,13 +738,17 @@ body::before {
 .submit-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(93, 64, 55, 0.3);
-    background: linear-gradient(135deg, var(--cow-brown), var(--cow-brown-light));
+    background: linear-gradient(
+        135deg,
+        var(--cow-brown),
+        var(--cow-brown-light)
+    );
 }
 
 .submit-btn-modern:hover {
     transform: translateY(-3px);
-    background: linear-gradient(135deg, #9A6B48 0%, #B8865B 50%, #D4A876 100%);
-    box-shadow: 
+    background: linear-gradient(135deg, #9a6b48 0%, #b8865b 50%, #d4a876 100%);
+    box-shadow:
         0 20px 40px rgba(139, 90, 60, 0.5),
         0 0 0 1px rgba(255, 255, 255, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.3),
@@ -671,8 +757,8 @@ body::before {
 
 .submit-btn-modern:active {
     transform: translateY(-1px);
-    background: linear-gradient(135deg, #7A4F35 0%, #8F6142 50%, #A57A59 100%);
-    box-shadow: 
+    background: linear-gradient(135deg, #7a4f35 0%, #8f6142 50%, #a57a59 100%);
+    box-shadow:
         0 8px 20px rgba(139, 90, 60, 0.3),
         0 0 0 1px rgba(255, 255, 255, 0.1),
         inset 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -683,8 +769,8 @@ body::before {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
-    background: linear-gradient(135deg, #999999 0%, #BBBBBB 100%);
-    box-shadow: 
+    background: linear-gradient(135deg, #999999 0%, #bbbbbb 100%);
+    box-shadow:
         0 4px 12px rgba(0, 0, 0, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -702,10 +788,17 @@ body::before {
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 70%, transparent 100%);
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0.1) 70%,
+        transparent 100%
+    );
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+        height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
 }
 
@@ -757,7 +850,9 @@ body::before {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Link Buttons */
@@ -866,7 +961,13 @@ body::before {
 /* Right Side - Cow Info Panel */
 .auth-info {
     flex: 1;
-    background: linear-gradient(135deg, var(--cow-brown-dark) 0%, var(--cow-brown) 40%, var(--cow-brown-light) 80%, var(--cow-beige) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--cow-brown-dark) 0%,
+        var(--cow-brown) 40%,
+        var(--cow-brown-light) 80%,
+        var(--cow-beige) 100%
+    );
     color: var(--cow-white);
     padding: 60px 45px;
     display: flex;
@@ -883,19 +984,41 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: 
-        radial-gradient(ellipse 40px 30px at 20% 30%, rgba(255, 255, 255, 0.1) 70%, transparent 70%),
-        radial-gradient(ellipse 35px 25px at 80% 70%, rgba(255, 255, 255, 0.08) 70%, transparent 70%),
-        radial-gradient(ellipse 30px 20px at 60% 50%, rgba(255, 255, 255, 0.06) 70%, transparent 70%);
-    background-size: 300px 300px, 250px 250px, 200px 200px;
+    background-image:
+        radial-gradient(
+            ellipse 40px 30px at 20% 30%,
+            rgba(255, 255, 255, 0.1) 70%,
+            transparent 70%
+        ),
+        radial-gradient(
+            ellipse 35px 25px at 80% 70%,
+            rgba(255, 255, 255, 0.08) 70%,
+            transparent 70%
+        ),
+        radial-gradient(
+            ellipse 30px 20px at 60% 50%,
+            rgba(255, 255, 255, 0.06) 70%,
+            transparent 70%
+        );
+    background-size:
+        300px 300px,
+        250px 250px,
+        200px 200px;
     animation: cowSpotsFloat 20s ease-in-out infinite;
     z-index: 1;
 }
 
 @keyframes cowSpotsFloat {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    33% { transform: translate(-10px, -5px) rotate(1deg); }
-    66% { transform: translate(5px, -10px) rotate(-1deg); }
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    33% {
+        transform: translate(-10px, -5px) rotate(1deg);
+    }
+    66% {
+        transform: translate(5px, -10px) rotate(-1deg);
+    }
 }
 
 .info-content {
@@ -913,11 +1036,12 @@ body::before {
 }
 
 @keyframes mascotBounce {
-    0%, 100% { 
-        transform: translateY(0px); 
+    0%,
+    100% {
+        transform: translateY(0px);
     }
-    50% { 
-        transform: translateY(-5px); 
+    50% {
+        transform: translateY(-5px);
     }
 }
 
@@ -934,24 +1058,24 @@ body::before {
 }
 
 @keyframes grassSway {
-    0% { 
-        transform: translateX(-50%) rotate(-5deg) scale(1); 
+    0% {
+        transform: translateX(-50%) rotate(-5deg) scale(1);
         opacity: 0.8;
     }
-    25% { 
-        transform: translateX(-50%) rotate(3deg) scale(1.05); 
+    25% {
+        transform: translateX(-50%) rotate(3deg) scale(1.05);
         opacity: 0.9;
     }
-    50% { 
-        transform: translateX(-50%) rotate(5deg) scale(1.1); 
+    50% {
+        transform: translateX(-50%) rotate(5deg) scale(1.1);
         opacity: 1;
     }
-    75% { 
-        transform: translateX(-50%) rotate(-2deg) scale(1.05); 
+    75% {
+        transform: translateX(-50%) rotate(-2deg) scale(1.05);
         opacity: 0.9;
     }
-    100% { 
-        transform: translateX(-50%) rotate(-5deg) scale(1); 
+    100% {
+        transform: translateX(-50%) rotate(-5deg) scale(1);
         opacity: 0.8;
     }
 }
@@ -972,28 +1096,30 @@ body::before {
 }
 
 @keyframes cowWalk {
-    0% { 
-        transform: translateX(-30px) rotate(-3deg) scale(1); 
+    0% {
+        transform: translateX(-30px) rotate(-3deg) scale(1);
         filter: hue-rotate(0deg) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
     }
-    20% { 
-        transform: translateX(-15px) rotate(2deg) scale(1.1); 
-        filter: hue-rotate(10deg) drop-shadow(5px 15px 25px rgba(139, 69, 19, 0.4));
+    20% {
+        transform: translateX(-15px) rotate(2deg) scale(1.1);
+        filter: hue-rotate(10deg)
+            drop-shadow(5px 15px 25px rgba(139, 69, 19, 0.4));
     }
-    40% { 
-        transform: translateX(0px) rotate(-1deg) scale(1.15); 
+    40% {
+        transform: translateX(0px) rotate(-1deg) scale(1.15);
         filter: hue-rotate(20deg) drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
     }
-    60% { 
-        transform: translateX(15px) rotate(3deg) scale(1.1); 
-        filter: hue-rotate(10deg) drop-shadow(-5px 15px 25px rgba(139, 69, 19, 0.4));
+    60% {
+        transform: translateX(15px) rotate(3deg) scale(1.1);
+        filter: hue-rotate(10deg)
+            drop-shadow(-5px 15px 25px rgba(139, 69, 19, 0.4));
     }
-    80% { 
-        transform: translateX(30px) rotate(-2deg) scale(1.05); 
+    80% {
+        transform: translateX(30px) rotate(-2deg) scale(1.05);
         filter: hue-rotate(5deg) drop-shadow(0 12px 22px rgba(0, 0, 0, 0.35));
     }
-    100% { 
-        transform: translateX(35px) rotate(0deg) scale(1); 
+    100% {
+        transform: translateX(35px) rotate(0deg) scale(1);
         filter: hue-rotate(0deg) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
     }
 }
@@ -1086,11 +1212,12 @@ body::before {
 }
 
 @keyframes milkGlow {
-    0%, 100% { 
+    0%,
+    100% {
         transform: scale(1);
         filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
     }
-    50% { 
+    50% {
         transform: scale(1.1);
         filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
     }
@@ -1103,21 +1230,44 @@ body::before {
     transform: translateX(-50%);
     width: 3px;
     height: 20px;
-    background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.8) 100%);
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.8) 100%
+    );
     border-radius: 2px;
     animation: milkFlow 2s ease-in-out infinite;
 }
 
 @keyframes milkFlow {
-    0%, 100% { opacity: 0; transform: translateX(-50%) translateY(0); }
-    50% { opacity: 1; transform: translateX(-50%) translateY(10px); }
+    0%,
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(10px);
+    }
 }
 
 /* Enhanced button animations */
 @keyframes buttonPulse {
-    0% { box-shadow: 0 12px 30px rgba(139, 90, 60, 0.4), 0 0 0 0 rgba(139, 90, 60, 0.4); }
-    50% { box-shadow: 0 12px 30px rgba(139, 90, 60, 0.4), 0 0 0 8px rgba(139, 90, 60, 0.1); }
-    100% { box-shadow: 0 12px 30px rgba(139, 90, 60, 0.4), 0 0 0 0 rgba(139, 90, 60, 0); }
+    0% {
+        box-shadow:
+            0 12px 30px rgba(139, 90, 60, 0.4),
+            0 0 0 0 rgba(139, 90, 60, 0.4);
+    }
+    50% {
+        box-shadow:
+            0 12px 30px rgba(139, 90, 60, 0.4),
+            0 0 0 8px rgba(139, 90, 60, 0.1);
+    }
+    100% {
+        box-shadow:
+            0 12px 30px rgba(139, 90, 60, 0.4),
+            0 0 0 0 rgba(139, 90, 60, 0);
+    }
 }
 
 .submit-btn-modern:focus,
@@ -1135,7 +1285,12 @@ body::before {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -1146,9 +1301,15 @@ body::before {
 
 /* Button click feedback */
 @keyframes buttonClick {
-    0% { transform: translateY(-3px) scale(1); }
-    50% { transform: translateY(-1px) scale(0.98); }
-    100% { transform: translateY(-3px) scale(1); }
+    0% {
+        transform: translateY(-3px) scale(1);
+    }
+    50% {
+        transform: translateY(-1px) scale(0.98);
+    }
+    100% {
+        transform: translateY(-3px) scale(1);
+    }
 }
 
 .submit-btn-modern.clicked,
@@ -1158,9 +1319,15 @@ body::before {
 
 /* Success state animation */
 @keyframes successPulse {
-    0% { background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%); }
-    50% { background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%); }
-    100% { background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%); }
+    0% {
+        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+    }
+    50% {
+        background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
+    }
+    100% {
+        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+    }
 }
 
 .submit-btn-modern.success,
@@ -1175,29 +1342,29 @@ body::before {
         max-width: 500px;
         min-height: auto;
     }
-    
+
     .auth-card,
     .auth-info {
         flex: none;
         padding: 40px 30px;
     }
-    
+
     .auth-info {
         display: none; /* Hide on mobile to save space */
     }
-    
+
     .cow-icon {
         font-size: 3rem;
     }
-    
+
     .auth-header h1 {
         font-size: 2rem;
     }
-    
+
     .auth-info-mobile {
         display: block;
     }
-    
+
     .otp-actions {
         flex-direction: column;
     }
@@ -1207,48 +1374,48 @@ body::before {
     body {
         padding: 10px;
     }
-    
+
     .auth-card {
         padding: 30px 20px;
     }
-    
+
     .input-container {
         border-radius: 10px;
     }
-    
+
     .submit-btn {
         border-radius: 10px;
     }
-    
+
     .country-code select {
         padding: 12px 8px;
     }
-    
+
     .country-code-modern {
         min-width: 70px;
     }
-    
+
     .country-code-modern select {
         padding: 0.75rem 0.5rem;
         font-size: 1rem;
     }
-    
+
     .input-container input {
         padding: 12px 15px;
     }
-    
+
     .input-container-modern {
         border-radius: 12px;
     }
-    
+
     .submit-btn-modern {
         border-radius: 12px;
     }
-    
+
     .btn-content {
         padding: 1rem 1.5rem;
     }
-    
+
     .modern-input {
         font-size: 16px; /* Prevent zoom on iOS */
     }
@@ -1260,7 +1427,11 @@ body::before {
     font-weight: 700;
     color: var(--cow-brown-dark);
     margin: 1rem 0 0.75rem 0;
-    background: linear-gradient(135deg, var(--cow-brown-dark) 0%, var(--cow-brown) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--cow-brown-dark) 0%,
+        var(--cow-brown) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1279,7 +1450,7 @@ body::before {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 25px;
     padding: 3rem 2.5rem;
-    box-shadow: 
+    box-shadow:
         0 25px 80px rgba(93, 64, 55, 0.15),
         0 0 0 1px rgba(255, 255, 255, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -1296,7 +1467,12 @@ body::before {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--cow-brown-dark), var(--cow-brown), var(--cow-brown-light));
+    background: linear-gradient(
+        90deg,
+        var(--cow-brown-dark),
+        var(--cow-brown),
+        var(--cow-brown-light)
+    );
     border-radius: 25px 25px 0 0;
 }
 
@@ -1307,7 +1483,12 @@ body::before {
     margin-bottom: 25px;
     font-weight: 900;
     text-shadow: 0 5px 15px rgba(93, 64, 55, 0.2);
-    background: linear-gradient(135deg, var(--cow-brown-dark) 0%, var(--cow-brown) 50%, var(--cow-brown-light) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--cow-brown-dark) 0%,
+        var(--cow-brown) 50%,
+        var(--cow-brown-light) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1337,24 +1518,24 @@ body::before {
         border-radius: 20px;
         margin: 1rem;
     }
-    
+
     .auth-header h1 {
         font-size: 3rem;
         letter-spacing: 1px;
     }
-    
+
     .auth-header p {
         font-size: 1.1rem;
     }
-    
+
     .step-info h3 {
         font-size: 1.5rem;
     }
-    
+
     .step-info p {
         font-size: 1rem;
     }
-    
+
     .otp-input {
         font-size: 1.25rem !important;
         letter-spacing: 0.2rem !important;
@@ -1405,7 +1586,12 @@ body::before {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
     transition: left 0.5s;
 }
 
@@ -1468,8 +1654,12 @@ body::before {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Style for official Telegram widget */
@@ -1536,8 +1726,13 @@ body::before {
 }
 
 @keyframes telegramPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 .divider {
@@ -1553,7 +1748,12 @@ body::before {
     content: '';
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, var(--cow-brown-light) 50%, transparent 100%);
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--cow-brown-light) 50%,
+        transparent 100%
+    );
 }
 
 .divider span {
@@ -1600,19 +1800,19 @@ body::before {
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
     }
-    
+
     .telegram-login-btn .fab {
         font-size: 1.2rem;
     }
-    
+
     .divider {
         margin: 1rem 0;
     }
-    
+
     .telegram-auth-status {
         padding: 0.75rem;
     }
-    
+
     .telegram-auth-status .status-icon {
         font-size: 1.5rem;
     }
@@ -1629,8 +1829,12 @@ body::before {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Hover effects for better UX */
@@ -1653,12 +1857,12 @@ body::before {
         max-width: 600px;
         min-height: auto;
     }
-    
+
     .auth-info {
         padding: 20px;
         min-height: 200px;
     }
-    
+
     .auth-card {
         padding: 30px 25px;
     }
@@ -1668,21 +1872,21 @@ body::before {
     body {
         padding: 5px;
     }
-    
+
     .auth-container {
         border-radius: 15px;
         border: 2px solid rgba(141, 110, 99, 0.15);
         box-shadow: 0 10px 30px rgba(93, 64, 55, 0.2);
     }
-    
+
     .auth-card {
         padding: 20px 15px;
     }
-    
+
     .auth-header h1 {
         font-size: 2rem;
     }
-    
+
     .auth-header p {
         font-size: 0.9rem;
     }
@@ -1692,21 +1896,21 @@ body::before {
     body {
         padding: 3px;
     }
-    
+
     .auth-container {
         border-radius: 10px;
         border: 1px solid rgba(141, 110, 99, 0.15);
     }
-    
+
     .auth-card {
         padding: 15px 10px;
     }
-    
+
     .auth-header {
         margin-bottom: 20px;
         padding-top: 0.5rem;
     }
-    
+
     .auth-header h1 {
         font-size: 1.8rem;
         margin-bottom: 10px;

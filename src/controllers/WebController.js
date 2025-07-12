@@ -16,26 +16,65 @@ class WebController extends BaseController {
     setupRoutes() {
         // Root route - redirect to login
         this.registerRoute('get', '/', this.handleRoot.bind(this));
-        
+
         // Login page
-        this.registerRoute('get', '/login', this.handleLoginRedirect.bind(this));
-        this.registerRoute('get', '/login-phone.html', this.handleLoginPhone.bind(this));
-        this.registerRoute('get', '/login_telegram', this.handleTelegramLogin.bind(this));
-        this.registerRoute('get', '/login_telegram.html', this.handleTelegramLoginFile.bind(this));
-        
+        this.registerRoute(
+            'get',
+            '/login',
+            this.handleLoginRedirect.bind(this)
+        );
+        this.registerRoute(
+            'get',
+            '/login-phone.html',
+            this.handleLoginPhone.bind(this)
+        );
+        this.registerRoute(
+            'get',
+            '/login_telegram',
+            this.handleTelegramLogin.bind(this)
+        );
+        this.registerRoute(
+            'get',
+            '/login_telegram.html',
+            this.handleTelegramLoginFile.bind(this)
+        );
+
         // Register redirect
-        this.registerRoute('get', '/register', this.handleRegisterRedirect.bind(this));
-        
+        this.registerRoute(
+            'get',
+            '/register',
+            this.handleRegisterRedirect.bind(this)
+        );
+
         // Main app (requires auth)
-        this.registerRoute('get', '/app', this.handleApp.bind(this), [this.requireAuth.bind(this)]);
-        this.registerRoute('get', '/app-main.html', this.handleAppMain.bind(this), [this.requireAuth.bind(this)]);
-        this.registerRoute('get', '/dashboard', this.handleDashboard.bind(this), [this.requireAuth.bind(this)]);
-        this.registerRoute('get', '/settings', this.handleSettings.bind(this), [this.requireAuth.bind(this)]);
-        this.registerRoute('get', '/bot-setup', this.handleBotSetup.bind(this), [this.requireAuth.bind(this)]);
-        
+        this.registerRoute('get', '/app', this.handleApp.bind(this), [
+            this.requireAuth.bind(this),
+        ]);
+        this.registerRoute(
+            'get',
+            '/app-main.html',
+            this.handleAppMain.bind(this),
+            [this.requireAuth.bind(this)]
+        );
+        this.registerRoute(
+            'get',
+            '/dashboard',
+            this.handleDashboard.bind(this),
+            [this.requireAuth.bind(this)]
+        );
+        this.registerRoute('get', '/settings', this.handleSettings.bind(this), [
+            this.requireAuth.bind(this),
+        ]);
+        this.registerRoute(
+            'get',
+            '/bot-setup',
+            this.handleBotSetup.bind(this),
+            [this.requireAuth.bind(this)]
+        );
+
         // Health check
         this.registerRoute('get', '/health', this.handleHealth.bind(this));
-        
+
         // App info
         this.registerRoute('get', '/info', this.handleInfo.bind(this));
     }
@@ -46,10 +85,12 @@ class WebController extends BaseController {
     async handleRoot(req, res) {
         try {
             const authService = this.getService('auth');
-            
+
             // Check if user is authenticated
-            const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
-            
+            const token =
+                req.cookies.auth_token ||
+                req.headers.authorization?.replace('Bearer ', '');
+
             if (token) {
                 try {
                     const user = await authService.verifyToken(token);
@@ -62,12 +103,16 @@ class WebController extends BaseController {
                     this.log('debug', 'Invalid token, serving login page');
                 }
             }
-            
+
             // Not authenticated, serve index.html (homepage with login options)
-            return res.sendFile(path.join(__dirname, '../../public/index.html'));
+            return res.sendFile(
+                path.join(__dirname, '../../public/index.html')
+            );
         } catch (error) {
             this.log('error', 'Error in root handler:', error);
-            return res.sendFile(path.join(__dirname, '../../public/index.html'));
+            return res.sendFile(
+                path.join(__dirname, '../../public/index.html')
+            );
         }
     }
 
@@ -90,7 +135,10 @@ class WebController extends BaseController {
      */
     async handleLoginPhone(req, res) {
         try {
-            const filePath = path.join(__dirname, '../../public/login-phone.html');
+            const filePath = path.join(
+                __dirname,
+                '../../public/login-phone.html'
+            );
             return res.sendFile(filePath);
         } catch (error) {
             this.log('error', 'Error serving login page:', error);
@@ -125,7 +173,7 @@ class WebController extends BaseController {
         try {
             // Get health status from all services
             const healthChecks = {};
-            
+
             for (const serviceName of ['database', 'auth', 'telegram', 'otp']) {
                 try {
                     const service = this.getService(serviceName);
@@ -135,31 +183,36 @@ class WebController extends BaseController {
                         healthChecks[serviceName] = { status: 'unknown' };
                     }
                 } catch (error) {
-                    healthChecks[serviceName] = { 
-                        status: 'error', 
-                        message: error.message 
+                    healthChecks[serviceName] = {
+                        status: 'error',
+                        message: error.message,
                     };
                 }
             }
 
-            const overallStatus = Object.values(healthChecks)
-                .every(check => check.status === 'healthy') ? 'healthy' : 'degraded';
+            const overallStatus = Object.values(healthChecks).every(
+                check => check.status === 'healthy'
+            )
+                ? 'healthy'
+                : 'degraded';
 
             const response = {
                 status: overallStatus,
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
                 memory: process.memoryUsage(),
-                services: healthChecks
+                services: healthChecks,
             };
 
-            return res.status(overallStatus === 'healthy' ? 200 : 503).json(response);
+            return res
+                .status(overallStatus === 'healthy' ? 200 : 503)
+                .json(response);
         } catch (error) {
             this.log('error', 'Health check failed:', error);
             return res.status(503).json({
                 status: 'error',
                 message: 'Health check failed',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         }
     }
@@ -176,7 +229,7 @@ class WebController extends BaseController {
                 nodeVersion: process.version,
                 uptime: process.uptime(),
                 memory: process.memoryUsage(),
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
 
             return this.sendSuccess(res, info);
@@ -191,11 +244,18 @@ class WebController extends BaseController {
      */
     async handleTelegramLogin(req, res) {
         try {
-            const filePath = path.join(__dirname, '../../public/login_telegram.html');
+            const filePath = path.join(
+                __dirname,
+                '../../public/login_telegram.html'
+            );
             return res.sendFile(filePath);
         } catch (error) {
             this.log('error', 'Error serving Telegram login page:', error);
-            return this.sendError(res, 'Unable to load Telegram login page', 500);
+            return this.sendError(
+                res,
+                'Unable to load Telegram login page',
+                500
+            );
         }
     }
 
@@ -204,11 +264,18 @@ class WebController extends BaseController {
      */
     async handleTelegramLoginFile(req, res) {
         try {
-            const filePath = path.join(__dirname, '../../public/login_telegram.html');
+            const filePath = path.join(
+                __dirname,
+                '../../public/login_telegram.html'
+            );
             return res.sendFile(filePath);
         } catch (error) {
             this.log('error', 'Error serving Telegram login file:', error);
-            return this.sendError(res, 'Unable to load Telegram login file', 500);
+            return this.sendError(
+                res,
+                'Unable to load Telegram login file',
+                500
+            );
         }
     }
 
@@ -217,7 +284,10 @@ class WebController extends BaseController {
      */
     async handleDashboard(req, res) {
         try {
-            const filePath = path.join(__dirname, '../../public/dashboard.html');
+            const filePath = path.join(
+                __dirname,
+                '../../public/dashboard.html'
+            );
             return res.sendFile(filePath);
         } catch (error) {
             this.log('error', 'Error serving dashboard:', error);
@@ -243,7 +313,10 @@ class WebController extends BaseController {
      */
     async handleBotSetup(req, res) {
         try {
-            const filePath = path.join(__dirname, '../../public/bot-setup.html');
+            const filePath = path.join(
+                __dirname,
+                '../../public/bot-setup.html'
+            );
             return res.sendFile(filePath);
         } catch (error) {
             this.log('error', 'Error serving bot setup:', error);
@@ -257,7 +330,9 @@ class WebController extends BaseController {
     async requireAuth(req, res, next) {
         try {
             const authService = this.getService('auth');
-            const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
+            const token =
+                req.cookies.auth_token ||
+                req.headers.authorization?.replace('Bearer ', '');
 
             if (!token) {
                 return res.redirect('/login-phone.html');

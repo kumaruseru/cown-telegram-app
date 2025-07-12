@@ -24,7 +24,9 @@ class BaseController {
      */
     getService(name) {
         if (!this.services.has(name)) {
-            throw new Error(`Service '${name}' not found in ${this.controllerName}`);
+            throw new Error(
+                `Service '${name}' not found in ${this.controllerName}`
+            );
         }
         return this.services.get(name);
     }
@@ -41,27 +43,30 @@ class BaseController {
      */
     registerRoute(method, path, handler, middlewares = []) {
         const routeKey = `${method.toUpperCase()}:${path}`;
-        
+
         // Wrap handler với error handling và logging
         const wrappedHandler = async (req, res, next) => {
             const startTime = Date.now();
             const requestId = this.generateRequestId();
-            
+
             // Add request context
             req.context = {
                 requestId,
                 controller: this.controllerName,
                 startTime,
-                user: req.user || null
+                user: req.user || null,
             };
 
             try {
-                this.log('info', `[${requestId}] ${method.toUpperCase()} ${path} - Start`);
-                
+                this.log(
+                    'info',
+                    `[${requestId}] ${method.toUpperCase()} ${path} - Start`
+                );
+
                 // Execute specific middlewares for this route
                 for (const middleware of middlewares) {
                     await new Promise((resolve, reject) => {
-                        middleware(req, res, (err) => {
+                        middleware(req, res, err => {
                             if (err) reject(err);
                             else resolve();
                         });
@@ -70,15 +75,22 @@ class BaseController {
 
                 // Execute main handler
                 const result = await handler.call(this, req, res, next);
-                
+
                 const duration = Date.now() - startTime;
-                this.log('info', `[${requestId}] ${method.toUpperCase()} ${path} - Success (${duration}ms)`);
-                
+                this.log(
+                    'info',
+                    `[${requestId}] ${method.toUpperCase()} ${path} - Success (${duration}ms)`
+                );
+
                 return result;
             } catch (error) {
                 const duration = Date.now() - startTime;
-                this.log('error', `[${requestId}] ${method.toUpperCase()} ${path} - Error (${duration}ms):`, error);
-                
+                this.log(
+                    'error',
+                    `[${requestId}] ${method.toUpperCase()} ${path} - Error (${duration}ms):`,
+                    error
+                );
+
                 this.handleError(error, req, res, next);
             }
         };
@@ -87,9 +99,9 @@ class BaseController {
             method,
             path,
             handler: wrappedHandler,
-            middlewares: [...this.middlewares, ...middlewares]
+            middlewares: [...this.middlewares, ...middlewares],
         });
-        
+
         this.log('debug', `Registered route: ${routeKey}`);
     }
 
@@ -115,7 +127,7 @@ class BaseController {
             success: true,
             message,
             data,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         };
 
         if (data === null) {
@@ -128,11 +140,16 @@ class BaseController {
     /**
      * Standard error response
      */
-    sendError(res, message = 'Internal Server Error', statusCode = 500, details = null) {
+    sendError(
+        res,
+        message = 'Internal Server Error',
+        statusCode = 500,
+        details = null
+    ) {
         const response = {
             success: false,
             message,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         };
 
         if (details && process.env.NODE_ENV !== 'production') {
@@ -146,7 +163,9 @@ class BaseController {
      * Validation error response
      */
     sendValidationError(res, errors) {
-        return this.sendError(res, 'Validation failed', 400, { validationErrors: errors });
+        return this.sendError(res, 'Validation failed', 400, {
+            validationErrors: errors,
+        });
     }
 
     /**
@@ -179,7 +198,7 @@ class BaseController {
             error: error.message,
             stack: error.stack,
             requestId: req.context?.requestId,
-            user: req.context?.user?.id
+            user: req.context?.user?.id,
         });
 
         // Handle specific error types
@@ -200,7 +219,10 @@ class BaseController {
         }
 
         // Default internal server error
-        return this.sendError(res, 'Internal Server Error', 500, 
+        return this.sendError(
+            res,
+            'Internal Server Error',
+            500,
             process.env.NODE_ENV !== 'production' ? error.message : undefined
         );
     }
@@ -226,7 +248,9 @@ class BaseController {
             if (rules.required && !data[field]) {
                 const validationError = new Error('Validation failed');
                 validationError.name = 'ValidationError';
-                validationError.details = [{ field, message: `${field} is required` }];
+                validationError.details = [
+                    { field, message: `${field} is required` },
+                ];
                 throw validationError;
             }
         }
@@ -239,7 +263,10 @@ class BaseController {
      */
     getPaginationParams(req) {
         const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+        const limit = Math.min(
+            100,
+            Math.max(1, parseInt(req.query.limit) || 10)
+        );
         const offset = (page - 1) * limit;
 
         return { page, limit, offset };
@@ -250,11 +277,14 @@ class BaseController {
      */
     log(level, message, ...args) {
         const logMessage = `[${this.controllerName}] ${message}`;
-        
+
         if (this.logger && typeof this.logger[level] === 'function') {
             this.logger[level](logMessage, ...args);
         } else {
-            console[level === 'error' ? 'error' : 'log'](`${new Date().toISOString()} - ${level.toUpperCase()}: ${logMessage}`, ...args);
+            console[level === 'error' ? 'error' : 'log'](
+                `${new Date().toISOString()} - ${level.toUpperCase()}: ${logMessage}`,
+                ...args
+            );
         }
     }
 }

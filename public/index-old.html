@@ -1,136 +1,147 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐄 Cown App - Test Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-            padding: 50px 20px;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-        .cow-emoji {
-            font-size: 4em;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-        }
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>🐄 Cown App - Test Page</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-align: center;
+                padding: 50px 20px;
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
             }
-            40% {
-                transform: translateY(-30px);
+            .container {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 40px;
+                max-width: 500px;
+                width: 100%;
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+                border: 1px solid rgba(255, 255, 255, 0.18);
             }
-            60% {
-                transform: translateY(-15px);
+            .cow-emoji {
+                font-size: 4em;
+                margin-bottom: 20px;
+                animation: bounce 2s infinite;
             }
-        }
-        h1 {
-            margin: 0 0 20px 0;
-            font-size: 2.5em;
-        }
-        .status {
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-        .info {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        .button {
-            background: #FF6B6B;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1em;
-            cursor: pointer;
-            margin: 10px;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-        .button:hover {
-            background: #FF5252;
-            transform: translateY(-2px);
-        }
-        .timestamp {
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 30px;
-            font-size: 0.9em;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="cow-emoji">🐄</div>
-        <h1>Cown Telegram App</h1>
-        <div class="status">✅ Server đang chạy!</div>
-        
-        <div class="info">
-            <h3>🚀 App Status</h3>
-            <p><strong>Version:</strong> 2.0.0</p>
-            <p><strong>Environment:</strong> <span id="env">Production</span></p>
-            <p><strong>Database:</strong> SQLite ✅</p>
-            <p><strong>Telegram Bot:</strong> @Cown_Login_bot</p>
-        </div>
-
-        <div class="info">
-            <h3>🔗 Các trang chính</h3>
-            <a href="/login-compact.html" class="button">📱 Đăng nhập Compact</a>
-            <a href="/login-phone.html" class="button">� Đăng nhập Phone</a>
-            <a href="/login_telegram.html" class="button">💬 Đăng nhập Telegram</a>
-            <a href="/dashboard.html" class="button">📊 Dashboard</a>
-            <a href="/health" class="button">💚 Health Check</a>
-        </div>
-
-        <div class="timestamp">
-            Deployed: <span id="timestamp"></span>
-        </div>
-    </div>
-
-    <script>
-        // Hiển thị timestamp hiện tại
-        document.getElementById('timestamp').textContent = new Date().toLocaleString('vi-VN');
-        
-        // Kiểm tra environment
-        fetch('/health')
-            .then(response => response.json())
-            .then(data => {
-                console.log('Health check:', data);
-                if (data.environment) {
-                    document.getElementById('env').textContent = data.environment;
+            @keyframes bounce {
+                0%,
+                20%,
+                50%,
+                80%,
+                100% {
+                    transform: translateY(0);
                 }
-            })
-            .catch(error => {
-                console.log('Health check failed:', error);
-                document.getElementById('env').textContent = 'Unknown';
-            });
-    </script>
-</body>
+                40% {
+                    transform: translateY(-30px);
+                }
+                60% {
+                    transform: translateY(-15px);
+                }
+            }
+            h1 {
+                margin: 0 0 20px 0;
+                font-size: 2.5em;
+            }
+            .status {
+                background: #4caf50;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 50px;
+                margin: 20px 0;
+                font-weight: bold;
+            }
+            .info {
+                background: rgba(255, 255, 255, 0.2);
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+            }
+            .button {
+                background: #ff6b6b;
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 50px;
+                font-size: 1.1em;
+                cursor: pointer;
+                margin: 10px;
+                text-decoration: none;
+                display: inline-block;
+                transition: all 0.3s ease;
+            }
+            .button:hover {
+                background: #ff5252;
+                transform: translateY(-2px);
+            }
+            .timestamp {
+                color: rgba(255, 255, 255, 0.7);
+                margin-top: 30px;
+                font-size: 0.9em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="cow-emoji">🐄</div>
+            <h1>Cown Telegram App</h1>
+            <div class="status">✅ Server đang chạy!</div>
+
+            <div class="info">
+                <h3>🚀 App Status</h3>
+                <p><strong>Version:</strong> 2.0.0</p>
+                <p>
+                    <strong>Environment:</strong>
+                    <span id="env">Production</span>
+                </p>
+                <p><strong>Database:</strong> SQLite ✅</p>
+                <p><strong>Telegram Bot:</strong> @Cown_Login_bot</p>
+            </div>
+
+            <div class="info">
+                <h3>🔗 Các trang chính</h3>
+                <a href="/login-compact.html" class="button"
+                    >📱 Đăng nhập Compact</a
+                >
+                <a href="/login-phone.html" class="button">� Đăng nhập Phone</a>
+                <a href="/login_telegram.html" class="button"
+                    >💬 Đăng nhập Telegram</a
+                >
+                <a href="/dashboard.html" class="button">📊 Dashboard</a>
+                <a href="/health" class="button">💚 Health Check</a>
+            </div>
+
+            <div class="timestamp">Deployed: <span id="timestamp"></span></div>
+        </div>
+
+        <script>
+            // Hiển thị timestamp hiện tại
+            document.getElementById('timestamp').textContent =
+                new Date().toLocaleString('vi-VN');
+
+            // Kiểm tra environment
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Health check:', data);
+                    if (data.environment) {
+                        document.getElementById('env').textContent =
+                            data.environment;
+                    }
+                })
+                .catch(error => {
+                    console.log('Health check failed:', error);
+                    document.getElementById('env').textContent = 'Unknown';
+                });
+        </script>
+    </body>
 </html>

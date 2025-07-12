@@ -35,7 +35,9 @@ try {
     console.log('');
     console.log('🔗 Bot Token: ' + BOT_TOKEN);
     console.log('');
-    console.log('⚠️  Remember to set up API ID and API HASH later for advanced features');
+    console.log(
+        '⚠️  Remember to set up API ID and API HASH later for advanced features'
+    );
 } catch (error) {
     console.error('❌ Failed to create .env file:', error.message);
 }

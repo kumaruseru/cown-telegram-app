@@ -73,6 +73,7 @@ cown/
 ## 🚀 **Key Features**
 
 ### ✅ **Đã dọn dẹp (Removed)**
+
 - ❌ Tất cả file test cũ (`test-*.js`, `debug-*.html`)
 - ❌ File backup và duplicate (`auth_backup.js`, `auth_new.js`)
 - ❌ Scripts deploy cũ (`deploy-*.bat`, `start-*.bat`)
@@ -82,6 +83,7 @@ cown/
 - ❌ Thư mục `tests/` và `scripts/`
 
 ### ✅ **Architecture hiện tại**
+
 - 🏗️ **Object-Oriented Programming**: Complete OOP architecture
 - 🔧 **Dependency Injection**: ServiceContainer quản lý services
 - 🔐 **Authentication**: Phone OTP + Telegram OAuth
@@ -92,6 +94,7 @@ cown/
 - 🐳 **Containerization**: Docker ready
 
 ### ✅ **Services hoạt động**
+
 1. **AuthService**: Phone & Telegram authentication
 2. **TelegramBotService**: Bot API integration
 3. **BotConfigService**: Bot setup & configuration
@@ -100,6 +103,7 @@ cown/
 6. **DatabaseManager**: SQLite operations
 
 ### ✅ **Controllers hoạt động**
+
 1. **AuthController**: Authentication endpoints
 2. **BotController**: Bot webhook & management
 3. **BotSetupController**: Bot configuration API
@@ -107,6 +111,7 @@ cown/
 5. **WebController**: Web page routing
 
 ## 🌐 **Deployment Ready**
+
 - ✅ Render.com configuration (`render.yaml`)
 - ✅ Docker containerization
 - ✅ Environment configuration
@@ -115,6 +120,7 @@ cown/
 - ✅ Rate limiting
 
 ## 📊 **Current Status**
+
 - ✅ Server running on port 3001
 - ✅ All services initialized
 - ✅ Bot setup wizard functional
@@ -123,5 +129,6 @@ cown/
 - ✅ No redundant files
 
 ---
-*Last updated: July 12, 2025*
-*Structure optimized for production deployment*
+
+_Last updated: July 12, 2025_
+_Structure optimized for production deployment_

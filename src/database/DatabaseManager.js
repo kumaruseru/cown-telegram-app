@@ -98,28 +98,28 @@ class DatabaseManager {
             `;
 
             this.db.serialize(() => {
-                this.db.run(createUsersTable, (err) => {
+                this.db.run(createUsersTable, err => {
                     if (err) {
                         reject(err);
                         return;
                     }
                 });
 
-                this.db.run(createMessagesTable, (err) => {
+                this.db.run(createMessagesTable, err => {
                     if (err) {
                         reject(err);
                         return;
                     }
                 });
 
-                this.db.run(createChatsTable, (err) => {
+                this.db.run(createChatsTable, err => {
                     if (err) {
                         reject(err);
                         return;
                     }
                 });
 
-                this.db.run(createSessionsTable, (err) => {
+                this.db.run(createSessionsTable, err => {
                     if (err) {
                         reject(err);
                         return;
@@ -144,7 +144,7 @@ class DatabaseManager {
                 message_type = 'text',
                 is_outgoing = 0,
                 media_url = null,
-                reply_to_message_id = null
+                reply_to_message_id = null,
             } = messageData;
 
             const query = `
@@ -155,17 +155,30 @@ class DatabaseManager {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
-            this.db.run(query, [
-                user_account_id, telegram_message_id, chat_id, user_id, username,
-                first_name, last_name, message_text, message_type,
-                is_outgoing, media_url, reply_to_message_id
-            ], function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ id: this.lastID, ...messageData });
+            this.db.run(
+                query,
+                [
+                    user_account_id,
+                    telegram_message_id,
+                    chat_id,
+                    user_id,
+                    username,
+                    first_name,
+                    last_name,
+                    message_text,
+                    message_type,
+                    is_outgoing,
+                    media_url,
+                    reply_to_message_id,
+                ],
+                function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ id: this.lastID, ...messageData });
+                    }
                 }
-            });
+            );
         });
     }
 
@@ -178,7 +191,7 @@ class DatabaseManager {
                 title,
                 username,
                 first_name,
-                last_name
+                last_name,
             } = chatData;
 
             const query = `
@@ -187,15 +200,25 @@ class DatabaseManager {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             `;
 
-            this.db.run(query, [
-                user_account_id, chat_id, chat_type, title, username, first_name, last_name
-            ], function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ id: this.lastID, ...chatData });
+            this.db.run(
+                query,
+                [
+                    user_account_id,
+                    chat_id,
+                    chat_type,
+                    title,
+                    username,
+                    first_name,
+                    last_name,
+                ],
+                function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ id: this.lastID, ...chatData });
+                    }
                 }
-            });
+            );
         });
     }
 
@@ -207,7 +230,7 @@ class DatabaseManager {
                 ORDER BY timestamp DESC 
                 LIMIT ?
             `;
-            
+
             const params = chatId ? [chatId, limit] : [limit];
 
             this.db.all(query, params, (err, rows) => {
@@ -270,7 +293,7 @@ class DatabaseManager {
                 password_hash,
                 telegram_phone,
                 telegram_api_id,
-                telegram_api_hash
+                telegram_api_hash,
             } = userData;
 
             const query = `
@@ -280,23 +303,31 @@ class DatabaseManager {
                 ) VALUES (?, ?, ?, ?, ?, ?)
             `;
 
-            this.db.run(query, [
-                username, email, password_hash, telegram_phone,
-                telegram_api_id, telegram_api_hash
-            ], function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ id: this.lastID, ...userData });
+            this.db.run(
+                query,
+                [
+                    username,
+                    email,
+                    password_hash,
+                    telegram_phone,
+                    telegram_api_id,
+                    telegram_api_hash,
+                ],
+                function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ id: this.lastID, ...userData });
+                    }
                 }
-            });
+            );
         });
     }
 
     async getUserByUsername(username) {
         return new Promise((resolve, reject) => {
             const query = `SELECT * FROM users WHERE username = ? AND is_active = 1`;
-            
+
             this.db.get(query, [username], (err, row) => {
                 if (err) {
                     reject(err);
@@ -310,7 +341,7 @@ class DatabaseManager {
     async getUserById(userId) {
         return new Promise((resolve, reject) => {
             const query = `SELECT * FROM users WHERE id = ? AND is_active = 1`;
-            
+
             this.db.get(query, [userId], (err, row) => {
                 if (err) {
                     reject(err);
@@ -324,7 +355,7 @@ class DatabaseManager {
     async getUserByTelegramId(telegramId) {
         return new Promise((resolve, reject) => {
             const query = `SELECT * FROM users WHERE telegram_id = ? AND is_active = 1`;
-            
+
             this.db.get(query, [telegramId], (err, row) => {
                 if (err) {
                     reject(err);
@@ -344,7 +375,7 @@ class DatabaseManager {
                 telegram_last_name,
                 telegram_photo_url,
                 telegram_auth_date,
-                username
+                username,
             } = telegramData;
 
             const query = `
@@ -358,16 +389,26 @@ class DatabaseManager {
             // For Telegram users, we'll use a placeholder password hash
             const placeholderHash = 'telegram_auth_' + Date.now();
 
-            this.db.run(query, [
-                username, telegram_id, telegram_username, telegram_first_name,
-                telegram_last_name, telegram_photo_url, telegram_auth_date, placeholderHash
-            ], function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ id: this.lastID, ...telegramData });
+            this.db.run(
+                query,
+                [
+                    username,
+                    telegram_id,
+                    telegram_username,
+                    telegram_first_name,
+                    telegram_last_name,
+                    telegram_photo_url,
+                    telegram_auth_date,
+                    placeholderHash,
+                ],
+                function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ id: this.lastID, ...telegramData });
+                    }
                 }
-            });
+            );
         });
     }
 
@@ -378,7 +419,7 @@ class DatabaseManager {
                 telegram_first_name,
                 telegram_last_name,
                 telegram_photo_url,
-                telegram_auth_date
+                telegram_auth_date,
             } = telegramData;
 
             const query = `
@@ -388,16 +429,24 @@ class DatabaseManager {
                 WHERE id = ?
             `;
 
-            this.db.run(query, [
-                telegram_username, telegram_first_name, telegram_last_name,
-                telegram_photo_url, telegram_auth_date, userId
-            ], (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ success: true });
+            this.db.run(
+                query,
+                [
+                    telegram_username,
+                    telegram_first_name,
+                    telegram_last_name,
+                    telegram_photo_url,
+                    telegram_auth_date,
+                    userId,
+                ],
+                err => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ success: true });
+                    }
                 }
-            });
+            );
         });
     }
 
@@ -409,7 +458,7 @@ class DatabaseManager {
                 WHERE id = ?
             `;
 
-            this.db.run(query, [sessionString, userId], (err) => {
+            this.db.run(query, [sessionString, userId], err => {
                 if (err) {
                     reject(err);
                 } else {
@@ -427,7 +476,7 @@ class DatabaseManager {
                 WHERE id = ?
             `;
 
-            this.db.run(query, [sessionString, userId], (err) => {
+            this.db.run(query, [sessionString, userId], err => {
                 if (err) {
                     reject(err);
                 } else {
@@ -444,13 +493,21 @@ class DatabaseManager {
                 VALUES (?, ?, ?)
             `;
 
-            this.db.run(query, [userId, sessionToken, expiresAt], function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ id: this.lastID, user_id: userId, session_token: sessionToken });
+            this.db.run(
+                query,
+                [userId, sessionToken, expiresAt],
+                function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({
+                            id: this.lastID,
+                            user_id: userId,
+                            session_token: sessionToken,
+                        });
+                    }
                 }
-            });
+            );
         });
     }
 
@@ -477,7 +534,7 @@ class DatabaseManager {
         return new Promise((resolve, reject) => {
             const query = `DELETE FROM user_sessions WHERE session_token = ?`;
 
-            this.db.run(query, [sessionToken], (err) => {
+            this.db.run(query, [sessionToken], err => {
                 if (err) {
                     reject(err);
                 } else {
@@ -491,18 +548,18 @@ class DatabaseManager {
         return new Promise((resolve, reject) => {
             const fields = [];
             const values = [];
-            
+
             for (const [key, value] of Object.entries(updateData)) {
                 if (value !== undefined) {
                     fields.push(`${key} = ?`);
                     values.push(value);
                 }
             }
-            
+
             if (fields.length === 0) {
                 return resolve({ success: true });
             }
-            
+
             values.push(userId);
             const query = `
                 UPDATE users 
@@ -510,7 +567,7 @@ class DatabaseManager {
                 WHERE id = ?
             `;
 
-            this.db.run(query, values, (err) => {
+            this.db.run(query, values, err => {
                 if (err) {
                     reject(err);
                 } else {

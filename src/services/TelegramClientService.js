@@ -9,26 +9,34 @@ class TelegramClientService {
         this.io = io;
         this.clients = new Map(); // userId -> { client, isConnected, sessionString }
         this.pendingClients = new Map(); // userId -> pending client (during verification)
-        
+
         // Load API credentials from .env
         this.apiId = parseInt(process.env.TELEGRAM_API_ID);
         this.apiHash = process.env.TELEGRAM_API_HASH;
-        
+
         // Telegram server configuration
         this.useTestDC = process.env.TELEGRAM_USE_TEST_DC === 'true';
         this.testDC = process.env.TELEGRAM_TEST_DC || '149.154.167.40:443';
         this.prodDC = process.env.TELEGRAM_PROD_DC || '149.154.167.50:443';
-        
+
         // Check credentials but don't crash app if missing
         this.isConfigured = !!(this.apiId && this.apiHash);
-        
+
         if (!this.isConfigured) {
-            console.warn('⚠️ Telegram API credentials không được cấu hình - service sẽ hoạt động ở chế độ hạn chế');
+            console.warn(
+                '⚠️ Telegram API credentials không được cấu hình - service sẽ hoạt động ở chế độ hạn chế'
+            );
             this.disabled = true;
         } else {
-            console.log(`🔧 TelegramClientService khởi tạo với API ID: ${this.apiId}`);
-            console.log(`📡 Server: ${this.useTestDC ? 'Test' : 'Production'} DC`);
-            console.log(`🌐 DC Address: ${this.useTestDC ? this.testDC : this.prodDC}`);
+            console.log(
+                `🔧 TelegramClientService khởi tạo với API ID: ${this.apiId}`
+            );
+            console.log(
+                `📡 Server: ${this.useTestDC ? 'Test' : 'Production'} DC`
+            );
+            console.log(
+                `🌐 DC Address: ${this.useTestDC ? this.testDC : this.prodDC}`
+            );
             this.disabled = false;
         }
     }
@@ -38,7 +46,9 @@ class TelegramClientService {
      */
     checkConfigured() {
         if (this.disabled) {
-            throw new Error('TelegramClientService chưa được cấu hình với API credentials hợp lệ');
+            throw new Error(
+                'TelegramClientService chưa được cấu hình với API credentials hợp lệ'
+            );
         }
     }
 
@@ -61,60 +71,87 @@ class TelegramClientService {
 
             // Sử dụng API credentials từ user hoặc default
             const userApiId = apiId || user.telegram_api_id || this.apiId;
-            const userApiHash = apiHash || user.telegram_api_hash || this.apiHash;
+            const userApiHash =
+                apiHash || user.telegram_api_hash || this.apiHash;
 
             if (!userApiId || !userApiHash) {
-                throw new Error('Telegram API ID hoặc API Hash không được cấu hình cho user này');
+                throw new Error(
+                    'Telegram API ID hoặc API Hash không được cấu hình cho user này'
+                );
             }
 
             // Tạo session string từ database của user
             const sessionString = user.telegram_session || '';
             const stringSession = new StringSession(sessionString);
-            
-            const client = new TelegramApi(stringSession, parseInt(userApiId), userApiHash, {
-                connectionRetries: 5,
-            });
 
-            console.log(`🔄 Đang kết nối Telegram Client cho user ${user.username}...`);
-            
+            const client = new TelegramApi(
+                stringSession,
+                parseInt(userApiId),
+                userApiHash,
+                {
+                    connectionRetries: 5,
+                }
+            );
+
+            console.log(
+                `🔄 Đang kết nối Telegram Client cho user ${user.username}...`
+            );
+
             // Bắt đầu client với prompt cho thông tin đăng nhập
             await client.start({
                 phoneNumber: async () => {
                     if (user.telegram_phone) {
                         return user.telegram_phone;
                     }
-                    throw new Error('Cần cung cấp số điện thoại trong thông tin tài khoản');
+                    throw new Error(
+                        'Cần cung cấp số điện thoại trong thông tin tài khoản'
+                    );
                 },
                 password: async () => {
-                    throw new Error('Cần xác thực 2FA. Vui lòng liên kết tài khoản Telegram qua giao diện web');
+                    throw new Error(
+                        'Cần xác thực 2FA. Vui lòng liên kết tài khoản Telegram qua giao diện web'
+                    );
                 },
                 phoneCode: async () => {
-                    throw new Error('Cần mã xác nhận. Vui lòng liên kết tài khoản Telegram qua giao diện web');
+                    throw new Error(
+                        'Cần mã xác nhận. Vui lòng liên kết tài khoản Telegram qua giao diện web'
+                    );
                 },
-                onError: (err) => console.log(`❌ Lỗi xác thực cho user ${user.username}:`, err),
+                onError: err =>
+                    console.log(
+                        `❌ Lỗi xác thực cho user ${user.username}:`,
+                        err
+                    ),
             });
 
             const newSessionString = client.session.save();
-            
+
             // Lưu session string mới vào database
-            await this.dbManager.updateUserTelegramSession(userId, newSessionString);
-            
+            await this.dbManager.updateUserTelegramSession(
+                userId,
+                newSessionString
+            );
+
             // Lưu client vào Map
             this.clients.set(userId, {
                 client,
                 isConnected: true,
                 sessionString: newSessionString,
-                user
+                user,
             });
 
             // Setup event handlers cho client này
             this.setupClientHandlers(userId, client);
-            
-            console.log(`✅ Telegram Client đã kết nối thành công cho user ${user.username}`);
-            return true;
 
+            console.log(
+                `✅ Telegram Client đã kết nối thành công cho user ${user.username}`
+            );
+            return true;
         } catch (error) {
-            console.error(`❌ Lỗi khởi tạo Telegram Client cho user ${userId}:`, error);
+            console.error(
+                `❌ Lỗi khởi tạo Telegram Client cho user ${userId}:`,
+                error
+            );
             this.clients.delete(userId);
             throw error;
         }
@@ -136,30 +173,39 @@ class TelegramClientService {
                 }
             }
 
-            console.log(`🔄 Kết nối Telegram cho user ${user.username} từ session...`);
+            console.log(
+                `🔄 Kết nối Telegram cho user ${user.username} từ session...`
+            );
 
             const userApiId = user.telegram_api_id || this.apiId;
             const userApiHash = user.telegram_api_hash || this.apiHash;
 
             const stringSession = new StringSession(user.telegram_session);
-            
+
             const clientConfig = {
                 connectionRetries: 3,
                 timeout: 10000,
-                useWSS: false
+                useWSS: false,
             };
 
             if (this.useTestDC) {
                 clientConfig.testServers = true;
             }
 
-            const client = new TelegramApi(stringSession, parseInt(userApiId), userApiHash, clientConfig);
+            const client = new TelegramApi(
+                stringSession,
+                parseInt(userApiId),
+                userApiHash,
+                clientConfig
+            );
 
             await client.connect();
-            
+
             // Verify connection by getting user info
             const me = await client.getMe();
-            console.log(`👤 Connected as: ${me.firstName} ${me.lastName || ''} (@${me.username || 'no_username'})`);
+            console.log(
+                `👤 Connected as: ${me.firstName} ${me.lastName || ''} (@${me.username || 'no_username'})`
+            );
 
             // Store in active clients
             const clientData = {
@@ -169,19 +215,23 @@ class TelegramClientService {
                 telegramUserId: me.id.toString(),
                 username: me.username,
                 firstName: me.firstName,
-                lastName: me.lastName
+                lastName: me.lastName,
             };
 
             this.clients.set(userId, clientData);
-            
+
             // Update connection status
             await this.dbManager.updateTelegramConnection(userId, true);
 
-            console.log(`✅ Telegram client connected for user ${user.username}`);
+            console.log(
+                `✅ Telegram client connected for user ${user.username}`
+            );
             return clientData;
-            
         } catch (error) {
-            console.error(`❌ Lỗi kết nối từ session cho user ${userId}:`, error);
+            console.error(
+                `❌ Lỗi kết nối từ session cho user ${userId}:`,
+                error
+            );
             throw error;
         }
     }
@@ -190,7 +240,7 @@ class TelegramClientService {
         if (!client) return;
 
         // Lắng nghe tin nhắn mới
-        client.addEventHandler(async (update) => {
+        client.addEventHandler(async update => {
             try {
                 await this.handleUpdate(userId, update);
             } catch (error) {
@@ -198,7 +248,9 @@ class TelegramClientService {
             }
         });
 
-        console.log(`🔗 Telegram Client event handlers đã được thiết lập cho user ${userId}`);
+        console.log(
+            `🔗 Telegram Client event handlers đã được thiết lập cho user ${userId}`
+        );
     }
 
     async handleUpdate(userId, update) {
@@ -217,10 +269,12 @@ class TelegramClientService {
             if (!userClientData) return;
 
             const client = userClientData.client;
-            
+
             // Lấy thông tin chat và user
             const chat = await client.getEntity(message.peerId);
-            const sender = message.fromId ? await client.getEntity(message.fromId) : null;
+            const sender = message.fromId
+                ? await client.getEntity(message.fromId)
+                : null;
 
             const chatData = {
                 user_account_id: userId,
@@ -229,7 +283,7 @@ class TelegramClientService {
                 title: chat.title || chat.firstName || 'Unknown',
                 username: chat.username,
                 first_name: chat.firstName,
-                last_name: chat.lastName
+                last_name: chat.lastName,
             };
 
             const messageData = {
@@ -244,7 +298,7 @@ class TelegramClientService {
                 message_type: this.getMessageType(message),
                 is_outgoing: message.out ? 1 : 0,
                 media_url: await this.getMediaUrl(message, client),
-                reply_to_message_id: message.replyTo?.replyToMsgId
+                reply_to_message_id: message.replyTo?.replyToMsgId,
             };
 
             // Lưu vào database
@@ -254,21 +308,28 @@ class TelegramClientService {
             // Phát qua WebSocket cho user cụ thể
             this.io.to(`user_${userId}`).emit('new-message', {
                 ...savedMessage,
-                chat: chatData
+                chat: chatData,
             });
 
             this.io.to(`user_${userId}`).emit('chat-updated', chatData);
 
-            console.log(`📨 [Client] User ${userId} nhận tin nhắn từ ${sender?.firstName || 'Unknown'}: ${message.message}`);
-
+            console.log(
+                `📨 [Client] User ${userId} nhận tin nhắn từ ${sender?.firstName || 'Unknown'}: ${message.message}`
+            );
         } catch (error) {
-            console.error(`Lỗi xử lý tin nhắn từ Client cho user ${userId}:`, error);
+            console.error(
+                `Lỗi xử lý tin nhắn từ Client cho user ${userId}:`,
+                error
+            );
         }
     }
 
     async handleEditedMessage(userId, message) {
         // Xử lý tin nhắn đã chỉnh sửa
-        console.log(`✏️ User ${userId} - Tin nhắn đã được chỉnh sửa:`, message.id);
+        console.log(
+            `✏️ User ${userId} - Tin nhắn đã được chỉnh sửa:`,
+            message.id
+        );
         // Có thể cập nhật database ở đây
     }
 
@@ -309,13 +370,18 @@ class TelegramClientService {
         try {
             const result = await userClientData.client.sendMessage(chatId, {
                 message: text,
-                ...options
+                ...options,
             });
 
-            console.log(`📤 [Client] User ${userId} đã gửi tin nhắn tới ${chatId}`);
+            console.log(
+                `📤 [Client] User ${userId} đã gửi tin nhắn tới ${chatId}`
+            );
             return result;
         } catch (error) {
-            console.error(`Lỗi gửi tin nhắn từ Client cho user ${userId}:`, error);
+            console.error(
+                `Lỗi gửi tin nhắn từ Client cho user ${userId}:`,
+                error
+            );
             throw error;
         }
     }
@@ -333,10 +399,13 @@ class TelegramClientService {
                 title: dialog.title,
                 unreadCount: dialog.unreadCount,
                 lastMessage: dialog.message?.message || '',
-                date: dialog.date
+                date: dialog.date,
             }));
         } catch (error) {
-            console.error(`Lỗi lấy danh sách dialog cho user ${userId}:`, error);
+            console.error(
+                `Lỗi lấy danh sách dialog cho user ${userId}:`,
+                error
+            );
             return [];
         }
     }
@@ -348,16 +417,21 @@ class TelegramClientService {
         }
 
         try {
-            const messages = await userClientData.client.getMessages(chatId, { limit });
+            const messages = await userClientData.client.getMessages(chatId, {
+                limit,
+            });
             return messages.map(msg => ({
                 id: msg.id,
                 message: msg.message,
                 date: msg.date,
                 out: msg.out,
-                fromId: msg.fromId?.toString()
+                fromId: msg.fromId?.toString(),
             }));
         } catch (error) {
-            console.error(`Lỗi lấy lịch sử tin nhắn cho user ${userId}:`, error);
+            console.error(
+                `Lỗi lấy lịch sử tin nhắn cho user ${userId}:`,
+                error
+            );
             return [];
         }
     }
@@ -372,7 +446,9 @@ class TelegramClientService {
         if (userClientData && userClientData.client) {
             await userClientData.client.disconnect();
             this.clients.delete(userId);
-            console.log(`🔌 Telegram Client đã ngắt kết nối cho user ${userId}`);
+            console.log(
+                `🔌 Telegram Client đã ngắt kết nối cho user ${userId}`
+            );
         }
     }
 
@@ -401,13 +477,18 @@ class TelegramClientService {
         try {
             const result = await userClientData.client.sendMessage(chatId, {
                 message: text,
-                ...options
+                ...options,
             });
 
-            console.log(`📤 [Client] User ${userId} đã gửi tin nhắn tới ${chatId}`);
+            console.log(
+                `📤 [Client] User ${userId} đã gửi tin nhắn tới ${chatId}`
+            );
             return result;
         } catch (error) {
-            console.error(`Lỗi gửi tin nhắn từ Client cho user ${userId}:`, error);
+            console.error(
+                `Lỗi gửi tin nhắn từ Client cho user ${userId}:`,
+                error
+            );
             throw error;
         }
     }
@@ -425,10 +506,13 @@ class TelegramClientService {
                 title: dialog.title,
                 unreadCount: dialog.unreadCount,
                 lastMessage: dialog.message?.message || '',
-                date: dialog.date
+                date: dialog.date,
             }));
         } catch (error) {
-            console.error(`Lỗi lấy danh sách dialog cho user ${userId}:`, error);
+            console.error(
+                `Lỗi lấy danh sách dialog cho user ${userId}:`,
+                error
+            );
             return [];
         }
     }
@@ -440,16 +524,21 @@ class TelegramClientService {
         }
 
         try {
-            const messages = await userClientData.client.getMessages(chatId, { limit });
+            const messages = await userClientData.client.getMessages(chatId, {
+                limit,
+            });
             return messages.map(msg => ({
                 id: msg.id,
                 message: msg.message,
                 date: msg.date,
                 out: msg.out,
-                fromId: msg.fromId?.toString()
+                fromId: msg.fromId?.toString(),
             }));
         } catch (error) {
-            console.error(`Lỗi lấy lịch sử tin nhắn cho user ${userId}:`, error);
+            console.error(
+                `Lỗi lấy lịch sử tin nhắn cho user ${userId}:`,
+                error
+            );
             return [];
         }
     }
@@ -464,7 +553,9 @@ class TelegramClientService {
         if (userClientData && userClientData.client) {
             await userClientData.client.disconnect();
             this.clients.delete(userId);
-            console.log(`🔌 Telegram Client đã ngắt kết nối cho user ${userId}`);
+            console.log(
+                `🔌 Telegram Client đã ngắt kết nối cho user ${userId}`
+            );
         }
     }
 
@@ -490,7 +581,7 @@ class TelegramClientService {
                 connectedUsers.push({
                     userId,
                     username: clientData.user.username,
-                    connected: true
+                    connected: true,
                 });
             }
         }
@@ -501,15 +592,18 @@ class TelegramClientService {
         try {
             const envPath = path.join(process.cwd(), '.env');
             let envContent = fs.readFileSync(envPath, 'utf8');
-            
+
             // Cập nhật hoặc thêm TELEGRAM_SESSION_STRING
             const sessionRegex = /TELEGRAM_SESSION_STRING=.*/;
             if (sessionRegex.test(envContent)) {
-                envContent = envContent.replace(sessionRegex, `TELEGRAM_SESSION_STRING=${sessionString}`);
+                envContent = envContent.replace(
+                    sessionRegex,
+                    `TELEGRAM_SESSION_STRING=${sessionString}`
+                );
             } else {
                 envContent += `\nTELEGRAM_SESSION_STRING=${sessionString}`;
             }
-            
+
             fs.writeFileSync(envPath, envContent);
             console.log('💾 Session string đã được lưu vào .env');
         } catch (error) {
@@ -517,10 +611,17 @@ class TelegramClientService {
         }
     }
 
-    async testConnectionForUser(userId, phoneNumber, apiId = null, apiHash = null) {
+    async testConnectionForUser(
+        userId,
+        phoneNumber,
+        apiId = null,
+        apiHash = null
+    ) {
         try {
-            console.log(`🧪 Testing Telegram connection for user ${userId} with phone ${phoneNumber}...`);
-            
+            console.log(
+                `🧪 Testing Telegram connection for user ${userId} with phone ${phoneNumber}...`
+            );
+
             const user = await this.dbManager.getUserById(userId);
             if (!user) {
                 throw new Error('User không tồn tại');
@@ -528,17 +629,20 @@ class TelegramClientService {
 
             // Use provided credentials or defaults from .env
             const userApiId = apiId || user.telegram_api_id || this.apiId;
-            const userApiHash = apiHash || user.telegram_api_hash || this.apiHash;
+            const userApiHash =
+                apiHash || user.telegram_api_hash || this.apiHash;
 
             if (!userApiId || !userApiHash) {
-                throw new Error('Telegram API ID hoặc API Hash không được cấu hình');
+                throw new Error(
+                    'Telegram API ID hoặc API Hash không được cấu hình'
+                );
             }
 
             console.log(`🔑 Using API ID: ${userApiId}`);
 
             // Create new session for testing
             const stringSession = new StringSession('');
-            
+
             // Telegram client configuration
             const clientConfig = {
                 connectionRetries: 3,
@@ -551,8 +655,8 @@ class TelegramClientService {
                         } else {
                             console.log('📱 Telegram Client:', message);
                         }
-                    }
-                }
+                    },
+                },
             };
 
             // Add DC server configuration if using test environment
@@ -561,7 +665,12 @@ class TelegramClientService {
                 console.log('🧪 Using test DC servers');
             }
 
-            const client = new TelegramApi(stringSession, parseInt(userApiId), userApiHash, clientConfig);
+            const client = new TelegramApi(
+                stringSession,
+                parseInt(userApiId),
+                userApiHash,
+                clientConfig
+            );
 
             // Store client temporarily for verification
             this.pendingClients.set(userId, {
@@ -569,12 +678,14 @@ class TelegramClientService {
                 phoneNumber,
                 apiId: userApiId,
                 apiHash: userApiHash,
-                startTime: Date.now()
+                startTime: Date.now(),
             });
 
             console.log(`📱 Starting client for phone ${phoneNumber}...`);
-            console.log(`🌐 Connecting to ${this.useTestDC ? 'Test' : 'Production'} servers...`);
-            
+            console.log(
+                `🌐 Connecting to ${this.useTestDC ? 'Test' : 'Production'} servers...`
+            );
+
             // Start client - this will prompt for verification code
             await client.start({
                 phoneNumber: async () => {
@@ -582,19 +693,26 @@ class TelegramClientService {
                     return phoneNumber;
                 },
                 phoneCode: async () => {
-                    console.log('📨 Phone code required - stopping here for user input');
-                    throw new Error('PHONE_CODE_REQUIRED: Cần mã xác thực từ Telegram');
+                    console.log(
+                        '📨 Phone code required - stopping here for user input'
+                    );
+                    throw new Error(
+                        'PHONE_CODE_REQUIRED: Cần mã xác thực từ Telegram'
+                    );
                 },
-                onError: (err) => {
+                onError: err => {
                     console.error('❌ Client start error:', err);
                     throw err;
-                }
+                },
             });
 
-            return { message: 'Client started successfully', needVerification: true };
+            return {
+                message: 'Client started successfully',
+                needVerification: true,
+            };
         } catch (error) {
             console.error('❌ Test connection error:', error);
-            
+
             // Clean up on error
             if (this.pendingClients?.has(userId)) {
                 const pending = this.pendingClients.get(userId);
@@ -607,18 +725,23 @@ class TelegramClientService {
                 }
                 this.pendingClients.delete(userId);
             }
-            
+
             // Check for specific error types
-            if (error.message.includes('PHONE_CODE_REQUIRED') || error.message.includes('Cần mã xác thực')) {
+            if (
+                error.message.includes('PHONE_CODE_REQUIRED') ||
+                error.message.includes('Cần mã xác thực')
+            ) {
                 throw new Error('Cần mã xác thực từ Telegram');
             } else if (error.message.includes('PHONE_NUMBER_INVALID')) {
                 throw new Error('Số điện thoại không hợp lệ');
             } else if (error.message.includes('PHONE_NUMBER_BANNED')) {
                 throw new Error('Số điện thoại đã bị cấm');
             } else if (error.message.includes('FLOOD_WAIT')) {
-                throw new Error('Bạn đã thử quá nhiều lần. Vui lòng đợi một lúc.');
+                throw new Error(
+                    'Bạn đã thử quá nhiều lần. Vui lòng đợi một lúc.'
+                );
             }
-            
+
             throw error;
         }
     }
@@ -626,14 +749,16 @@ class TelegramClientService {
     async verifyCodeForUser(userId, verificationCode, password = null) {
         try {
             console.log(`🔐 Verifying code for user ${userId}...`);
-            
+
             const pendingData = this.pendingClients?.get(userId);
             if (!pendingData) {
-                throw new Error('Không tìm thấy session đang chờ xác thực. Vui lòng thử lại từ đầu.');
+                throw new Error(
+                    'Không tìm thấy session đang chờ xác thực. Vui lòng thử lại từ đầu.'
+                );
             }
 
             const { client, phoneNumber, apiId, apiHash } = pendingData;
-            
+
             // Check if session is not too old (15 minutes timeout)
             const sessionAge = Date.now() - pendingData.startTime;
             if (sessionAge > 15 * 60 * 1000) {
@@ -651,21 +776,25 @@ class TelegramClientService {
                     console.log('📨 Providing verification code...');
                     return verificationCode;
                 },
-                password: password ? async () => {
-                    console.log('🔒 Providing 2FA password...');
-                    return password;
-                } : undefined,
-                onError: (err) => {
+                password: password
+                    ? async () => {
+                          console.log('🔒 Providing 2FA password...');
+                          return password;
+                      }
+                    : undefined,
+                onError: err => {
                     console.error('❌ Verification client error:', err);
                     throw err;
-                }
+                },
             });
 
             console.log('✅ Verification successful, saving session...');
 
             // Get user info from Telegram
             const me = await client.getMe();
-            console.log(`👤 Logged in as: ${me.firstName} ${me.lastName || ''} (@${me.username || 'no_username'})`);
+            console.log(
+                `👤 Logged in as: ${me.firstName} ${me.lastName || ''} (@${me.username || 'no_username'})`
+            );
 
             // Save session string to database
             const sessionString = client.session.save();
@@ -675,7 +804,7 @@ class TelegramClientService {
                 telegram_username: me.username || null,
                 telegram_first_name: me.firstName || null,
                 telegram_last_name: me.lastName || null,
-                telegram_phone: me.phone || phoneNumber
+                telegram_phone: me.phone || phoneNumber,
             });
 
             // Update connection status
@@ -689,16 +818,18 @@ class TelegramClientService {
                 telegramUserId: me.id.toString(),
                 username: me.username,
                 firstName: me.firstName,
-                lastName: me.lastName
+                lastName: me.lastName,
             });
 
             // Clean up pending client
             this.pendingClients.delete(userId);
 
-            console.log(`✅ Telegram client connected successfully for user ${userId}`);
+            console.log(
+                `✅ Telegram client connected successfully for user ${userId}`
+            );
             console.log(`📊 Active clients: ${this.clients.size}`);
 
-            return { 
+            return {
                 message: 'Kết nối Telegram thành công!',
                 sessionSaved: true,
                 telegramUser: {
@@ -706,12 +837,12 @@ class TelegramClientService {
                     username: me.username,
                     firstName: me.firstName,
                     lastName: me.lastName,
-                    phone: me.phone
-                }
+                    phone: me.phone,
+                },
             };
         } catch (error) {
             console.error('❌ Verification error:', error);
-            
+
             // Clean up pending client on error
             if (this.pendingClients?.has(userId)) {
                 const pendingData = this.pendingClients.get(userId);
@@ -719,12 +850,15 @@ class TelegramClientService {
                     try {
                         await pendingData.client.destroy();
                     } catch (destroyError) {
-                        console.error('Error destroying client on verification error:', destroyError);
+                        console.error(
+                            'Error destroying client on verification error:',
+                            destroyError
+                        );
                     }
                 }
                 this.pendingClients.delete(userId);
             }
-            
+
             // Handle specific error types
             if (error.message.includes('PHONE_CODE_INVALID')) {
                 throw new Error('Mã xác thực không đúng');
@@ -733,9 +867,11 @@ class TelegramClientService {
             } else if (error.message.includes('PASSWORD_HASH_INVALID')) {
                 throw new Error('Mật khẩu 2FA không đúng');
             } else if (error.message.includes('FLOOD_WAIT')) {
-                throw new Error('Bạn đã thử quá nhiều lần. Vui lòng đợi một lúc.');
+                throw new Error(
+                    'Bạn đã thử quá nhiều lần. Vui lòng đợi một lúc.'
+                );
             }
-            
+
             throw error;
         }
     }
@@ -743,24 +879,36 @@ class TelegramClientService {
     async initializeAllUsersFromSessions() {
         try {
             console.log('🔄 Khởi tạo Telegram clients từ sessions đã lưu...');
-            
+
             const telegramUsers = await this.dbManager.getTelegramUsers();
-            console.log(`📊 Tìm thấy ${telegramUsers.length} users có Telegram session`);
-            
+            console.log(
+                `📊 Tìm thấy ${telegramUsers.length} users có Telegram session`
+            );
+
             for (const user of telegramUsers) {
                 if (user.telegram_session && user.is_telegram_connected) {
                     try {
                         await this.connectUserFromSession(user.id);
-                        console.log(`✅ Khôi phục session cho user ${user.username}`);
+                        console.log(
+                            `✅ Khôi phục session cho user ${user.username}`
+                        );
                     } catch (error) {
-                        console.error(`❌ Lỗi khôi phục session cho user ${user.username}:`, error.message);
+                        console.error(
+                            `❌ Lỗi khôi phục session cho user ${user.username}:`,
+                            error.message
+                        );
                         // Mark as disconnected
-                        await this.dbManager.updateTelegramConnection(user.id, false);
+                        await this.dbManager.updateTelegramConnection(
+                            user.id,
+                            false
+                        );
                     }
                 }
             }
-            
-            console.log(`🎉 Hoàn tất khởi tạo. Active clients: ${this.clients.size}`);
+
+            console.log(
+                `🎉 Hoàn tất khởi tạo. Active clients: ${this.clients.size}`
+            );
         } catch (error) {
             console.error('❌ Lỗi khởi tạo sessions:', error);
         }
@@ -772,8 +920,10 @@ class TelegramClientService {
     async healthCheck() {
         try {
             const status = this.disabled ? 'disabled' : 'healthy';
-            const message = this.disabled ? 'API credentials not configured' : 'Service ready';
-            
+            const message = this.disabled
+                ? 'API credentials not configured'
+                : 'Service ready';
+
             return {
                 service: 'TelegramClientService',
                 status: status,
@@ -782,14 +932,14 @@ class TelegramClientService {
                 apiId: this.apiId ? 'configured' : 'missing',
                 apiHash: this.apiHash ? 'configured' : 'missing',
                 configured: this.isConfigured,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         } catch (error) {
             return {
                 service: 'TelegramClientService',
                 status: 'unhealthy',
                 error: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         }
     }

@@ -11,7 +11,7 @@ class AuthManager {
             password: document.getElementById('password'),
             loginBtn: document.getElementById('loginBtn'),
             errorMessage: document.getElementById('errorMessage'),
-            successMessage: document.getElementById('successMessage')
+            successMessage: document.getElementById('successMessage'),
         };
 
         this.setupLoginEvents();
@@ -28,7 +28,7 @@ class AuthManager {
             confirmPassword: document.getElementById('confirmPassword'),
             registerBtn: document.getElementById('registerBtn'),
             errorMessage: document.getElementById('errorMessage'),
-            successMessage: document.getElementById('successMessage')
+            successMessage: document.getElementById('successMessage'),
         };
 
         this.setupRegisterEvents();
@@ -44,7 +44,7 @@ class AuthManager {
             confirm_password: document.getElementById('confirm_password'),
             resetBtn: document.getElementById('resetBtn'),
             errorMessage: document.getElementById('errorMessage'),
-            successMessage: document.getElementById('successMessage')
+            successMessage: document.getElementById('successMessage'),
         };
 
         this.setupForgotPasswordEvents();
@@ -53,7 +53,7 @@ class AuthManager {
 
     setupLoginEvents() {
         if (this.elements.form) {
-            this.elements.form.addEventListener('submit', async (e) => {
+            this.elements.form.addEventListener('submit', async e => {
                 e.preventDefault();
                 await this.handleLogin();
             });
@@ -61,14 +61,14 @@ class AuthManager {
     }
 
     setupRegisterEvents() {
-        this.elements.form.addEventListener('submit', async (e) => {
+        this.elements.form.addEventListener('submit', async e => {
             e.preventDefault();
             await this.handleRegister();
         });
     }
 
     setupForgotPasswordEvents() {
-        this.elements.form.addEventListener('submit', async (e) => {
+        this.elements.form.addEventListener('submit', async e => {
             e.preventDefault();
             await this.handleForgotPassword();
         });
@@ -82,11 +82,25 @@ class AuthManager {
         if (/[A-Z]/.test(password)) strength++;
         if (/[0-9]/.test(password)) strength++;
         if (/[^A-Za-z0-9]/.test(password)) strength++;
-        
+
         return {
             score: strength,
-            class: strength <= 1 ? 'weak' : strength <= 2 ? 'fair' : strength <= 3 ? 'good' : 'strong',
-            text: strength <= 1 ? 'Yếu' : strength <= 2 ? 'Trung bình' : strength <= 3 ? 'Tốt' : 'Mạnh'
+            class:
+                strength <= 1
+                    ? 'weak'
+                    : strength <= 2
+                      ? 'fair'
+                      : strength <= 3
+                        ? 'good'
+                        : 'strong',
+            text:
+                strength <= 1
+                    ? 'Yếu'
+                    : strength <= 2
+                      ? 'Trung bình'
+                      : strength <= 3
+                        ? 'Tốt'
+                        : 'Mạnh',
         };
     }
 
@@ -127,7 +141,8 @@ class AuthManager {
                     message = 'Vui lòng nhập số điện thoại Telegram';
                 } else if (!/^\+\d{10,15}$/.test(value)) {
                     isValid = false;
-                    message = 'Số điện thoại phải bắt đầu bằng + và có 10-15 chữ số';
+                    message =
+                        'Số điện thoại phải bắt đầu bằng + và có 10-15 chữ số';
                 } else {
                     message = 'Số điện thoại hợp lệ ✓';
                 }
@@ -143,10 +158,13 @@ class AuthManager {
                 } else {
                     const strength = this.checkPasswordStrength(value);
                     message = `Độ mạnh: ${strength.text}`;
-                    
+
                     // Update password strength indicator
-                    const strengthBar = document.getElementById('passwordStrengthBar');
-                    const strengthContainer = document.getElementById('passwordStrength');
+                    const strengthBar = document.getElementById(
+                        'passwordStrengthBar'
+                    );
+                    const strengthContainer =
+                        document.getElementById('passwordStrength');
                     if (strengthBar && strengthContainer) {
                         strengthContainer.style.display = 'block';
                         strengthBar.className = `password-strength-bar ${strength.class}`;
@@ -155,7 +173,8 @@ class AuthManager {
                 break;
 
             case 'confirmPassword':
-                const originalPassword = document.getElementById('password').value;
+                const originalPassword =
+                    document.getElementById('password').value;
                 if (!value) {
                     isValid = false;
                     message = 'Vui lòng xác nhận mật khẩu';
@@ -175,15 +194,15 @@ class AuthManager {
     updateFieldValidation(field, isValid, message) {
         const formGroup = field.closest('.form-group');
         const messageElement = formGroup.querySelector('.validation-message');
-        
+
         // Remove existing classes
         formGroup.classList.remove('valid', 'invalid');
-        
+
         // Add appropriate class
         if (field.value) {
             formGroup.classList.add(isValid ? 'valid' : 'invalid');
         }
-        
+
         // Update message
         if (messageElement && message) {
             messageElement.textContent = message;
@@ -196,7 +215,7 @@ class AuthManager {
 
     setupFormValidation() {
         const inputs = this.elements.form.querySelectorAll('input');
-        
+
         inputs.forEach(input => {
             // Real-time validation on input
             input.addEventListener('input', () => {
@@ -204,16 +223,18 @@ class AuthManager {
                     this.validateField(input, input.value);
                 }
             });
-            
+
             // Validation on blur
             input.addEventListener('blur', () => {
                 this.validateField(input, input.value);
             });
-            
+
             // Remove validation classes on focus
             input.addEventListener('focus', () => {
                 const formGroup = input.closest('.form-group');
-                const messageElement = formGroup.querySelector('.validation-message');
+                const messageElement = formGroup.querySelector(
+                    '.validation-message'
+                );
                 if (messageElement && !input.value) {
                     messageElement.style.display = 'none';
                     formGroup.classList.remove('valid', 'invalid');
@@ -227,14 +248,14 @@ class AuthManager {
 
     setupPasswordToggle() {
         const toggleButtons = document.querySelectorAll('.password-toggle');
-        
-        toggleButtons.forEach((button) => {
-            button.addEventListener('click', (e) => {
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', e => {
                 e.preventDefault();
-                
+
                 const input = button.parentElement.querySelector('input');
                 const icon = button.querySelector('i');
-                
+
                 if (input && icon) {
                     if (input.type === 'password') {
                         input.type = 'text';
@@ -258,7 +279,7 @@ class AuthManager {
             // Get values directly from elements instead of FormData
             const loginData = {
                 username: this.elements.username.value.trim(),
-                password: this.elements.password.value
+                password: this.elements.password.value,
             };
 
             // Validate data
@@ -277,17 +298,19 @@ class AuthManager {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(loginData),
-                credentials: 'include'
+                credentials: 'include',
             });
 
             const result = await response.json();
 
             if (response.ok && result.success) {
-                this.showSuccess('🎉 Đăng nhập thành công! Đang chuyển hướng...');
-                
+                this.showSuccess(
+                    '🎉 Đăng nhập thành công! Đang chuyển hướng...'
+                );
+
                 console.log('Login successful, redirecting to home page...');
                 setTimeout(() => {
                     console.log('Executing redirect...');
@@ -309,43 +332,61 @@ class AuthManager {
             console.log('handleRegister called');
             console.log('Form elements:', this.elements);
             console.log('Form:', this.elements.form);
-            
+
             this.setLoading(true);
             this.hideMessages();
 
             const formData = new FormData(this.elements.form);
-            
+
             // Debug FormData
             console.log('FormData entries:');
             for (let [key, value] of formData.entries()) {
                 console.log(`${key}:`, value);
             }
-            
+
             const registerData = {
-                username: (formData.get('username') || this.elements.username.value || '').trim(),
-                email: (formData.get('email') || this.elements.email.value || '').trim() || null,
-                password: formData.get('password') || this.elements.password.value || '',
-                telegram_phone: (formData.get('telegram_phone') || this.elements.telegram_phone.value || '').trim()
+                username: (
+                    formData.get('username') ||
+                    this.elements.username.value ||
+                    ''
+                ).trim(),
+                email:
+                    (
+                        formData.get('email') ||
+                        this.elements.email.value ||
+                        ''
+                    ).trim() || null,
+                password:
+                    formData.get('password') ||
+                    this.elements.password.value ||
+                    '',
+                telegram_phone: (
+                    formData.get('telegram_phone') ||
+                    this.elements.telegram_phone.value ||
+                    ''
+                ).trim(),
             };
 
             console.log('Raw data from form:', {
                 username_raw: formData.get('username'),
                 password_raw: formData.get('password'),
-                telegram_phone_raw: formData.get('telegram_phone')
+                telegram_phone_raw: formData.get('telegram_phone'),
             });
 
             // Alternative way to get values
             console.log('Alternative way:', {
                 username_alt: this.elements.username.value,
                 password_alt: this.elements.password.value,
-                telegram_phone_alt: this.elements.telegram_phone.value
+                telegram_phone_alt: this.elements.telegram_phone.value,
             });
 
             console.log('Processed register data:', {
                 username: registerData.username,
                 email: registerData.email,
-                password: registerData.password ? `[${registerData.password.length} chars]` : 'EMPTY/NULL',
-                telegram_phone: registerData.telegram_phone
+                password: registerData.password
+                    ? `[${registerData.password.length} chars]`
+                    : 'EMPTY/NULL',
+                telegram_phone: registerData.telegram_phone,
             });
 
             // Validation
@@ -370,7 +411,9 @@ class AuthManager {
                 return;
             }
             if (!/^\+\d{10,15}$/.test(registerData.telegram_phone)) {
-                this.showError('Số điện thoại phải bắt đầu bằng + và có 10-15 chữ số');
+                this.showError(
+                    'Số điện thoại phải bắt đầu bằng + và có 10-15 chữ số'
+                );
                 this.setLoading(false);
                 return;
             }
@@ -386,39 +429,41 @@ class AuthManager {
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(registerData),
-                credentials: 'include'
+                credentials: 'include',
             });
 
             const result = await response.json();
 
             if (response.ok && result.success) {
                 this.showSuccess('🎉 Đăng ký thành công! Đăng nhập tự động...');
-                
+
                 // Đăng nhập tự động sau khi đăng ký thành công
                 setTimeout(async () => {
                     try {
                         const loginResponse = await fetch('/api/auth/login', {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json'
+                                'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
                                 username: registerData.username,
-                                password: registerData.password
+                                password: registerData.password,
                             }),
-                            credentials: 'include'
+                            credentials: 'include',
                         });
 
                         const loginResult = await loginResponse.json();
-                        
+
                         if (loginResponse.ok && loginResult.success) {
                             window.location.href = '/';
                         } else {
                             // Nếu auto login fail, redirect đến login page
-                            this.showError('Đăng ký thành công! Vui lòng đăng nhập.');
+                            this.showError(
+                                'Đăng ký thành công! Vui lòng đăng nhập.'
+                            );
                             setTimeout(() => {
                                 window.location.href = '/login';
                             }, 2000);
@@ -449,7 +494,7 @@ class AuthManager {
                 identifier: formData.get('identifier')?.trim(),
                 telegram_phone: formData.get('telegram_phone')?.trim(),
                 new_password: formData.get('new_password'),
-                confirm_password: formData.get('confirm_password')
+                confirm_password: formData.get('confirm_password'),
             };
 
             // Validation
@@ -477,21 +522,23 @@ class AuthManager {
             const response = await fetch('/api/auth/reset-password', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     identifier: resetData.identifier,
                     telegram_phone: resetData.telegram_phone,
-                    new_password: resetData.new_password
+                    new_password: resetData.new_password,
                 }),
-                credentials: 'include'
+                credentials: 'include',
             });
 
             const result = await response.json();
 
             if (response.ok && result.success) {
-                this.showSuccess('🎉 Đặt lại mật khẩu thành công! Đang chuyển hướng...');
-                
+                this.showSuccess(
+                    '🎉 Đặt lại mật khẩu thành công! Đang chuyển hướng...'
+                );
+
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 2000);
@@ -507,7 +554,10 @@ class AuthManager {
     }
 
     setLoading(loading) {
-        const button = this.elements.loginBtn || this.elements.registerBtn || this.elements.resetBtn;
+        const button =
+            this.elements.loginBtn ||
+            this.elements.registerBtn ||
+            this.elements.resetBtn;
         const btnText = button?.querySelector('.btn-text');
         const btnLoading = button?.querySelector('.btn-loading');
         const inputs = this.elements.form.querySelectorAll('input, button');
@@ -516,12 +566,12 @@ class AuthManager {
             if (button) button.disabled = true;
             if (btnText) btnText.style.display = 'none';
             if (btnLoading) btnLoading.style.display = 'flex';
-            inputs.forEach(input => input.disabled = true);
+            inputs.forEach(input => (input.disabled = true));
         } else {
             if (button) button.disabled = false;
             if (btnText) btnText.style.display = 'inline';
             if (btnLoading) btnLoading.style.display = 'none';
-            inputs.forEach(input => input.disabled = false);
+            inputs.forEach(input => (input.disabled = false));
         }
     }
 
@@ -529,12 +579,12 @@ class AuthManager {
         const errorDiv = this.elements.errorMessage;
         errorDiv.innerHTML = `<div class="message error">${message}</div>`;
         errorDiv.style.display = 'block';
-        
+
         const successDiv = this.elements.successMessage;
         if (successDiv) {
             successDiv.style.display = 'none';
         }
-        
+
         // Auto hide after 5 seconds
         setTimeout(() => {
             this.hideMessages();
@@ -545,7 +595,7 @@ class AuthManager {
         const successDiv = this.elements.successMessage;
         successDiv.innerHTML = `<div class="message success">${message}</div>`;
         successDiv.style.display = 'block';
-        
+
         const errorDiv = this.elements.errorMessage;
         if (errorDiv) {
             errorDiv.style.display = 'none';
@@ -565,9 +615,9 @@ class AuthManager {
     static async checkAuth() {
         try {
             const response = await fetch('/api/auth/me', {
-                credentials: 'include'
+                credentials: 'include',
             });
-            
+
             if (response.ok) {
                 const result = await response.json();
                 return result.user;
@@ -584,9 +634,9 @@ class AuthManager {
         try {
             const response = await fetch('/api/auth/logout', {
                 method: 'POST',
-                credentials: 'include'
+                credentials: 'include',
             });
-            
+
             if (response.ok) {
                 window.location.href = '/login';
             }

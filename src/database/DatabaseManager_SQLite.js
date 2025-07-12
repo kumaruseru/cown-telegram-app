@@ -5,7 +5,8 @@ const fs = require('fs');
 class DatabaseManager {
     constructor() {
         // Đường dẫn database
-        this.dbPath = process.env.DB_PATH || path.join(__dirname, '../../data/cown.db');
+        this.dbPath =
+            process.env.DB_PATH || path.join(__dirname, '../../data/cown.db');
         this.db = null;
     }
 
@@ -18,7 +19,7 @@ class DatabaseManager {
             }
 
             // Kết nối SQLite
-            this.db = new sqlite3.Database(this.dbPath, (err) => {
+            this.db = new sqlite3.Database(this.dbPath, err => {
                 if (err) {
                     console.error('❌ Lỗi kết nối SQLite:', err);
                     throw err;
@@ -28,7 +29,7 @@ class DatabaseManager {
 
             // Enable foreign keys
             await this.run('PRAGMA foreign_keys = ON');
-            
+
             // Tạo tables
             await this.createTables();
             console.log('✅ Database SQLite đã được khởi tạo thành công');
@@ -41,7 +42,7 @@ class DatabaseManager {
     // Wrapper cho sqlite3 để sử dụng Promise
     run(sql, params = []) {
         return new Promise((resolve, reject) => {
-            this.db.run(sql, params, function(err) {
+            this.db.run(sql, params, function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -171,15 +172,33 @@ class DatabaseManager {
             `);
 
             // Indexes cho performance
-            await this.run('CREATE INDEX IF NOT EXISTS idx_users_telegram_phone ON users(telegram_phone)');
-            await this.run('CREATE INDEX IF NOT EXISTS idx_users_phone_number ON users(phone_number)');
-            await this.run('CREATE INDEX IF NOT EXISTS idx_otp_codes_phone ON otp_codes(phone_number)');
-            await this.run('CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token)');
-            await this.run('CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)');
-            await this.run('CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id)');
-            await this.run('CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id)');
-            await this.run('CREATE INDEX IF NOT EXISTS idx_conversation_participants_conv ON conversation_participants(conversation_id)');
-            await this.run('CREATE INDEX IF NOT EXISTS idx_conversation_participants_user ON conversation_participants(user_id)');
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_users_telegram_phone ON users(telegram_phone)'
+            );
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_users_phone_number ON users(phone_number)'
+            );
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_otp_codes_phone ON otp_codes(phone_number)'
+            );
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token)'
+            );
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)'
+            );
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id)'
+            );
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id)'
+            );
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_conversation_participants_conv ON conversation_participants(conversation_id)'
+            );
+            await this.run(
+                'CREATE INDEX IF NOT EXISTS idx_conversation_participants_user ON conversation_participants(user_id)'
+            );
 
             console.log('✅ Tất cả bảng SQLite đã được tạo thành công');
         } catch (error) {
@@ -198,18 +217,26 @@ class DatabaseManager {
                 telegram_last_name,
                 telegram_phone,
                 phone_number,
-                country_code = '+84'
+                country_code = '+84',
             } = userData;
 
-            const result = await this.run(`
+            const result = await this.run(
+                `
                 INSERT INTO users (
                     telegram_id, telegram_username, telegram_first_name, 
                     telegram_last_name, telegram_phone, phone_number, country_code
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            `, [
-                telegram_id, telegram_username, telegram_first_name,
-                telegram_last_name, telegram_phone, phone_number, country_code
-            ]);
+            `,
+                [
+                    telegram_id,
+                    telegram_username,
+                    telegram_first_name,
+                    telegram_last_name,
+                    telegram_phone,
+                    phone_number,
+                    country_code,
+                ]
+            );
 
             return result.lastID;
         } catch (error) {
@@ -220,10 +247,13 @@ class DatabaseManager {
 
     async createPhoneUser(phoneNumber, countryCode = '+84') {
         try {
-            const result = await this.run(`
+            const result = await this.run(
+                `
                 INSERT INTO users (telegram_phone, phone_number, country_code) 
                 VALUES (?, ?, ?)
-            `, [phoneNumber, phoneNumber, countryCode]);
+            `,
+                [phoneNumber, phoneNumber, countryCode]
+            );
 
             return result.lastID;
         } catch (error) {
@@ -243,7 +273,9 @@ class DatabaseManager {
 
     async getUserByTelegramId(telegramId) {
         try {
-            return await this.get('SELECT * FROM users WHERE telegram_id = ?', [telegramId]);
+            return await this.get('SELECT * FROM users WHERE telegram_id = ?', [
+                telegramId,
+            ]);
         } catch (error) {
             console.error('❌ Lỗi lấy user by Telegram ID:', error);
             throw error;
@@ -252,7 +284,10 @@ class DatabaseManager {
 
     async getUserByPhone(phoneNumber) {
         try {
-            return await this.get('SELECT * FROM users WHERE telegram_phone = ?', [phoneNumber]);
+            return await this.get(
+                'SELECT * FROM users WHERE telegram_phone = ?',
+                [phoneNumber]
+            );
         } catch (error) {
             console.error('❌ Lỗi lấy user by phone:', error);
             throw error;
@@ -263,25 +298,28 @@ class DatabaseManager {
         try {
             const fields = [];
             const values = [];
-            
+
             for (const [key, value] of Object.entries(userData)) {
                 if (value !== undefined && key !== 'id') {
                     fields.push(`${key} = ?`);
                     values.push(value);
                 }
             }
-            
+
             if (fields.length === 0) {
                 return false;
             }
-            
+
             values.push(id);
-            
-            const result = await this.run(`
+
+            const result = await this.run(
+                `
                 UPDATE users 
                 SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP 
                 WHERE id = ?
-            `, values);
+            `,
+                values
+            );
 
             return result.changes > 0;
         } catch (error) {
@@ -309,14 +347,24 @@ class DatabaseManager {
     }
 
     // OTP methods
-    async createOTP(phoneNumber, code, method = 'telegram', expiresInMinutes = 5) {
+    async createOTP(
+        phoneNumber,
+        code,
+        method = 'telegram',
+        expiresInMinutes = 5
+    ) {
         try {
-            const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
-            
-            const result = await this.run(`
+            const expiresAt = new Date(
+                Date.now() + expiresInMinutes * 60 * 1000
+            );
+
+            const result = await this.run(
+                `
                 INSERT INTO otp_codes (phone_number, code, method, expires_at) 
                 VALUES (?, ?, ?, ?)
-            `, [phoneNumber, code, method, expiresAt.toISOString()]);
+            `,
+                [phoneNumber, code, method, expiresAt.toISOString()]
+            );
 
             return result.lastID;
         } catch (error) {
@@ -327,12 +375,15 @@ class DatabaseManager {
 
     async getValidOTP(phoneNumber, code) {
         try {
-            return await this.get(`
+            return await this.get(
+                `
                 SELECT * FROM otp_codes 
                 WHERE phone_number = ? AND code = ? AND used = 0 AND expires_at > CURRENT_TIMESTAMP
                 ORDER BY created_at DESC 
                 LIMIT 1
-            `, [phoneNumber, code]);
+            `,
+                [phoneNumber, code]
+            );
         } catch (error) {
             console.error('❌ Lỗi lấy OTP:', error);
             throw error;
@@ -341,7 +392,10 @@ class DatabaseManager {
 
     async markOTPUsed(id) {
         try {
-            const result = await this.run('UPDATE otp_codes SET used = 1 WHERE id = ?', [id]);
+            const result = await this.run(
+                'UPDATE otp_codes SET used = 1 WHERE id = ?',
+                [id]
+            );
             return result.changes > 0;
         } catch (error) {
             console.error('❌ Lỗi đánh dấu OTP đã sử dụng:', error);
@@ -351,7 +405,9 @@ class DatabaseManager {
 
     async cleanupExpiredOTP() {
         try {
-            const result = await this.run('DELETE FROM otp_codes WHERE expires_at <= CURRENT_TIMESTAMP');
+            const result = await this.run(
+                'DELETE FROM otp_codes WHERE expires_at <= CURRENT_TIMESTAMP'
+            );
             return result.changes;
         } catch (error) {
             console.error('❌ Lỗi dọn dẹp OTP hết hạn:', error);
@@ -362,12 +418,17 @@ class DatabaseManager {
     // Session methods
     async createSession(userId, sessionToken, expiresInDays = 30) {
         try {
-            const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
-            
-            const result = await this.run(`
+            const expiresAt = new Date(
+                Date.now() + expiresInDays * 24 * 60 * 60 * 1000
+            );
+
+            const result = await this.run(
+                `
                 INSERT INTO sessions (user_id, session_token, expires_at) 
                 VALUES (?, ?, ?)
-            `, [userId, sessionToken, expiresAt.toISOString()]);
+            `,
+                [userId, sessionToken, expiresAt.toISOString()]
+            );
 
             return result.lastID;
         } catch (error) {
@@ -378,11 +439,14 @@ class DatabaseManager {
 
     async getSessionByToken(sessionToken) {
         try {
-            return await this.get(`
+            return await this.get(
+                `
                 SELECT s.*, u.* FROM sessions s 
                 JOIN users u ON s.user_id = u.id 
                 WHERE s.session_token = ? AND s.expires_at > CURRENT_TIMESTAMP
-            `, [sessionToken]);
+            `,
+                [sessionToken]
+            );
         } catch (error) {
             console.error('❌ Lỗi lấy session:', error);
             throw error;
@@ -391,7 +455,10 @@ class DatabaseManager {
 
     async deleteSession(sessionToken) {
         try {
-            const result = await this.run('DELETE FROM sessions WHERE session_token = ?', [sessionToken]);
+            const result = await this.run(
+                'DELETE FROM sessions WHERE session_token = ?',
+                [sessionToken]
+            );
             return result.changes > 0;
         } catch (error) {
             console.error('❌ Lỗi xóa session:', error);
@@ -401,7 +468,9 @@ class DatabaseManager {
 
     async cleanupExpiredSessions() {
         try {
-            const result = await this.run('DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP');
+            const result = await this.run(
+                'DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP'
+            );
             return result.changes;
         } catch (error) {
             console.error('❌ Lỗi dọn dẹp session hết hạn:', error);
@@ -412,12 +481,21 @@ class DatabaseManager {
     // Conversation methods
     async createConversation(conversationData) {
         try {
-            const { type = 'private', name, description, avatar_url, created_by } = conversationData;
-            
-            const result = await this.run(`
+            const {
+                type = 'private',
+                name,
+                description,
+                avatar_url,
+                created_by,
+            } = conversationData;
+
+            const result = await this.run(
+                `
                 INSERT INTO conversations (type, name, description, avatar_url, created_by) 
                 VALUES (?, ?, ?, ?, ?)
-            `, [type, name, description, avatar_url, created_by]);
+            `,
+                [type, name, description, avatar_url, created_by]
+            );
 
             return result.lastID;
         } catch (error) {
@@ -428,7 +506,9 @@ class DatabaseManager {
 
     async getConversationById(id) {
         try {
-            return await this.get('SELECT * FROM conversations WHERE id = ?', [id]);
+            return await this.get('SELECT * FROM conversations WHERE id = ?', [
+                id,
+            ]);
         } catch (error) {
             console.error('❌ Lỗi lấy conversation:', error);
             throw error;
@@ -437,13 +517,16 @@ class DatabaseManager {
 
     async getUserConversations(userId) {
         try {
-            return await this.all(`
+            return await this.all(
+                `
                 SELECT c.*, cp.role, cp.joined_at 
                 FROM conversations c
                 JOIN conversation_participants cp ON c.id = cp.conversation_id
                 WHERE cp.user_id = ?
                 ORDER BY c.updated_at DESC
-            `, [userId]);
+            `,
+                [userId]
+            );
         } catch (error) {
             console.error('❌ Lỗi lấy conversations của user:', error);
             throw error;
@@ -452,10 +535,13 @@ class DatabaseManager {
 
     async addParticipant(conversationId, userId, role = 'member') {
         try {
-            const result = await this.run(`
+            const result = await this.run(
+                `
                 INSERT OR IGNORE INTO conversation_participants (conversation_id, user_id, role) 
                 VALUES (?, ?, ?)
-            `, [conversationId, userId, role]);
+            `,
+                [conversationId, userId, role]
+            );
 
             return result.changes > 0;
         } catch (error) {
@@ -475,25 +561,37 @@ class DatabaseManager {
                 file_url,
                 file_name,
                 file_size,
-                reply_to_id
+                reply_to_id,
             } = messageData;
 
-            const result = await this.run(`
+            const result = await this.run(
+                `
                 INSERT INTO messages (
                     conversation_id, sender_id, content, message_type,
                     file_url, file_name, file_size, reply_to_id
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `, [
-                conversation_id, sender_id, content, message_type,
-                file_url, file_name, file_size, reply_to_id
-            ]);
+            `,
+                [
+                    conversation_id,
+                    sender_id,
+                    content,
+                    message_type,
+                    file_url,
+                    file_name,
+                    file_size,
+                    reply_to_id,
+                ]
+            );
 
             // Update conversation updated_at
-            await this.run(`
+            await this.run(
+                `
                 UPDATE conversations 
                 SET updated_at = CURRENT_TIMESTAMP 
                 WHERE id = ?
-            `, [conversation_id]);
+            `,
+                [conversation_id]
+            );
 
             return result.lastID;
         } catch (error) {
@@ -504,14 +602,17 @@ class DatabaseManager {
 
     async getConversationMessages(conversationId, limit = 50, offset = 0) {
         try {
-            return await this.all(`
+            return await this.all(
+                `
                 SELECT m.*, u.telegram_username, u.telegram_first_name, u.telegram_last_name
                 FROM messages m
                 JOIN users u ON m.sender_id = u.id
                 WHERE m.conversation_id = ? AND m.is_deleted = 0
                 ORDER BY m.created_at DESC
                 LIMIT ? OFFSET ?
-            `, [conversationId, limit, offset]);
+            `,
+                [conversationId, limit, offset]
+            );
         } catch (error) {
             console.error('❌ Lỗi lấy messages:', error);
             throw error;
@@ -531,9 +632,9 @@ class DatabaseManager {
 
     // Close connection
     async close() {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             if (this.db) {
-                this.db.close((err) => {
+                this.db.close(err => {
                     if (err) {
                         console.error('❌ Lỗi đóng database:', err);
                     } else {
@@ -554,7 +655,7 @@ class DatabaseManager {
         if (!this.db) {
             throw new Error('Database not initialized');
         }
-        
+
         // Simple query to test connection
         await this.get('SELECT 1 as test');
         return true;
@@ -566,24 +667,26 @@ class DatabaseManager {
     async healthCheck() {
         try {
             await this.testConnection();
-            
+
             // Get some basic stats
-            const userCount = await this.get('SELECT COUNT(*) as count FROM users');
-            
+            const userCount = await this.get(
+                'SELECT COUNT(*) as count FROM users'
+            );
+
             return {
                 service: 'DatabaseManager',
                 status: 'healthy',
                 type: 'SQLite',
                 path: this.dbPath,
                 userCount: userCount?.count || 0,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         } catch (error) {
             return {
                 service: 'DatabaseManager',
                 status: 'unhealthy',
                 error: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         }
     }

@@ -12,7 +12,7 @@ class BotConfigService extends BaseService {
             token: null,
             username: null,
             webhookUrl: null,
-            isConfigured: false
+            isConfigured: false,
         };
     }
 
@@ -29,8 +29,8 @@ class BotConfigService extends BaseService {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'User-Agent': 'Cown-Telegram-App/1.0'
-                }
+                    'User-Agent': 'Cown-Telegram-App/1.0',
+                },
             };
 
             if (data && method !== 'GET') {
@@ -38,20 +38,23 @@ class BotConfigService extends BaseService {
                 options.headers['Content-Length'] = Buffer.byteLength(postData);
             }
 
-            const req = https.request(options, (res) => {
+            const req = https.request(options, res => {
                 let responseData = '';
-                res.on('data', (chunk) => responseData += chunk);
+                res.on('data', chunk => (responseData += chunk));
                 res.on('end', () => {
                     try {
                         const parsed = JSON.parse(responseData);
                         resolve(parsed);
                     } catch (error) {
-                        resolve({ ok: false, description: 'Invalid JSON response' });
+                        resolve({
+                            ok: false,
+                            description: 'Invalid JSON response',
+                        });
                     }
                 });
             });
 
-            req.on('error', (error) => {
+            req.on('error', error => {
                 reject(error);
             });
 
@@ -78,11 +81,16 @@ class BotConfigService extends BaseService {
         this.config.token = process.env.TELEGRAM_BOT_TOKEN;
         this.config.username = process.env.TELEGRAM_BOT_USERNAME;
         this.config.webhookUrl = process.env.TELEGRAM_WEBHOOK_URL;
-        
-        this.config.isConfigured = !!(this.config.token && this.config.username);
-        
+
+        this.config.isConfigured = !!(
+            this.config.token && this.config.username
+        );
+
         if (!this.config.isConfigured) {
-            this.log('warn', 'Bot not configured. Some features will be disabled.');
+            this.log(
+                'warn',
+                'Bot not configured. Some features will be disabled.'
+            );
         } else {
             this.log('info', `Bot configured: @${this.config.username}`);
         }
@@ -96,17 +104,19 @@ class BotConfigService extends BaseService {
             if (newConfig.token) {
                 this.config.token = newConfig.token;
             }
-            
+
             if (newConfig.username) {
                 this.config.username = newConfig.username;
             }
-            
+
             if (newConfig.webhookUrl !== undefined) {
                 this.config.webhookUrl = newConfig.webhookUrl;
             }
-            
-            this.config.isConfigured = !!(this.config.token && this.config.username);
-            
+
+            this.config.isConfigured = !!(
+                this.config.token && this.config.username
+            );
+
             this.log('info', 'Bot configuration updated successfully');
             return { success: true };
         } catch (error) {
@@ -172,13 +182,15 @@ class BotConfigService extends BaseService {
 
             await this.updateConfiguration({
                 token: token,
-                username: username
+                username: username,
             });
 
             // Test the configuration
             const testResult = await this.testConfiguration();
             if (!testResult.success) {
-                throw new Error('Bot configuration test failed: ' + testResult.error);
+                throw new Error(
+                    'Bot configuration test failed: ' + testResult.error
+                );
             }
 
             this.log('info', 'Bot setup completed successfully');
@@ -198,10 +210,15 @@ class BotConfigService extends BaseService {
                 return { success: false, error: 'No bot token configured' };
             }
 
-            const data = await this.makeRequest(`https://api.telegram.org/bot${this.config.token}/getMe`);
+            const data = await this.makeRequest(
+                `https://api.telegram.org/bot${this.config.token}/getMe`
+            );
 
             if (!data.ok) {
-                return { success: false, error: data.description || 'Bot API error' };
+                return {
+                    success: false,
+                    error: data.description || 'Bot API error',
+                };
             }
 
             return {
@@ -211,9 +228,11 @@ class BotConfigService extends BaseService {
                     username: data.result.username,
                     first_name: data.result.first_name,
                     can_join_groups: data.result.can_join_groups,
-                    can_read_all_group_messages: data.result.can_read_all_group_messages,
-                    supports_inline_queries: data.result.supports_inline_queries
-                }
+                    can_read_all_group_messages:
+                        data.result.can_read_all_group_messages,
+                    supports_inline_queries:
+                        data.result.supports_inline_queries,
+                },
             };
         } catch (error) {
             return { success: false, error: error.message };
@@ -228,40 +247,40 @@ class BotConfigService extends BaseService {
             steps: [
                 {
                     step: 1,
-                    title: "Tạo Bot mới",
-                    description: "Mở Telegram và tìm @BotFather",
-                    action: "Gửi lệnh /newbot"
+                    title: 'Tạo Bot mới',
+                    description: 'Mở Telegram và tìm @BotFather',
+                    action: 'Gửi lệnh /newbot',
                 },
                 {
                     step: 2,
-                    title: "Đặt tên Bot",
-                    description: "Nhập tên hiển thị cho bot của bạn",
-                    example: "Cown Telegram Bot"
+                    title: 'Đặt tên Bot',
+                    description: 'Nhập tên hiển thị cho bot của bạn',
+                    example: 'Cown Telegram Bot',
                 },
                 {
                     step: 3,
-                    title: "Đặt username Bot",
+                    title: 'Đặt username Bot',
                     description: "Nhập username (phải kết thúc bằng 'bot')",
-                    example: "cown_telegram_bot"
+                    example: 'cown_telegram_bot',
                 },
                 {
                     step: 4,
-                    title: "Lấy Token",
-                    description: "BotFather sẽ cung cấp token API",
-                    example: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+                    title: 'Lấy Token',
+                    description: 'BotFather sẽ cung cấp token API',
+                    example: '123456789:ABCdefGHIjklMNOpqrsTUVwxyz',
                 },
                 {
                     step: 5,
-                    title: "Cập nhật cấu hình",
-                    description: "Nhập token vào Settings page",
-                    action: "Vào /settings để cấu hình"
-                }
+                    title: 'Cập nhật cấu hình',
+                    description: 'Nhập token vào Settings page',
+                    action: 'Vào /settings để cấu hình',
+                },
             ],
             links: {
-                botfather: "https://t.me/BotFather",
-                documentation: "https://core.telegram.org/bots/api",
-                settings: "/settings"
-            }
+                botfather: 'https://t.me/BotFather',
+                documentation: 'https://core.telegram.org/bots/api',
+                settings: '/settings',
+            },
         };
     }
 
@@ -275,25 +294,25 @@ class BotConfigService extends BaseService {
                     service: 'BotConfigService',
                     status: 'warning',
                     message: 'Bot not configured',
-                    configured: false
+                    configured: false,
                 };
             }
 
             const testResult = await this.testConfiguration();
-            
+
             return {
                 service: 'BotConfigService',
                 status: testResult.success ? 'healthy' : 'unhealthy',
                 configured: this.config.isConfigured,
                 bot: testResult.botInfo || null,
-                error: testResult.error || null
+                error: testResult.error || null,
             };
         } catch (error) {
             return {
                 service: 'BotConfigService',
                 status: 'unhealthy',
                 error: error.message,
-                configured: false
+                configured: false,
             };
         }
     }
