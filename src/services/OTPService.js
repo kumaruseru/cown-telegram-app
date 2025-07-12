@@ -7,6 +7,20 @@ class OTPService {
         this.otpStore = new Map(); // phoneNumber -> { otp, expiry, attempts }
         this.maxAttempts = 3;
         this.otpExpiry = 5 * 60 * 1000; // 5 minutes
+        
+        // Initialize Twilio if credentials are provided
+        this.twilioClient = null;
+        if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+            try {
+                const twilio = require('twilio');
+                this.twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+                console.log('✅ Twilio SMS service initialized');
+            } catch (error) {
+                console.warn('⚠️ Failed to initialize Twilio:', error.message);
+            }
+        } else {
+            console.log('ℹ️ Twilio credentials not provided, SMS will be mocked');
+        }
     }
 
     generateOTP() {
@@ -55,31 +69,49 @@ class OTPService {
                 console.log(`📨 Falling back to SMS for ${phoneNumber}`);
             }
 
+            // Track which method was used
+            let deliveryMethod = 'telegram';
+            let deliveryMessage = 'Mã OTP đã được gửi qua Telegram';
+
             // If Telegram failed, try SMS
             if (!sentViaTelegram) {
+                let sentViaSMS = false;
                 try {
                     await this.sendViaSMS(phoneNumber, otp);
+                    sentViaSMS = true;
+                    deliveryMethod = 'sms';
+                    deliveryMessage = 'Mã OTP đã được gửi qua SMS';
                     console.log(`✅ OTP sent via SMS to ${phoneNumber}`);
                 } catch (smsError) {
-                    console.error(`❌ Both Telegram and SMS failed for ${phoneNumber}`);
-                    console.error(`Telegram error: ${telegramError?.message}`);
+                    console.error(`❌ SMS failed, trying voice call for ${phoneNumber}`);
                     console.error(`SMS error: ${smsError.message}`);
                     
-                    // For development, still allow console log
-                    if (process.env.NODE_ENV === 'development') {
-                        console.log(`🔧 Development mode: OTP ${otp} logged to console`);
-                    } else {
-                        throw new Error('Không thể gửi mã OTP. Vui lòng thử lại sau.');
+                    // Try voice call as final fallback
+                    try {
+                        await this.sendViaVoiceCall(phoneNumber, otp);
+                        deliveryMethod = 'voice';
+                        deliveryMessage = 'Mã OTP đã được gửi qua cuộc gọi thoại';
+                        console.log(`✅ OTP sent via voice call to ${phoneNumber}`);
+                    } catch (voiceError) {
+                        console.error(`❌ All delivery methods failed for ${phoneNumber}`);
+                        console.error(`Voice error: ${voiceError.message}`);
+                        
+                        // For development, still allow console log
+                        if (process.env.NODE_ENV === 'development') {
+                            deliveryMethod = 'console';
+                            deliveryMessage = 'Mã OTP đã được hiển thị trong console (Development mode)';
+                            console.log(`🔧 Development mode: OTP ${otp} logged to console`);
+                        } else {
+                            throw new Error('Không thể gửi mã OTP. Vui lòng thử lại sau.');
+                        }
                     }
                 }
             }
 
             return {
                 success: true,
-                message: sentViaTelegram 
-                    ? 'Mã OTP đã được gửi qua Telegram' 
-                    : 'Mã OTP đã được gửi qua SMS',
-                method: sentViaTelegram ? 'telegram' : 'sms',
+                message: deliveryMessage,
+                method: deliveryMethod,
                 expiryTime: expiry,
                 // For development only - remove in production
                 devOTP: process.env.NODE_ENV === 'development' ? otp : undefined
@@ -127,20 +159,76 @@ class OTPService {
         return true;
     }
 
-    async sendViaSMS(phoneNumber, otp) {
-        // TODO: Integrate with real SMS service (Twilio, Vonage, etc.)
-        // For now, we'll simulate SMS sending
+    async sendViaVoiceCall(phoneNumber, otp) {
+        console.log(`📞 Making voice call to ${phoneNumber} with OTP: ${otp}`);
         
+        if (this.twilioClient && process.env.TWILIO_PHONE_NUMBER) {
+            try {
+                // Create TwiML for voice message
+                const message = `Xin chào! Mã xác thực Cown của bạn là: ${otp.split('').join(', ')}. Tôi nhắc lại, mã xác thực là: ${otp.split('').join(', ')}. Cảm ơn bạn!`;
+                
+                const twiml = `
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <Response>
+                        <Say voice="woman" language="vi-VN">${message}</Say>
+                        <Pause length="2"/>
+                        <Say voice="woman" language="vi-VN">${message}</Say>
+                    </Response>
+                `;
+                
+                const result = await this.twilioClient.calls.create({
+                    twiml: twiml,
+                    from: process.env.TWILIO_PHONE_NUMBER,
+                    to: phoneNumber
+                });
+                
+                console.log(`✅ Voice call initiated successfully via Twilio. SID: ${result.sid}`);
+                return true;
+            } catch (error) {
+                console.error(`❌ Twilio voice call failed: ${error.message}`);
+                throw new Error(`Không thể gọi điện: ${error.message}`);
+            }
+        } else {
+            // Fallback for development
+            console.log(`🔧 Development mode: Voice call would be made to ${phoneNumber} with OTP: ${otp}`);
+            
+            if (process.env.NODE_ENV === 'production') {
+                throw new Error('Voice call service not configured. Please set up Twilio credentials.');
+            }
+            
+            return true;
+        }
+    }
+
+    async sendViaSMS(phoneNumber, otp) {
         console.log(`📱 Sending SMS to ${phoneNumber}: Mã xác thực Cown: ${otp}. Có hiệu lực trong 5 phút.`);
         
-        // Simulate SMS API call
-        if (process.env.SMS_API_KEY && process.env.SMS_API_URL) {
-            // Example: await fetch(SMS_API_URL, { ... })
-            // throw new Error('SMS service integration needed');
+        if (this.twilioClient && process.env.TWILIO_PHONE_NUMBER) {
+            try {
+                const message = `Mã xác thực Cown: ${otp}. Có hiệu lực trong 5 phút. Đừng chia sẻ mã này với ai khác!`;
+                
+                const result = await this.twilioClient.messages.create({
+                    body: message,
+                    from: process.env.TWILIO_PHONE_NUMBER,
+                    to: phoneNumber
+                });
+                
+                console.log(`✅ SMS sent successfully via Twilio. SID: ${result.sid}`);
+                return true;
+            } catch (error) {
+                console.error(`❌ Twilio SMS failed: ${error.message}`);
+                throw new Error(`Không thể gửi SMS: ${error.message}`);
+            }
+        } else {
+            // Fallback for development or when Twilio is not configured
+            console.log(`🔧 Development mode: SMS would be sent to ${phoneNumber} with OTP: ${otp}`);
+            
+            if (process.env.NODE_ENV === 'production') {
+                throw new Error('SMS service not configured. Please set up Twilio credentials.');
+            }
+            
+            return true;
         }
-        
-        // For development, consider it sent
-        return true;
     }
 
     async verifyOTP(phoneNumber, providedOTP) {
