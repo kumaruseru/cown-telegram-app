@@ -26,5 +26,5 @@ ENV PORT=10000
 # Expose port
 EXPOSE 10000
 
-# Chạy test server đơn giản
-CMD ["node", "test-server.js"]
+# Chạy main server
+CMD ["node", "server.js"]

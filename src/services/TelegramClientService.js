@@ -19,16 +19,31 @@ class TelegramClientService {
         this.testDC = process.env.TELEGRAM_TEST_DC || '149.154.167.40:443';
         this.prodDC = process.env.TELEGRAM_PROD_DC || '149.154.167.50:443';
         
-        if (!this.apiId || !this.apiHash) {
-            throw new Error('❌ Telegram API credentials không được cấu hình trong .env file');
-        }
+        // Check credentials but don't crash app if missing
+        this.isConfigured = !!(this.apiId && this.apiHash);
         
-        console.log(`🔧 TelegramClientService khởi tạo với API ID: ${this.apiId}`);
-        console.log(`📡 Server: ${this.useTestDC ? 'Test' : 'Production'} DC`);
-        console.log(`🌐 DC Address: ${this.useTestDC ? this.testDC : this.prodDC}`);
+        if (!this.isConfigured) {
+            console.warn('⚠️ Telegram API credentials không được cấu hình - service sẽ hoạt động ở chế độ hạn chế');
+            this.disabled = true;
+        } else {
+            console.log(`🔧 TelegramClientService khởi tạo với API ID: ${this.apiId}`);
+            console.log(`📡 Server: ${this.useTestDC ? 'Test' : 'Production'} DC`);
+            console.log(`🌐 DC Address: ${this.useTestDC ? this.testDC : this.prodDC}`);
+            this.disabled = false;
+        }
+    }
+
+    /**
+     * Kiểm tra xem service có được cấu hình đúng không
+     */
+    checkConfigured() {
+        if (this.disabled) {
+            throw new Error('TelegramClientService chưa được cấu hình với API credentials hợp lệ');
+        }
     }
 
     async getUserClient(userId) {
+        this.checkConfigured();
         if (!this.clients.has(userId)) {
             return null;
         }
@@ -36,6 +51,7 @@ class TelegramClientService {
     }
 
     async initializeClientForUser(userId, apiId = null, apiHash = null) {
+        this.checkConfigured();
         try {
             // Lấy thông tin user từ database
             const user = await this.dbManager.getUserById(userId);
@@ -755,11 +771,17 @@ class TelegramClientService {
      */
     async healthCheck() {
         try {
+            const status = this.disabled ? 'disabled' : 'healthy';
+            const message = this.disabled ? 'API credentials not configured' : 'Service ready';
+            
             return {
                 service: 'TelegramClientService',
-                status: 'healthy',
+                status: status,
+                message: message,
                 activeClients: this.clients.size,
                 apiId: this.apiId ? 'configured' : 'missing',
+                apiHash: this.apiHash ? 'configured' : 'missing',
+                configured: this.isConfigured,
                 timestamp: new Date().toISOString()
             };
         } catch (error) {
