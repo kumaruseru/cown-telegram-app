@@ -5,15 +5,19 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:oop": "node server-oop.js",
     "dev": "nodemon server.js",
+    "dev:oop": "nodemon server-oop.js",
     "dev:network": "cross-env HOST=0.0.0.0 PORT=3001 nodemon server.js",
+    "dev:network:oop": "cross-env HOST=0.0.0.0 PORT=3001 nodemon server-oop.js",
     "dev:production": "cross-env NODE_ENV=production nodemon server.js",
+    "dev:production:oop": "cross-env NODE_ENV=production nodemon server-oop.js",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "test": "jest tests/",
     "test:watch": "jest tests/ --watch",
-    "lint": "eslint src/ public/ server.js",
-    "lint:fix": "eslint src/ public/ server.js --fix",
+    "lint": "eslint src/ public/ server.js server-oop.js",
+    "lint:fix": "eslint src/ public/ server.js server-oop.js --fix",
     "format": "prettier --write .",
     "clean": "rimraf node_modules/.cache dist/ build/",
     "optimize": "npm run clean && npm run build && npm run lint",
@@ -21,7 +25,8 @@
     "docker:run": "docker run -p 3000:3000 cown-telegram-app",
     "docker:compose": "docker-compose up -d",
     "docker:stop": "docker-compose down",
-    "deploy:render": "git push origin main"
+    "deploy:render": "git push origin main",
+    "migrate:oop": "node scripts/migrate-to-oop.js"
   },
   "keywords": [
     "telegram",
