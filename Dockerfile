@@ -17,10 +17,10 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S cown -u 1001
 
 # Sao chép package files trước để cache dependencies
-COPY package*.json ./
+COPY package.json ./
 
-# Install dependencies với optimization
-RUN npm ci --omit=dev --silent --no-audit --no-fund && \
+# Install dependencies với cách đơn giản hơn
+RUN npm install --production --silent --no-audit --no-fund && \
     npm cache clean --force
 
 # Sao chép source code
