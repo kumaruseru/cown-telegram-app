@@ -63,11 +63,11 @@ class WebController extends BaseController {
                 }
             }
             
-            // Not authenticated, serve login-phone.html directly
-            return res.sendFile(path.join(__dirname, '../../public/login-phone.html'));
+            // Not authenticated, serve index.html (homepage with login options)
+            return res.sendFile(path.join(__dirname, '../../public/index.html'));
         } catch (error) {
             this.log('error', 'Error in root handler:', error);
-            return res.sendFile(path.join(__dirname, '../../public/login-phone.html'));
+            return res.sendFile(path.join(__dirname, '../../public/index.html'));
         }
     }
 
@@ -75,14 +75,14 @@ class WebController extends BaseController {
      * Login redirect handler
      */
     async handleLoginRedirect(req, res) {
-        return res.redirect('/login-phone.html');
+        return res.redirect('/login-compact.html');
     }
 
     /**
      * Register redirect handler
      */
     async handleRegisterRedirect(req, res) {
-        return res.redirect('/login-phone.html');
+        return res.redirect('/login-compact.html');
     }
 
     /**
