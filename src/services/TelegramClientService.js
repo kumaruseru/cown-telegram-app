@@ -1,6 +1,5 @@
 const { TelegramApi } = require('telegram');
 const { StringSession } = require('telegram/sessions');
-const input = require('input');
 const fs = require('fs');
 const path = require('path');
 
