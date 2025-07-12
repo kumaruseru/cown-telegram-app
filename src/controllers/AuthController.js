@@ -17,9 +17,20 @@ class AuthController extends BaseController {
         this.registerRoute('post', '/api/auth/send-phone-otp', this.sendPhoneOTP.bind(this));
         this.registerRoute('post', '/api/auth/verify-phone-otp', this.verifyPhoneOTP.bind(this));
         
+        // Telegram authentication
+        this.registerRoute('get', '/api/auth/telegram/login', this.getTelegramLoginUrl.bind(this));
+        this.registerRoute('get', '/auth/telegram/login', this.getTelegramLoginUrl.bind(this)); // No API prefix for web
+        this.registerRoute('get', '/api/auth/telegram/callback', this.handleTelegramCallback.bind(this));
+        this.registerRoute('get', '/auth/telegram/callback', this.handleTelegramCallback.bind(this)); // No API prefix for web
+        this.registerRoute('post', '/api/auth/telegram/verify', this.verifyTelegramAuth.bind(this));
+        this.registerRoute('post', '/auth/telegram/verify', this.verifyTelegramAuth.bind(this)); // No API prefix for web
+        this.registerRoute('get', '/api/auth/telegram/status/:sessionId', this.getTelegramAuthStatus.bind(this));
+        this.registerRoute('get', '/auth/telegram/status', this.getTelegramAuthStatus.bind(this)); // No API prefix for web
+        
         // Token management
         this.registerRoute('post', '/api/auth/refresh-token', this.refreshToken.bind(this));
         this.registerRoute('post', '/api/auth/logout', this.logout.bind(this));
+        this.registerRoute('post', '/auth/logout', this.logout.bind(this)); // No API prefix for web
         
         // User info
         this.registerRoute('get', '/api/auth/me', this.getCurrentUser.bind(this), [this.requireAuth.bind(this)]);
@@ -73,8 +84,159 @@ class AuthController extends BaseController {
     }
 
     /**
-     * Verify phone OTP and login
+     * Get Telegram login URL
      */
+    async getTelegramLoginUrl(req, res) {
+        try {
+            const { redirectUrl } = req.query;
+            
+            const telegramAuthService = this.getService('telegramAuth');
+            const result = telegramAuthService.generateTelegramLoginUrl(redirectUrl);
+            
+            return this.sendSuccess(res, result, 'Telegram login URL generated');
+        } catch (error) {
+            this.log('error', 'Error generating Telegram login URL:', error);
+            return this.sendError(res, 'Failed to generate Telegram login URL', 500);
+        }
+    }
+
+    /**
+     * Handle Telegram callback (OAuth)
+     */
+    async handleTelegramCallback(req, res) {
+        try {
+            this.log('info', 'Received Telegram callback');
+            
+            const telegramAuthService = this.getService('telegramAuth');
+            const result = await telegramAuthService.handleTelegramCallback(req.query);
+            
+            if (result.success) {
+                // Set HTTP-only cookie
+                res.cookie('auth_token', result.token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    maxAge: result.expiresIn * 1000
+                });
+
+                // Redirect to app
+                return res.redirect('/app-main.html');
+            } else {
+                return res.redirect('/login-phone.html?error=telegram_auth_failed');
+            }
+        } catch (error) {
+            this.log('error', 'Error handling Telegram callback:', error);
+            return res.redirect('/login-phone.html?error=telegram_auth_error');
+        }
+    }
+
+    /**
+     * Verify Telegram authentication data (for API calls)
+     */
+    async verifyTelegramAuth(req, res) {
+        try {
+            this.log('info', 'Received Telegram auth verification');
+            
+            const telegramAuthService = this.getService('telegramAuth');
+            const result = await telegramAuthService.handleTelegramCallback(req.body);
+            
+            if (result.success) {
+                // Set HTTP-only cookie
+                res.cookie('auth_token', result.token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    maxAge: result.expiresIn * 1000
+                });
+
+                return this.sendSuccess(res, {
+                    user: result.user,
+                    token: result.token,
+                    expiresIn: result.expiresIn
+                }, 'Telegram authentication successful');
+            } else {
+                return this.sendError(res, 'Telegram authentication failed', 400);
+            }
+        } catch (error) {
+            this.log('error', 'Error verifying Telegram auth:', error);
+            return this.sendError(res, 'Failed to verify Telegram authentication', 500);
+        }
+    }
+
+    /**
+     * Get Telegram authentication status
+     */
+    async getTelegramAuthStatus(req, res) {
+        try {
+            // Get session ID from params or query
+            const sessionId = req.params.sessionId || req.query.sessionId;
+            
+            if (!sessionId) {
+                // For polling without session ID, check latest session for this IP/browser
+                const telegramBotService = this.getService('telegramBot');
+                
+                // Check if there's any recent auth session
+                // This is a simplified approach for demo
+                if (global.authSessions) {
+                    for (const [key, session] of global.authSessions.entries()) {
+                        if (session.authenticated && Date.now() - session.timestamp < 300000) { // 5 minutes
+                            // Set auth cookie
+                            res.cookie('auth_token', session.token, {
+                                httpOnly: true,
+                                secure: process.env.NODE_ENV === 'production',
+                                sameSite: 'strict',
+                                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                            });
+
+                            return this.sendSuccess(res, {
+                                success: true,
+                                authenticated: true,
+                                user: session.user,
+                                message: 'Authentication successful'
+                            });
+                        }
+                    }
+                }
+
+                return this.sendSuccess(res, {
+                    success: false,
+                    authenticated: false,
+                    message: 'No active authentication session'
+                });
+            }
+
+            // Original session-based check
+            const telegramAuthService = this.getService('telegramAuth');
+            const status = telegramAuthService.getSessionStatus(sessionId);
+            
+            if (status.status === 'not_found') {
+                return this.sendNotFound(res, 'Session not found');
+            }
+
+            // If completed, set cookie and return user data
+            if (status.status === 'completed' && status.token) {
+                res.cookie('auth_token', status.token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                });
+            }
+
+            return this.sendSuccess(res, {
+                status: status.status,
+                userId: status.userId,
+                createdAt: status.createdAt,
+                ...(status.status === 'completed' && { 
+                    token: status.token,
+                    redirect: '/app-main.html'
+                })
+            });
+        } catch (error) {
+            this.log('error', 'Error getting Telegram auth status:', error);
+            return this.sendError(res, 'Failed to get authentication status', 500);
+        }
+    }
     async verifyPhoneOTP(req, res) {
         try {
             this.log('info', 'Received verify-phone-otp request');

@@ -18,6 +18,26 @@
             <div id="errorMessage" class="message error-message" style="display: none;"></div>
             <div id="successMessage" class="message success-message" style="display: none;"></div>
 
+            <!-- Telegram Login Section -->
+            <div class="telegram-login-section">
+                <div class="telegram-widget-container" id="telegramWidgetContainer">
+                    <!-- Custom Telegram Login Button -->
+                    <button type="button" class="telegram-login-btn" id="telegramLoginBtn" onclick="testClick()">
+                        <div class="telegram-icon">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <div class="telegram-text">
+                            <span class="main-text">Đăng nhập bằng Telegram</span>
+                            <span class="sub-text">Nhanh chóng và bảo mật</span>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="divider">
+                    <span>hoặc</span>
+                </div>
+            </div>
+
             <!-- Step 1: Phone Input -->
             <div id="phoneStep" class="auth-step active">
                 <form id="phoneForm" class="auth-form">
@@ -144,8 +164,12 @@
                 
                 <ul class="features-list">
                     <li>
+                        <i class="fab fa-telegram-plane cow-icon"></i>
+                        <span>Đăng nhập nhanh bằng Telegram</span>
+                    </li>
+                    <li>
                         <i class="fas fa-mobile-alt cow-icon"></i>
-                        <span>Đăng nhập nhanh chỉ với số điện thoại</span>
+                        <span>Hoặc dùng số điện thoại + OTP</span>
                     </li>
                     <li>
                         <i class="fas fa-shield-alt cow-icon"></i>
@@ -192,6 +216,72 @@
                 return { error: error.message };
             }
         };
+        
+        // Debug Telegram Button
+        console.log('🔍 Checking Custom Telegram Button...');
+        document.addEventListener('DOMContentLoaded', () => {
+            const telegramBtn = document.getElementById('telegramLoginBtn');
+            const container = document.querySelector('.telegram-widget-container');
+            const section = document.querySelector('.telegram-login-section');
+            
+            console.log('� Telegram Button:', telegramBtn);
+            console.log('📦 Widget container:', container);
+            console.log('📦 Widget section:', section);
+            
+            if (telegramBtn) {
+                console.log('✅ Custom Telegram button found and ready');
+                
+                // Test click functionality
+                telegramBtn.addEventListener('click', () => {
+                    console.log('🖱️ Telegram button clicked!');
+                });
+            } else {
+                console.error('❌ Custom Telegram button not found');
+            }
+        });
+        // Test function for direct onclick
+        function testClick() {
+            alert('Telegram button clicked!');
+            console.log('🔗 Starting custom Telegram login...');
+            
+            try {
+                // Redirect to Telegram bot for authentication
+                const botUsername = 'Cown_Login_bot';
+                const telegramAuthURL = `https://t.me/${botUsername}?start=auth_${Date.now()}`;
+                
+                console.log('🔗 Telegram Auth URL:', telegramAuthURL);
+                
+                // Open Telegram
+                window.open(telegramAuthURL, '_blank');
+                
+            } catch (error) {
+                console.error('❌ Telegram login error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Debug Telegram Button
+        console.log('🔍 Checking Custom Telegram Button...');
+        document.addEventListener('DOMContentLoaded', () => {
+            const telegramBtn = document.getElementById('telegramLoginBtn');
+            const container = document.querySelector('.telegram-widget-container');
+            const section = document.querySelector('.telegram-login-section');
+            
+            console.log('📱 Telegram Button:', telegramBtn);
+            console.log('📦 Widget container:', container);
+            console.log('📦 Widget section:', section);
+            
+            if (telegramBtn) {
+                console.log('✅ Custom Telegram button found and ready');
+                
+                // Test click functionality
+                telegramBtn.addEventListener('click', () => {
+                    console.log('🖱️ Telegram button clicked via event listener!');
+                });
+            } else {
+                console.error('❌ Custom Telegram button not found');
+            }
+        });
         console.log('🧪 Test function available: window.testOTP()');
     </script>
 </body>

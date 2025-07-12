@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Setup - Cown Telegram App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .setup-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .setup-wizard {
+            display: none;
+        }
+
+        .setup-wizard.active {
+            display: block;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #ddd;
+            z-index: -1;
+        }
+
+        .step.completed:not(:last-child)::after {
+            background: #28a745;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 5px;
+            font-weight: bold;
+        }
+
+        .step.completed .step-number {
+            background: #28a745;
+        }
+
+        .step.active .step-number {
+            background: #0088cc;
+        }
+
+        .step-title {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .wizard-content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .instruction-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .instruction-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #0088cc;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .instruction-content h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .instruction-content p {
+            margin: 0 0 5px 0;
+            color: #666;
+        }
+
+        .instruction-example {
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0088cc;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #0088cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #006ba8;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d9ff;
+        }
+
+        .status-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-healthy {
+            background: #28a745;
+        }
+
+        .status-warning {
+            background: #ffc107;
+        }
+
+        .status-unhealthy {
+            background: #dc3545;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0088cc;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="setup-container">
+        <h1>🤖 Bot Setup - Cown Telegram App</h1>
+        
+        <div id="alert-container"></div>
+        
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" id="step-1">
+                <div class="step-number">1</div>
+                <div class="step-title">Instructions</div>
+            </div>
+            <div class="step" id="step-2">
+                <div class="step-number">2</div>
+                <div class="step-title">Configuration</div>
+            </div>
+            <div class="step" id="step-3">
+                <div class="step-number">3</div>
+                <div class="step-title">Testing</div>
+            </div>
+            <div class="step" id="step-4">
+                <div class="step-number">4</div>
+                <div class="step-title">Complete</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Instructions -->
+        <div class="setup-wizard active" id="wizard-step-1">
+            <div class="wizard-content">
+                <h2>📋 Setup Instructions</h2>
+                <p>Follow these steps to create and configure your Telegram bot:</p>
+                
+                <ol class="instruction-list" id="instruction-list">
+                    <!-- Instructions will be loaded here -->
+                </ol>
+                
+                <div class="alert alert-info">
+                    <strong>💡 Tip:</strong> Keep your bot token secure and never share it publicly!
+                </div>
+            </div>
+            
+            <div class="navigation">
+                <div></div>
+                <button class="btn btn-primary" onclick="nextStep()">Next Step →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Configuration -->
+        <div class="setup-wizard" id="wizard-step-2">
+            <div class="wizard-content">
+                <h2>⚙️ Bot Configuration</h2>
+                <p>Enter your bot credentials from BotFather:</p>
+                
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="bot-token">Bot Token</label>
+                        <input type="password" id="bot-token" placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz">
+                        <small>The token provided by @BotFather</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bot-username">Bot Username</label>
+                        <input type="text" id="bot-username" placeholder="cown_telegram_bot">
+                        <small>Your bot's username (without @)</small>
+                    </div>
+                    
+                    <button class="btn btn-success" onclick="saveConfiguration()">💾 Save Configuration</button>
+                </div>
+            </div>
+            
+            <div class="navigation">
+                <button class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep()" id="config-next" disabled>Next Step →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Testing -->
+        <div class="setup-wizard" id="wizard-step-3">
+            <div class="wizard-content">
+                <h2>🧪 Testing Configuration</h2>
+                <p>Let's test your bot configuration:</p>
+                
+                <div class="status-card" id="test-results">
+                    <div id="test-loading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Testing bot configuration...</p>
+                    </div>
+                    
+                    <div id="test-content" style="display: none;">
+                        <h3 id="test-status">
+                            <span class="status-indicator" id="test-indicator"></span>
+                            <span id="test-status-text">Unknown</span>
+                        </h3>
+                        <div id="test-details"></div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="testConfiguration()">🔄 Test Again</button>
+            </div>
+            
+            <div class="navigation">
+                <button class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep()" id="test-next" disabled>Complete Setup →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Complete -->
+        <div class="setup-wizard" id="wizard-step-4">
+            <div class="wizard-content">
+                <h2>🎉 Setup Complete!</h2>
+                <p>Your Telegram bot has been configured successfully!</p>
+                
+                <div class="status-card">
+                    <h3>✅ What's Ready:</h3>
+                    <ul>
+                        <li>🤖 Bot API connection established</li>
+                        <li>🔐 Authentication system ready</li>
+                        <li>💬 Message handling active</li>
+                        <li>📊 Admin panel available</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-success">
+                    <strong>🎊 Congratulations!</strong> Your Cown Telegram Bot is now ready to use!
+                </div>
+            </div>
+            
+            <div class="navigation">
+                <a href="/settings" class="btn btn-primary">⚙️ Go to Settings</a>
+                <a href="/dashboard" class="btn btn-success">📊 Open Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let configSaved = false;
+        let testPassed = false;
+        
+        // Show alert
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = message;
+            
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+        
+        // Load setup instructions
+        async function loadInstructions() {
+            try {
+                const response = await fetch('/api/bot-setup/instructions');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayInstructions(data.instructions.steps);
+                }
+            } catch (error) {
+                console.error('Error loading instructions:', error);
+                showAlert('Failed to load setup instructions', 'error');
+            }
+        }
+        
+        // Display instructions
+        function displayInstructions(steps) {
+            const list = document.getElementById('instruction-list');
+            list.innerHTML = '';
+            
+            steps.forEach(step => {
+                const item = document.createElement('li');
+                item.className = 'instruction-item';
+                
+                item.innerHTML = `
+                    <div class="instruction-number">${step.step}</div>
+                    <div class="instruction-content">
+                        <h3>${step.title}</h3>
+                        <p>${step.description}</p>
+                        ${step.example ? `<div class="instruction-example">${step.example}</div>` : ''}
+                        ${step.action ? `<p><strong>Action:</strong> ${step.action}</p>` : ''}
+                    </div>
+                `;
+                
+                list.appendChild(item);
+            });
+        }
+        
+        // Save configuration
+        async function saveConfiguration() {
+            try {
+                const token = document.getElementById('bot-token').value;
+                const username = document.getElementById('bot-username').value;
+                
+                if (!token || !username) {
+                    showAlert('Please fill in both token and username', 'error');
+                    return;
+                }
+                
+                const response = await fetch('/api/bot-setup/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        token: token,
+                        username: username
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Configuration saved successfully!', 'success');
+                    configSaved = true;
+                    document.getElementById('config-next').disabled = false;
+                } else {
+                    throw new Error(data.message || 'Failed to save configuration');
+                }
+                
+            } catch (error) {
+                console.error('Error saving configuration:', error);
+                showAlert('Error saving configuration: ' + error.message, 'error');
+            }
+        }
+        
+        // Test configuration
+        async function testConfiguration() {
+            try {
+                document.getElementById('test-loading').style.display = 'block';
+                document.getElementById('test-content').style.display = 'none';
+                
+                const response = await fetch('/api/bot-setup/test', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.test.success) {
+                    displayTestResults(data.test, true);
+                    testPassed = true;
+                    document.getElementById('test-next').disabled = false;
+                } else {
+                    displayTestResults(data.test || { error: 'Test failed' }, false);
+                }
+                
+            } catch (error) {
+                console.error('Error testing configuration:', error);
+                displayTestResults({ error: error.message }, false);
+            } finally {
+                document.getElementById('test-loading').style.display = 'none';
+                document.getElementById('test-content').style.display = 'block';
+            }
+        }
+        
+        // Display test results
+        function displayTestResults(testResult, success) {
+            const indicator = document.getElementById('test-indicator');
+            const statusText = document.getElementById('test-status-text');
+            const details = document.getElementById('test-details');
+            
+            if (success) {
+                indicator.className = 'status-indicator status-healthy';
+                statusText.textContent = 'Configuration Valid';
+                details.innerHTML = `
+                    <p><strong>Bot ID:</strong> ${testResult.botInfo.id}</p>
+                    <p><strong>Username:</strong> @${testResult.botInfo.username}</p>
+                    <p><strong>Name:</strong> ${testResult.botInfo.first_name}</p>
+                `;
+            } else {
+                indicator.className = 'status-indicator status-unhealthy';
+                statusText.textContent = 'Configuration Invalid';
+                details.innerHTML = `<p><strong>Error:</strong> ${testResult.error}</p>`;
+            }
+        }
+        
+        // Navigation functions
+        function nextStep() {
+            if (currentStep < 4) {
+                // Validate step requirements
+                if (currentStep === 2 && !configSaved) {
+                    showAlert('Please save your configuration first', 'error');
+                    return;
+                }
+                
+                if (currentStep === 3 && !testPassed) {
+                    showAlert('Please test your configuration successfully first', 'error');
+                    return;
+                }
+                
+                setActiveStep(currentStep + 1);
+                
+                // Auto-test on step 3
+                if (currentStep === 3) {
+                    setTimeout(testConfiguration, 500);
+                }
+            }
+        }
+        
+        function previousStep() {
+            if (currentStep > 1) {
+                setActiveStep(currentStep - 1);
+            }
+        }
+        
+        function setActiveStep(step) {
+            // Update step indicator
+            document.querySelectorAll('.step').forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+                if (index + 1 < step) {
+                    el.classList.add('completed');
+                } else if (index + 1 === step) {
+                    el.classList.add('active');
+                }
+            });
+            
+            // Update wizard content
+            document.querySelectorAll('.setup-wizard').forEach((el, index) => {
+                el.classList.remove('active');
+                if (index + 1 === step) {
+                    el.classList.add('active');
+                }
+            });
+            
+            currentStep = step;
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInstructions();
+        });
+    </script>
+</body>
+
+</html>

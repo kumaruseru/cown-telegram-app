@@ -37,6 +37,12 @@ class DatabaseManager {
                     telegram_session TEXT,
                     telegram_api_id TEXT,
                     telegram_api_hash TEXT,
+                    telegram_id TEXT UNIQUE,
+                    telegram_username TEXT,
+                    telegram_first_name TEXT,
+                    telegram_last_name TEXT,
+                    telegram_photo_url TEXT,
+                    telegram_auth_date INTEGER,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     last_login DATETIME,
                     is_active BOOLEAN DEFAULT 1
@@ -310,6 +316,86 @@ class DatabaseManager {
                     reject(err);
                 } else {
                     resolve(row);
+                }
+            });
+        });
+    }
+
+    async getUserByTelegramId(telegramId) {
+        return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM users WHERE telegram_id = ? AND is_active = 1`;
+            
+            this.db.get(query, [telegramId], (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(row);
+                }
+            });
+        });
+    }
+
+    async createTelegramUser(telegramData) {
+        return new Promise((resolve, reject) => {
+            const {
+                telegram_id,
+                telegram_username,
+                telegram_first_name,
+                telegram_last_name,
+                telegram_photo_url,
+                telegram_auth_date,
+                username
+            } = telegramData;
+
+            const query = `
+                INSERT INTO users (
+                    username, telegram_id, telegram_username, telegram_first_name,
+                    telegram_last_name, telegram_photo_url, telegram_auth_date,
+                    password_hash
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            // For Telegram users, we'll use a placeholder password hash
+            const placeholderHash = 'telegram_auth_' + Date.now();
+
+            this.db.run(query, [
+                username, telegram_id, telegram_username, telegram_first_name,
+                telegram_last_name, telegram_photo_url, telegram_auth_date, placeholderHash
+            ], function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ id: this.lastID, ...telegramData });
+                }
+            });
+        });
+    }
+
+    async updateTelegramUser(userId, telegramData) {
+        return new Promise((resolve, reject) => {
+            const {
+                telegram_username,
+                telegram_first_name,
+                telegram_last_name,
+                telegram_photo_url,
+                telegram_auth_date
+            } = telegramData;
+
+            const query = `
+                UPDATE users 
+                SET telegram_username = ?, telegram_first_name = ?, telegram_last_name = ?,
+                    telegram_photo_url = ?, telegram_auth_date = ?, last_login = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `;
+
+            this.db.run(query, [
+                telegram_username, telegram_first_name, telegram_last_name,
+                telegram_photo_url, telegram_auth_date, userId
+            ], (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ success: true });
                 }
             });
         });

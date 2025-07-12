@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Cown Telegram App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .settings-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #0088cc;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0088cc;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #0088cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #006ba8;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .bot-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .info-card {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-healthy {
+            background: #28a745;
+        }
+
+        .status-unhealthy {
+            background: #dc3545;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d9ff;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0088cc;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="settings-container">
+        <h1>⚙️ Settings - Cown Telegram App</h1>
+        
+        <div id="alert-container"></div>
+        
+        <!-- Bot Information Section -->
+        <div class="settings-section">
+            <div class="section-title">
+                🤖 Bot Information
+                <span id="bot-status" class="status-indicator"></span>
+            </div>
+            
+            <div id="bot-info-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading bot information...</p>
+            </div>
+            
+            <div id="bot-info-content" style="display: none;">
+                <div class="bot-info">
+                    <div class="info-card">
+                        <div class="info-label">Bot Username</div>
+                        <div class="info-value" id="bot-username">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Bot Name</div>
+                        <div class="info-value" id="bot-name">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Can Join Groups</div>
+                        <div class="info-value" id="bot-join-groups">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Inline Queries</div>
+                        <div class="info-value" id="bot-inline">-</div>
+                    </div>
+                </div>
+                
+                <button id="refresh-bot-info" class="btn btn-primary">🔄 Refresh Bot Info</button>
+            </div>
+        </div>
+
+        <!-- Webhook Management Section -->
+        <div class="settings-section">
+            <div class="section-title">
+                🔗 Webhook Management
+            </div>
+            
+            <div class="form-group">
+                <label for="webhook-url">Webhook URL</label>
+                <input type="url" id="webhook-url" placeholder="https://your-domain.com/webhook/telegram">
+                <small>URL where Telegram will send updates to your bot</small>
+            </div>
+            
+            <button id="set-webhook" class="btn btn-success">✅ Set Webhook</button>
+            <button id="remove-webhook" class="btn btn-danger">❌ Remove Webhook</button>
+        </div>
+
+        <!-- Message Testing Section -->
+        <div class="settings-section">
+            <div class="section-title">
+                💬 Message Testing
+            </div>
+            
+            <div class="form-group">
+                <label for="test-chat-id">Chat ID</label>
+                <input type="text" id="test-chat-id" placeholder="Enter chat ID to send test message">
+            </div>
+            
+            <div class="form-group">
+                <label for="test-message">Test Message</label>
+                <textarea id="test-message" rows="4" placeholder="Enter message to send...">🧪 Test message from Cown Bot Settings
+
+This is a test message to verify bot functionality.
+
+⚙️ Sent from Admin Panel</textarea>
+            </div>
+            
+            <button id="send-test-message" class="btn btn-primary">📤 Send Test Message</button>
+        </div>
+
+        <!-- Bot Health Section -->
+        <div class="settings-section">
+            <div class="section-title">
+                🏥 Bot Health
+            </div>
+            
+            <div id="health-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Checking bot health...</p>
+            </div>
+            
+            <div id="health-content" style="display: none;">
+                <div class="alert alert-info" id="health-status">
+                    <strong>Status:</strong> <span id="health-status-text">Unknown</span>
+                </div>
+                
+                <button id="check-health" class="btn btn-primary">🔍 Check Health</button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="/dashboard" class="btn btn-primary">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        let botInfo = null;
+        
+        // Show alert
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = message;
+            
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+        
+        // Load bot information
+        async function loadBotInfo() {
+            try {
+                document.getElementById('bot-info-loading').style.display = 'block';
+                
+                const response = await fetch('/api/bot/info', {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load bot info');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    botInfo = data.bot;
+                    displayBotInfo(data.bot);
+                    document.getElementById('bot-status').className = 'status-indicator status-healthy';
+                } else {
+                    throw new Error(data.message || 'Failed to load bot info');
+                }
+                
+            } catch (error) {
+                console.error('Error loading bot info:', error);
+                showAlert('Error loading bot information: ' + error.message, 'error');
+                document.getElementById('bot-status').className = 'status-indicator status-unhealthy';
+            } finally {
+                document.getElementById('bot-info-loading').style.display = 'none';
+                document.getElementById('bot-info-content').style.display = 'block';
+            }
+        }
+        
+        // Display bot information
+        function displayBotInfo(bot) {
+            document.getElementById('bot-username').textContent = '@' + (bot.username || 'N/A');
+            document.getElementById('bot-name').textContent = bot.first_name || 'N/A';
+            document.getElementById('bot-join-groups').textContent = bot.can_join_groups ? 'Yes' : 'No';
+            document.getElementById('bot-inline').textContent = bot.supports_inline_queries ? 'Yes' : 'No';
+        }
+        
+        // Set webhook
+        async function setWebhook() {
+            try {
+                const webhookUrl = document.getElementById('webhook-url').value;
+                
+                if (!webhookUrl) {
+                    showAlert('Please enter a webhook URL', 'error');
+                    return;
+                }
+                
+                const response = await fetch('/api/bot/set-webhook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ webhookUrl })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Webhook set successfully!', 'success');
+                } else {
+                    throw new Error(data.message || 'Failed to set webhook');
+                }
+                
+            } catch (error) {
+                console.error('Error setting webhook:', error);
+                showAlert('Error setting webhook: ' + error.message, 'error');
+            }
+        }
+        
+        // Remove webhook
+        async function removeWebhook() {
+            try {
+                const response = await fetch('/api/bot/set-webhook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ webhookUrl: '' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Webhook removed successfully!', 'success');
+                    document.getElementById('webhook-url').value = '';
+                } else {
+                    throw new Error(data.message || 'Failed to remove webhook');
+                }
+                
+            } catch (error) {
+                console.error('Error removing webhook:', error);
+                showAlert('Error removing webhook: ' + error.message, 'error');
+            }
+        }
+        
+        // Send test message
+        async function sendTestMessage() {
+            try {
+                const chatId = document.getElementById('test-chat-id').value;
+                const message = document.getElementById('test-message').value;
+                
+                if (!chatId || !message) {
+                    showAlert('Please enter both chat ID and message', 'error');
+                    return;
+                }
+                
+                const response = await fetch('/api/bot/send-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        chatId: chatId,
+                        text: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Test message sent successfully!', 'success');
+                } else {
+                    throw new Error(data.message || 'Failed to send message');
+                }
+                
+            } catch (error) {
+                console.error('Error sending test message:', error);
+                showAlert('Error sending test message: ' + error.message, 'error');
+            }
+        }
+        
+        // Check bot health
+        async function checkBotHealth() {
+            try {
+                document.getElementById('health-loading').style.display = 'block';
+                document.getElementById('health-content').style.display = 'none';
+                
+                const response = await fetch('/api/bot/health');
+                const data = await response.json();
+                
+                if (data.success || data.status) {
+                    const status = data.status || (data.success ? 'healthy' : 'unhealthy');
+                    const statusText = document.getElementById('health-status-text');
+                    const statusAlert = document.getElementById('health-status');
+                    
+                    statusText.textContent = status;
+                    statusAlert.className = `alert alert-${status === 'healthy' ? 'success' : 'error'}`;
+                    
+                    if (data.bot) {
+                        statusText.textContent += ` - Bot: @${data.bot.username}`;
+                    }
+                } else {
+                    throw new Error('Failed to check health');
+                }
+                
+            } catch (error) {
+                console.error('Error checking bot health:', error);
+                showAlert('Error checking bot health: ' + error.message, 'error');
+            } finally {
+                document.getElementById('health-loading').style.display = 'none';
+                document.getElementById('health-content').style.display = 'block';
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load initial data
+            loadBotInfo();
+            checkBotHealth();
+            
+            // Bind events
+            document.getElementById('refresh-bot-info').addEventListener('click', loadBotInfo);
+            document.getElementById('set-webhook').addEventListener('click', setWebhook);
+            document.getElementById('remove-webhook').addEventListener('click', removeWebhook);
+            document.getElementById('send-test-message').addEventListener('click', sendTestMessage);
+            document.getElementById('check-health').addEventListener('click', checkBotHealth);
+        });
+    </script>
+</body>
+
+</html>

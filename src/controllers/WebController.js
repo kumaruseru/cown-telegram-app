@@ -20,6 +20,8 @@ class WebController extends BaseController {
         // Login page
         this.registerRoute('get', '/login', this.handleLoginRedirect.bind(this));
         this.registerRoute('get', '/login-phone.html', this.handleLoginPhone.bind(this));
+        this.registerRoute('get', '/login_telegram', this.handleTelegramLogin.bind(this));
+        this.registerRoute('get', '/login_telegram.html', this.handleTelegramLoginFile.bind(this));
         
         // Register redirect
         this.registerRoute('get', '/register', this.handleRegisterRedirect.bind(this));
@@ -27,6 +29,9 @@ class WebController extends BaseController {
         // Main app (requires auth)
         this.registerRoute('get', '/app', this.handleApp.bind(this), [this.requireAuth.bind(this)]);
         this.registerRoute('get', '/app-main.html', this.handleAppMain.bind(this), [this.requireAuth.bind(this)]);
+        this.registerRoute('get', '/dashboard', this.handleDashboard.bind(this), [this.requireAuth.bind(this)]);
+        this.registerRoute('get', '/settings', this.handleSettings.bind(this), [this.requireAuth.bind(this)]);
+        this.registerRoute('get', '/bot-setup', this.handleBotSetup.bind(this), [this.requireAuth.bind(this)]);
         
         // Health check
         this.registerRoute('get', '/health', this.handleHealth.bind(this));
@@ -36,7 +41,7 @@ class WebController extends BaseController {
     }
 
     /**
-     * Root handler - redirect based on auth status
+     * Root handler - serve login page or redirect to app
      */
     async handleRoot(req, res) {
         try {
@@ -54,15 +59,15 @@ class WebController extends BaseController {
                     }
                 } catch (error) {
                     // Token invalid, continue to login
-                    this.log('debug', 'Invalid token, redirecting to login');
+                    this.log('debug', 'Invalid token, serving login page');
                 }
             }
             
-            // Not authenticated, redirect to login
-            return res.redirect('/login-phone.html');
+            // Not authenticated, serve login-phone.html directly
+            return res.sendFile(path.join(__dirname, '../../public/login-phone.html'));
         } catch (error) {
             this.log('error', 'Error in root handler:', error);
-            return res.redirect('/login-phone.html');
+            return res.sendFile(path.join(__dirname, '../../public/login-phone.html'));
         }
     }
 
@@ -178,6 +183,71 @@ class WebController extends BaseController {
         } catch (error) {
             this.log('error', 'Error getting app info:', error);
             return this.sendError(res, 'Unable to get app info', 500);
+        }
+    }
+
+    /**
+     * Telegram login page handler
+     */
+    async handleTelegramLogin(req, res) {
+        try {
+            const filePath = path.join(__dirname, '../../public/login_telegram.html');
+            return res.sendFile(filePath);
+        } catch (error) {
+            this.log('error', 'Error serving Telegram login page:', error);
+            return this.sendError(res, 'Unable to load Telegram login page', 500);
+        }
+    }
+
+    /**
+     * Telegram login file handler
+     */
+    async handleTelegramLoginFile(req, res) {
+        try {
+            const filePath = path.join(__dirname, '../../public/login_telegram.html');
+            return res.sendFile(filePath);
+        } catch (error) {
+            this.log('error', 'Error serving Telegram login file:', error);
+            return this.sendError(res, 'Unable to load Telegram login file', 500);
+        }
+    }
+
+    /**
+     * Dashboard handler
+     */
+    async handleDashboard(req, res) {
+        try {
+            const filePath = path.join(__dirname, '../../public/dashboard.html');
+            return res.sendFile(filePath);
+        } catch (error) {
+            this.log('error', 'Error serving dashboard:', error);
+            return this.sendError(res, 'Unable to load dashboard', 500);
+        }
+    }
+
+    /**
+     * Settings handler
+     */
+    async handleSettings(req, res) {
+        try {
+            const filePath = path.join(__dirname, '../../public/settings.html');
+            return res.sendFile(filePath);
+        } catch (error) {
+            this.log('error', 'Error serving settings:', error);
+            return this.sendError(res, 'Unable to load settings', 500);
+        }
+    }
+
+    /**
+     * Bot Setup handler
+     */
+    async handleBotSetup(req, res) {
+        try {
+            const filePath = path.join(__dirname, '../../public/bot-setup.html');
+            return res.sendFile(filePath);
+        } catch (error) {
+            this.log('error', 'Error serving bot setup:', error);
+            return this.sendError(res, 'Unable to load bot setup', 500);
         }
     }
 

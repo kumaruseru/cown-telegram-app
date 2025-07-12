@@ -1,49 +1,49 @@
-# Sử dụng Node.js 18 Alpine (nhẹ nhất)
+# Production Dockerfile for Cown Telegram App
 FROM node:18-alpine
 
-# Install SQLite và các dependencies system cần thiết
-RUN apk add --no-cache sqlite python3 make g++
+# Install system dependencies
+RUN apk add --no-cache sqlite python3 make g++ dumb-init
 
-# Thêm metadata
+# Add metadata
 LABEL maintainer="Cown Telegram App"
-LABEL description="🐄 Optimized Telegram messaging app with cow theme"
+LABEL description="🐄 Production Telegram messaging app with cow theme"
 LABEL version="2.0.0"
 
-# Tạo thư mục app
+# Create app directory
 WORKDIR /app
 
-# Tạo user non-root cho security trước
+# Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S cown -u 1001
 
-# Sao chép package files trước để cache dependencies
-COPY package.json ./
+# Copy package files first for better caching
+COPY package*.json ./
 
-# Install dependencies với cách đơn giản hơn
-RUN npm install --production --silent --no-audit --no-fund && \
+# Install dependencies - production only
+RUN npm ci --only=production --silent --no-audit --no-fund && \
     npm cache clean --force
 
-# Sao chép source code
+# Copy application code
 COPY --chown=cown:nodejs . .
 
-# Tạo thư mục cần thiết
+# Create necessary directories and set permissions
 RUN mkdir -p /app/data /app/logs && \
     chown -R cown:nodejs /app
-
-# Set environment variables
-ENV NODE_ENV=production
-ENV DOCKER=true
-ENV PORT=3000
-
-# Expose port
-EXPOSE 3000
 
 # Switch to non-root user
 USER cown
 
-# Health check đơn giản
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Set environment variables
+ENV NODE_ENV=production
+ENV DOCKER=true
+ENV PORT=10000
+
+# Expose port (Render uses PORT env var)
+EXPOSE 10000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node healthcheck.js || exit 1
 
-# Start command
-CMD ["npm", "start"]
+# Start command with proper signal handling
+CMD ["dumb-init", "node", "src/index.js"]

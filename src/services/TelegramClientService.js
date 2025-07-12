@@ -749,6 +749,28 @@ class TelegramClientService {
             console.error('❌ Lỗi khởi tạo sessions:', error);
         }
     }
+
+    /**
+     * Health check method
+     */
+    async healthCheck() {
+        try {
+            return {
+                service: 'TelegramClientService',
+                status: 'healthy',
+                activeClients: this.clients.size,
+                apiId: this.apiId ? 'configured' : 'missing',
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            return {
+                service: 'TelegramClientService',
+                status: 'unhealthy',
+                error: error.message,
+                timestamp: new Date().toISOString()
+            };
+        }
+    }
 }
 
 module.exports = TelegramClientService;

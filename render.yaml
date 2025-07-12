@@ -3,16 +3,40 @@ services:
     name: cown-telegram-app
     env: docker
     dockerfilePath: ./Dockerfile
-    plan: free
+    plan: starter
     region: singapore
     branch: main
+    buildCommand: docker build -t cown-app .
+    startCommand: ./start.sh
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DOCKER
-        value: "true"
       - key: PORT
-        value: "3000"
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: DB_TYPE
+        value: sqlite
       - key: DB_PATH
-        value: "/app/data/cown.db"
+        value: ./data/cown.db
+      - key: TELEGRAM_BOT_TOKEN
+        value: 7316714381:AAFBQb4KDqf_8D76IG0sW7J87-eLssZh5Rc
+      - key: TELEGRAM_BOT_USERNAME
+        value: Cown_Login_bot
+      - key: TELEGRAM_USE_TEST_DC
+        value: false
+      - key: TELEGRAM_PROD_DC
+        value: 149.154.167.50:443
+      - key: APP_TITLE
+        value: Cown Telegram
+      - key: APP_VERSION
+        value: 2.0.0
+      - key: APP_SHORT_NAME
+        value: cownapp
+      - key: BCRYPT_ROUNDS
+        value: 12
+    disk:
+      name: cown-data
+      mountPath: /app/data
+      sizeGB: 1

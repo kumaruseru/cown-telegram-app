@@ -65,8 +65,11 @@ class Application extends BaseService {
     registerServices() {
         // Import services
         const DatabaseManager = require('../database/DatabaseManager_SQLite');
-        const AuthService = require('../services/AuthService_OOP');
+        const AuthService = require('../services/AuthService');
         const TelegramClientService = require('../services/TelegramClientService');
+        const TelegramAuthService = require('../services/TelegramAuthService');
+        const TelegramBotService = require('../services/TelegramBotService');
+        const BotConfigService = require('../services/BotConfigService');
         const OTPService = require('../services/OTPService');
         const MessageHandler = require('../handlers/MessageHandler');
 
@@ -78,6 +81,12 @@ class Application extends BaseService {
             .registerSingleton('database', DatabaseManager)
             .registerSingleton('auth', AuthService)
             .withDependencies('auth', ['database', 'logger'])
+            .registerSingleton('telegramAuth', TelegramAuthService)
+            .withDependencies('telegramAuth', ['database', 'auth', 'telegramBot', 'logger'])
+            .registerSingleton('telegramBot', TelegramBotService)
+            .withDependencies('telegramBot', ['database', 'auth', 'logger'])
+            .registerSingleton('botConfig', BotConfigService)
+            .withDependencies('botConfig', ['logger'])
             .registerSingleton('telegram', TelegramClientService)
             .withDependencies('telegram', ['database', 'logger'])
             .registerSingleton('otp', OTPService)
@@ -96,26 +105,34 @@ class Application extends BaseService {
         const AuthController = require('../controllers/AuthController');
         const ApiController = require('../controllers/ApiController');
         const WebController = require('../controllers/WebController');
+        const BotController = require('../controllers/BotController');
+        const BotSetupController = require('../controllers/BotSetupController');
 
         // Create controller instances
         const authController = new AuthController(this.logger);
         const apiController = new ApiController(this.logger);
         const webController = new WebController(this.logger);
+        const botController = new BotController(this.logger);
+        const botSetupController = new BotSetupController(this.logger);
 
         // Register services for controllers
-        const serviceNames = ['auth', 'telegram', 'otp', 'database', 'messageHandler'];
+        const serviceNames = ['auth', 'telegramAuth', 'telegramBot', 'botConfig', 'telegram', 'otp', 'database', 'messageHandler'];
         
         Promise.all(serviceNames.map(async name => {
             const service = await this.container.get(name);
             authController.registerService(name, service);
             apiController.registerService(name, service);
             webController.registerService(name, service);
+            botController.registerService(name, service);
+            botSetupController.registerService(name, service);
         }));
 
         // Store controllers
         this.controllers.set('auth', authController);
         this.controllers.set('api', apiController);
         this.controllers.set('web', webController);
+        this.controllers.set('bot', botController);
+        this.controllers.set('botSetup', botSetupController);
 
         this.log('info', 'Controllers registered');
     }

@@ -546,6 +546,47 @@ class DatabaseManager {
             }
         });
     }
+
+    /**
+     * Test database connection - for health checks
+     */
+    async testConnection() {
+        if (!this.db) {
+            throw new Error('Database not initialized');
+        }
+        
+        // Simple query to test connection
+        await this.get('SELECT 1 as test');
+        return true;
+    }
+
+    /**
+     * Health check method
+     */
+    async healthCheck() {
+        try {
+            await this.testConnection();
+            
+            // Get some basic stats
+            const userCount = await this.get('SELECT COUNT(*) as count FROM users');
+            
+            return {
+                service: 'DatabaseManager',
+                status: 'healthy',
+                type: 'SQLite',
+                path: this.dbPath,
+                userCount: userCount?.count || 0,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            return {
+                service: 'DatabaseManager',
+                status: 'unhealthy',
+                error: error.message,
+                timestamp: new Date().toISOString()
+            };
+        }
+    }
 }
 
 module.exports = DatabaseManager;

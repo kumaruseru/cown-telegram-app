@@ -20,6 +20,9 @@ class AuthService extends BaseService {
             throw new Error('JWT_SECRET must be set in production environment');
         }
         
+        // Start cache cleanup
+        this.startCacheCleanup();
+        
         this.log('info', 'AuthService initialized successfully');
     }
 
@@ -169,6 +172,54 @@ class AuthService extends BaseService {
     }
 
     /**
+     * Create or update Telegram user
+     */
+    async createOrUpdateTelegramUser(telegramData) {
+        try {
+            const { telegram_id } = telegramData;
+            
+            // Check if user already exists
+            const existingUser = await this.dbManager.getUserByTelegramId(telegram_id);
+            
+            if (existingUser) {
+                // Update existing user
+                await this.dbManager.updateUser(existingUser.id, {
+                    telegram_first_name: telegramData.first_name,
+                    telegram_last_name: telegramData.last_name,
+                    telegram_username: telegramData.username,
+                    telegram_photo_url: telegramData.photo_url,
+                    lastLogin: new Date()
+                });
+                // Return updated user data
+                const updatedUser = await this.dbManager.getUserByTelegramId(telegram_id);
+                this.log('info', `Updated Telegram user: ${telegram_id}`);
+                return updatedUser;
+            } else {
+                // Create new user
+                const username = telegramData.username || `user_${telegram_id}`;
+                const newUser = await this.dbManager.createUser({
+                    username,
+                    telegram_id: telegram_id,
+                    telegram_first_name: telegramData.first_name,
+                    telegram_last_name: telegramData.last_name,
+                    telegram_username: telegramData.username,
+                    telegram_photo_url: telegramData.photo_url,
+                    role: 'user',
+                    isVerified: true,
+                    authMethod: 'telegram',
+                    createdAt: new Date(),
+                    lastLogin: new Date()
+                });
+                this.log('info', `Created new Telegram user: ${telegram_id}`);
+                return newUser;
+            }
+        } catch (error) {
+            this.log('error', 'Error creating/updating Telegram user:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get all users (with pagination)
      */
     async getAllUsers(options = {}) {
@@ -241,305 +292,136 @@ class AuthService extends BaseService {
             this.cleanupTokenCache();
         }, 60 * 60 * 1000);
     }
-        try {
-            const { username, email, password, telegram_phone } = userData;
 
-            console.log('AuthService register data:', { username, email, password: password ? '***' : null, telegram_phone });
-
-            // Validate input
-            if (!username || !password || !telegram_phone) {
-                throw new Error('Thiếu thông tin bắt buộc');
-            }
-
-            if (typeof password !== 'string' || password.length < 6) {
-                throw new Error('Mật khẩu phải là chuỗi và có ít nhất 6 ký tự');
-            }
-
-            // Kiểm tra user đã tồn tại chưa
-            const existingUser = await this.dbManager.getUserByUsername(username);
-            if (existingUser) {
-                throw new Error('Tên đăng nhập đã tồn tại');
-            }
-
-            // Hash password
-            console.log('Hashing password...');
-            const password_hash = await bcrypt.hash(password, this.saltRounds);
-            console.log('Password hashed successfully');
-
-            // Tạo user mới
-            console.log('Creating user...');
-            const newUser = await this.dbManager.createUser({
-                username,
-                email,
-                password_hash,
-                telegram_phone,
-                telegram_api_id: process.env.TELEGRAM_API_ID,
-                telegram_api_hash: process.env.TELEGRAM_API_HASH
-            });
-            console.log('User created:', newUser);
-
-            // Tạo session token
-            console.log('Creating session...');
-            const sessionToken = uuidv4();
-            const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 ngày
-
-            await this.dbManager.createSession(newUser.id, sessionToken, expiresAt);
-            console.log('Session created successfully');
-
-            return {
-                success: true,
-                user: {
-                    id: newUser.id,
-                    username: newUser.username,
-                    email: newUser.email
-                },
-                sessionToken
-            };
-        } catch (error) {
-            console.error('Lỗi đăng ký:', error);
-            throw error;
-        }
+    /**
+     * Legacy methods for backward compatibility
+     */
+    async register(userData) {
+        return await this.createUser(userData);
     }
 
     async login(username, password) {
         try {
-            console.log('Login attempt for username:', username);
+            this.log('info', `Login attempt for username: ${username}`);
             
-            // Tìm user
+            // Find user
             const user = await this.dbManager.getUserByUsername(username);
-            console.log('User found:', user ? { id: user.id, username: user.username } : 'NULL');
             
             if (!user) {
-                throw new Error('Tên đăng nhập hoặc mật khẩu không đúng');
+                throw new Error('Invalid username or password');
             }
 
-            // Kiểm tra password
-            console.log('Comparing password...');
-            const isValidPassword = await bcrypt.compare(password, user.password_hash);
-            console.log('Password valid:', isValidPassword);
+            // Verify password
+            const isValid = await bcrypt.compare(password, user.password_hash);
             
-            if (!isValidPassword) {
-                throw new Error('Tên đăng nhập hoặc mật khẩu không đúng');
+            if (!isValid) {
+                throw new Error('Invalid username or password');
             }
 
-            // Tạo session token mới
-            console.log('Creating login session...');
-            const sessionToken = uuidv4();
-            const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 ngày
+            // Update last login
+            await this.updateUser(user.id, { lastLogin: new Date() });
 
-            await this.dbManager.createSession(user.id, sessionToken, expiresAt);
-            console.log('Login session created successfully');
+            // Generate token
+            const tokenData = await this.generateToken(user);
+
+            this.log('info', `User logged in successfully: ${user.id}`);
 
             return {
                 success: true,
                 user: {
                     id: user.id,
                     username: user.username,
-                    email: user.email,
-                    telegram_phone: user.telegram_phone
+                    phone: user.phone
                 },
-                sessionToken,
-                hasTelegramSession: !!user.telegram_session
+                ...tokenData
             };
         } catch (error) {
-            console.error('Lỗi đăng nhập:', error);
+            this.log('error', 'Login error:', error);
             throw error;
         }
     }
 
-    // Telegram-style phone login
     async loginWithPhone(phoneNumber, otp) {
         try {
-            console.log(`🔐 Phone login attempt: ${phoneNumber}`);
-            
-            // Verify OTP first
-            const otpResult = await this.otpService.verifyOTP(phoneNumber, otp);
-            if (!otpResult.success) {
-                throw new Error('Mã OTP không hợp lệ');
-            }
-
-            // Check if user exists by phone
-            let user = await this.dbManager.getUserByPhone(phoneNumber);
+            const user = await this.getUserByPhone(phoneNumber);
             
             if (!user) {
-                // Auto-register new user with phone number
-                console.log(`📝 Auto-registering new user with phone: ${phoneNumber}`);
-                
-                // Generate username from phone (remove +, keep last 8 digits)
-                const username = 'user_' + phoneNumber.replace(/\D/g, '').slice(-8);
-                
-                // Create user with phone as primary identifier
-                const userData = {
-                    username,
-                    phone_number: phoneNumber
-                };
-                
-                user = await this.dbManager.createPhoneUser(userData);
-                console.log(`✅ Created new user: ${user.username}`);
-            } else {
-                // Update last login time (skip for now, no such method yet)
-                console.log(`👋 Welcome back: ${user.username}`);
+                throw new Error('User not found');
             }
 
-            // Generate session token
-            const sessionToken = this.generateSessionToken();
-            const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-            await this.dbManager.createSession(user.id, sessionToken, expiresAt);
+            // OTP verification should be done by OTP service
+            const tokenData = await this.generateToken(user);
+            await this.updateUser(user.id, { lastLogin: new Date() });
 
             return {
                 success: true,
                 user: {
                     id: user.id,
-                    username: user.username,
-                    phone_number: user.phone_number
+                    phone: user.phone,
+                    username: user.username
                 },
-                sessionToken
+                ...tokenData
             };
         } catch (error) {
-            console.error('❌ Phone login error:', error);
+            this.log('error', 'Phone login error:', error);
             throw error;
         }
     }
 
-    generateSessionToken() {
-        return uuidv4();
-    }
-
-    async sendPhoneOTP(phoneNumber) {
-        try {
-            console.log(`📱 Sending OTP to: ${phoneNumber}`);
-            
-            if (!this.otpService) {
-                throw new Error('OTP service not initialized');
-            }
-
-            return await this.otpService.sendOTP(phoneNumber);
-        } catch (error) {
-            console.error('❌ Send OTP error:', error);
-            throw error;
-        }
-    }
-
-    async logout(sessionToken) {
-        try {
-            await this.dbManager.deleteSession(sessionToken);
-            return { success: true };
-        } catch (error) {
-            console.error('Lỗi đăng xuất:', error);
-            throw error;
-        }
-    }
-
-    async resetPassword(userId, newPassword) {
-        try {
-            console.log('AuthService resetPassword for user:', userId);
-            
-            // Validate password
-            if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
-                throw new Error('Mật khẩu mới phải có ít nhất 6 ký tự');
-            }
-
-            // Hash new password
-            console.log('Hashing new password...');
-            const password_hash = await bcrypt.hash(newPassword, this.saltRounds);
-            console.log('New password hashed successfully');
-
-            // Update user password
-            await this.dbManager.updateUser(userId, { password_hash });
-            console.log('Password updated successfully');
-
-            return { success: true };
-        } catch (error) {
-            console.error('Lỗi reset password:', error);
-            throw error;
-        }
-    }
-
-    async validateSession(sessionToken) {
-        try {
-            const session = await this.dbManager.getSessionByToken(sessionToken);
-            if (!session) {
-                return null;
-            }
-
-            return {
-                userId: session.user_account_id,  // Sửa từ user_id thành user_account_id
-                username: session.username,
-                telegramSession: session.telegram_session
-            };
-        } catch (error) {
-            console.error('Lỗi validate session:', error);
-            return null;
-        }
-    }
-
-    // Middleware để kiểm tra authentication
+    /**
+     * Middleware functions
+     */
     requireAuth() {
         return async (req, res, next) => {
             try {
-                const sessionToken = req.headers.authorization?.replace('Bearer ', '') ||
-                                  req.cookies?.sessionToken;
+                const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
 
-                if (!sessionToken) {
-                    return res.status(401).json({ error: 'Không có token xác thực' });
+                if (!token) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
                 }
 
-                const session = await this.validateSession(sessionToken);
-                if (!session) {
-                    return res.status(401).json({ error: 'Token không hợp lệ hoặc đã hết hạn' });
+                const user = await this.verifyToken(token);
+
+                if (!user) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Invalid or expired token'
+                    });
                 }
 
-                req.user = session;
+                req.user = user;
                 next();
             } catch (error) {
-                console.error('Lỗi authentication middleware:', error);
-                res.status(500).json({ error: 'Lỗi server' });
+                this.log('error', 'Auth middleware error:', error);
+                return res.status(401).json({
+                    success: false,
+                    message: 'Authentication failed'
+                });
             }
         };
     }
 
-    // Optional auth - không bắt buộc đăng nhập
     optionalAuth() {
         return async (req, res, next) => {
             try {
-                const sessionToken = req.headers.authorization?.replace('Bearer ', '') ||
-                                  req.cookies?.sessionToken;
+                const token = req.cookies.auth_token || req.headers.authorization?.replace('Bearer ', '');
 
-                console.log('OptionalAuth - Session token:', sessionToken ? 'Found' : 'Not found');
-                console.log('OptionalAuth - Cookies:', req.cookies);
-
-                if (sessionToken) {
-                    const session = await this.validateSession(sessionToken);
-                    console.log('OptionalAuth - Session valid:', session ? 'Yes' : 'No');
-                    if (session) {
-                        req.user = session;
-                        console.log('OptionalAuth - User set:', { id: session.userId, username: session.username });
+                if (token) {
+                    const user = await this.verifyToken(token);
+                    if (user) {
+                        req.user = user;
                     }
                 }
 
                 next();
             } catch (error) {
-                console.error('Lỗi optional auth middleware:', error);
-                next();
+                this.log('error', 'Optional auth middleware error:', error);
+                next(); // Continue even if auth fails
             }
         };
-    }
-
-    generateJWT(userId) {
-        return jwt.sign(
-            { userId },
-            this.jwtSecret,
-            { expiresIn: '7d' }
-        );
-    }
-
-    verifyJWT(token) {
-        try {
-            return jwt.verify(token, this.jwtSecret);
-        } catch (error) {
-            return null;
-        }
     }
 }
 

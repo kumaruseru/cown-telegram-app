@@ -312,6 +312,40 @@ class OTPService {
             attemptsRemaining: this.maxAttempts - data.attempts
         };
     }
+
+    /**
+     * Health check method
+     */
+    async healthCheck() {
+        try {
+            // Test Twilio connection if configured
+            if (this.isConfigured) {
+                // Could test Twilio here if needed
+                return {
+                    service: 'OTPService',
+                    status: 'healthy',
+                    provider: 'twilio',
+                    activeOTPs: this.otpStore.size,
+                    timestamp: new Date().toISOString()
+                };
+            } else {
+                return {
+                    service: 'OTPService',
+                    status: 'healthy',
+                    provider: 'console',
+                    activeOTPs: this.otpStore.size,
+                    timestamp: new Date().toISOString()
+                };
+            }
+        } catch (error) {
+            return {
+                service: 'OTPService',
+                status: 'unhealthy',
+                error: error.message,
+                timestamp: new Date().toISOString()
+            };
+        }
+    }
 }
 
 module.exports = OTPService;

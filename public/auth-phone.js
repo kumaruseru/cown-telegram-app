@@ -1,6 +1,66 @@
+// Telegram Widget Callback Function
+function onTelegramAuth(user) {
+    console.log('🎉 Telegram Widget Auth successful:', user);
+    
+    // Create or get PhoneAuthManager instance
+    if (window.phoneAuthManager) {
+        window.phoneAuthManager.handleTelegramWidgetAuth(user);
+    } else {
+        console.error('❌ PhoneAuthManager instance not found');
+    }
+}
+
+// Custom Telegram Login Function
+async function handleTelegramLogin() {
+    console.log('🔗 Starting custom Telegram login...');
+    
+    try {
+        // Redirect to Telegram bot for authentication
+        const botUsername = 'Cown_Login_bot';
+        const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3001' 
+            : 'https://cown-telegram-app.onrender.com';
+        
+        // Create return URL for callback
+        const returnURL = encodeURIComponent(`${baseURL}/auth/telegram/callback`);
+        const telegramAuthURL = `https://t.me/${botUsername}?start=auth_${Date.now()}`;
+        
+        console.log('🔗 Telegram Auth URL:', telegramAuthURL);
+        console.log('🔗 Return URL:', returnURL);
+        
+        // Show loading state
+        const loginBtn = document.getElementById('telegramLoginBtn');
+        if (loginBtn) {
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = `
+                <div class="telegram-icon">
+                    <div class="loading-spinner"></div>
+                </div>
+                <div class="telegram-text">
+                    <span class="main-text">Đang kết nối...</span>
+                    <span class="sub-text">Mở Telegram để xác thực</span>
+                </div>
+            `;
+        }
+        
+        // Open Telegram
+        window.open(telegramAuthURL, '_blank');
+        
+        // Start polling for authentication status
+        setTimeout(() => {
+            window.phoneAuthManager?.startTelegramAuthPolling();
+        }, 2000);
+        
+    } catch (error) {
+        console.error('❌ Telegram login error:', error);
+        showMessage('error', 'Lỗi kết nối Telegram. Vui lòng thử lại.');
+    }
+}
+
 class PhoneAuthManager {
     constructor() {
         console.log('🚀 PhoneAuthManager constructor started');
+        alert('PhoneAuthManager constructor started');
         this.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? '' 
             : 'https://cown-telegram-app.onrender.com';
@@ -14,6 +74,7 @@ class PhoneAuthManager {
         console.log('🔧 Initializing PhoneAuth...');
         this.initializePhoneAuth();
         console.log('✅ PhoneAuthManager initialized');
+        alert('PhoneAuthManager initialized');
     }
 
     initializePhoneAuth() {
@@ -37,6 +98,9 @@ class PhoneAuthManager {
             countryCode: document.getElementById('countryCode'),
             phoneNumber: document.getElementById('phoneNumber'),
             sendOtpBtn: document.getElementById('sendOtpBtn'),
+            
+            // Telegram Login
+            telegramLoginBtn: document.getElementById('telegramLoginBtn'),
             
             // OTP Step
             otpStep: document.getElementById('otpStep'),
@@ -93,6 +157,26 @@ class PhoneAuthManager {
             console.log('✅ Phone form event listener added');
         } else {
             console.error('❌ Phone form not found for event listener');
+        }
+
+        // Note: Telegram login button now uses custom implementation
+        const telegramBtn = document.getElementById('telegramLoginBtn');
+        console.log('🔍 Looking for telegramLoginBtn:', telegramBtn);
+        
+        if (telegramBtn) {
+            telegramBtn.addEventListener('click', (e) => {
+                console.log('🔗 Telegram login button clicked', e);
+                alert('Button clicked! Check console for logs.');
+                e.preventDefault();
+                handleTelegramLogin();
+            });
+            console.log('✅ Telegram login button event listener added');
+        } else {
+            console.warn('⚠️ Telegram login button not found');
+            alert('Button not found!');
+            // Debug: list all elements with IDs
+            const allElements = document.querySelectorAll('[id]');
+            console.log('🔍 All elements with IDs:', Array.from(allElements).map(el => el.id));
         }
 
         // OTP form submission
@@ -237,6 +321,267 @@ class PhoneAuthManager {
         }
         
         this.hideMessages();
+    }
+
+    // Method for polling Telegram authentication status
+    startTelegramAuthPolling() {
+        console.log('🔄 Starting Telegram auth polling...');
+        let pollCount = 0;
+        const maxPolls = 30; // 30 attempts = 1.5 minutes
+        
+        const pollInterval = setInterval(async () => {
+            pollCount++;
+            console.log(`🔄 Polling attempt ${pollCount}/${maxPolls}`);
+            
+            try {
+                const response = await fetch(`${this.baseURL}/api/auth/telegram/status`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('📊 Telegram auth status:', result);
+                    
+                    if (result.success && result.authenticated) {
+                        clearInterval(pollInterval);
+                        this.showSuccess('Đăng nhập Telegram thành công! Đang chuyển hướng...');
+                        setTimeout(() => {
+                            window.location.href = '/app';
+                        }, 1500);
+                        return;
+                    }
+                }
+                
+                if (pollCount >= maxPolls) {
+                    clearInterval(pollInterval);
+                    this.resetTelegramButton();
+                    this.showError('Hết thời gian chờ xác thực Telegram. Vui lòng thử lại.');
+                }
+                
+            } catch (error) {
+                console.error('❌ Polling error:', error);
+                if (pollCount >= maxPolls) {
+                    clearInterval(pollInterval);
+                    this.resetTelegramButton();
+                    this.showError('Lỗi kiểm tra trạng thái xác thực.');
+                }
+            }
+        }, 3000); // Poll every 3 seconds
+    }
+    
+    // Reset Telegram button to original state
+    resetTelegramButton() {
+        const loginBtn = document.getElementById('telegramLoginBtn');
+        if (loginBtn) {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = `
+                <div class="telegram-icon">
+                    <i class="fab fa-telegram"></i>
+                </div>
+                <div class="telegram-text">
+                    <span class="main-text">Đăng nhập bằng Telegram</span>
+                    <span class="sub-text">Nhanh chóng và bảo mật</span>
+                </div>
+            `;
+        }
+    }
+
+    // New method for Telegram Widget Authentication
+    async handleTelegramWidgetAuth(user) {
+        try {
+            console.log('🎉 Processing Telegram Widget Auth:', user);
+            this.showTelegramStatus('Đang xác thực với Telegram...', 'info');
+
+            // Send user data to backend for verification
+            const response = await fetch(`${this.baseURL}/api/auth/telegram/verify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    id: user.id,
+                    first_name: user.first_name,
+                    last_name: user.last_name || '',
+                    username: user.username || '',
+                    photo_url: user.photo_url || '',
+                    auth_date: user.auth_date,
+                    hash: user.hash
+                })
+            });
+
+            console.log('📡 Telegram verify response status:', response.status);
+            const result = await response.json();
+            console.log('📋 Telegram verify result:', result);
+
+            if (response.ok && result.success) {
+                this.showSuccess('Đăng nhập Telegram thành công! Đang chuyển hướng...');
+                
+                // Redirect to main app
+                setTimeout(() => {
+                    window.location.href = '/app';
+                }, 1500);
+            } else {
+                throw new Error(result.message || 'Xác thực Telegram thất bại');
+            }
+
+        } catch (error) {
+            console.error('❌ Telegram widget auth error:', error);
+            this.showError(`Lỗi xác thực Telegram: ${error.message}`);
+        }
+    }
+
+    // Legacy method for custom Telegram login (kept for fallback)
+    async handleTelegramLogin() {
+        try {
+            console.log('🚀 Starting Telegram login...');
+            this.setTelegramLoading(true);
+            this.hideMessages();
+
+            // Generate Telegram login URL
+            const response = await fetch(`${this.baseURL}/api/auth/telegram/login`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            console.log('📡 Telegram login response status:', response.status);
+            const result = await response.json();
+            console.log('📋 Telegram login result:', result);
+
+            if (response.ok && result.success) {
+                // Show status message
+                this.showTelegramStatus('Đang chuyển hướng đến Telegram...', 'info');
+                
+                // Open Telegram login in new window
+                const authWindow = window.open(
+                    result.data.loginUrl,
+                    'telegram-auth',
+                    'width=500,height=600,scrollbars=yes,resizable=yes'
+                );
+
+                if (!authWindow) {
+                    throw new Error('Popup bị chặn. Vui lòng cho phép popup và thử lại.');
+                }
+
+                // Store session ID for polling
+                this.telegramSessionId = result.data.sessionId;
+                
+                // Start polling for auth status
+                this.startTelegramAuthPolling(authWindow);
+                
+            } else {
+                throw new Error(result.message || 'Không thể tạo liên kết đăng nhập Telegram');
+            }
+
+        } catch (error) {
+            console.error('❌ Telegram login error:', error);
+            this.showError(`Lỗi đăng nhập Telegram: ${error.message}`);
+        } finally {
+            this.setTelegramLoading(false);
+        }
+    }
+
+    startTelegramAuthPolling(authWindow) {
+        console.log('🔄 Starting Telegram auth polling...');
+        
+        const pollInterval = setInterval(async () => {
+            try {
+                // Check if window is closed
+                if (authWindow.closed) {
+                    clearInterval(pollInterval);
+                    this.showTelegramStatus('Đăng nhập bị hủy', 'error');
+                    return;
+                }
+
+                // Check auth status
+                const response = await fetch(`${this.baseURL}/api/auth/telegram/status/${this.telegramSessionId}`, {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('📊 Telegram auth status:', result);
+
+                    if (result.success && result.data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        authWindow.close();
+                        
+                        this.showTelegramStatus('Đăng nhập thành công!', 'success');
+                        
+                        // Redirect to main app
+                        setTimeout(() => {
+                            window.location.href = '/app-main.html';
+                        }, 1500);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Auth polling error:', error);
+            }
+        }, 2000);
+
+        // Stop polling after 5 minutes
+        setTimeout(() => {
+            clearInterval(pollInterval);
+            if (!authWindow.closed) {
+                authWindow.close();
+                this.showTelegramStatus('Thời gian chờ đăng nhập đã hết', 'error');
+            }
+        }, 5 * 60 * 1000);
+    }
+
+    setTelegramLoading(loading) {
+        const btn = this.elements.telegramLoginBtn;
+        const btnContent = btn.querySelector('.btn-content');
+        const btnLoading = btn.querySelector('.btn-loading');
+
+        if (loading) {
+            btn.disabled = true;
+            btnContent.style.display = 'none';
+            btnLoading.style.display = 'flex';
+        } else {
+            btn.disabled = false;
+            btnContent.style.display = 'flex';
+            btnLoading.style.display = 'none';
+        }
+    }
+
+    showTelegramStatus(message, type = 'info') {
+        // Remove existing status
+        const existingStatus = document.querySelector('.telegram-auth-status');
+        if (existingStatus) {
+            existingStatus.remove();
+        }
+
+        // Create new status element
+        const statusDiv = document.createElement('div');
+        statusDiv.className = `telegram-auth-status ${type}`;
+        
+        const iconMap = {
+            'info': '📱',
+            'success': '✅',
+            'error': '❌'
+        };
+
+        statusDiv.innerHTML = `
+            <div class="status-icon">${iconMap[type] || '📱'}</div>
+            <div class="status-text">${message}</div>
+        `;
+
+        // Insert after telegram login section
+        const telegramSection = document.querySelector('.telegram-login-section');
+        if (telegramSection) {
+            telegramSection.appendChild(statusDiv);
+        }
+
+        // Auto-remove after 5 seconds for info messages
+        if (type === 'info') {
+            setTimeout(() => {
+                if (statusDiv.parentNode) {
+                    statusDiv.remove();
+                }
+            }, 5000);
+        }
     }
 
     async handleSendOTP() {
